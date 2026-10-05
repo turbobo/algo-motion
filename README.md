@@ -26,11 +26,15 @@ npm run dev            # http://localhost:5173
 ## 架构一句话
 
 `/api/instrument`（Vite 中间件本地 / EdgeOne 云函数线上，共用 `cloud-functions/lib`）
-调 DashScope 生成带 `__rec.step` 录制调用的插桩代码 → Web Worker 沙箱执行并跑断言
-→ 帧序列交给播放器渲染。详见 [技术方案文档](./技术方案文档.md) 与 [产品设计文档](./产品设计文档.md)。
+调模型（商汤日日新优先）生成带 `__rec.step` 录制调用的插桩代码 → Web Worker 沙箱执行并跑断言
+→ 帧数据过清洗层归一后交给播放器渲染。详见 [技术方案文档](./技术方案文档.md) 与 [产品设计文档](./产品设计文档.md)。
 
 ## 部署（EdgeOne Pages）
 
 - 构建命令 `npm run build`，输出目录 `dist/`
 - 云函数 `/api/instrument` 需在控制台配置环境变量 `SENSENOVA_API_KEY`（或 `DASHSCOPE_API_KEY`）
 - 使用自定义域名（默认域名返回 401）
+- **配额保护**：该端点消耗你的模型额度，默认只允许同源调用并按客户端限流
+  - `INSTRUMENT_ALLOWED_ORIGINS`：额外允许跨源调用的站点（逗号分隔），默认空
+  - `INSTRUMENT_RATE_LIMIT_PER_HOUR`：每客户端每小时上限，默认 30
+  - 需要硬配额请在 EdgeOne 侧叠加频次控制 / WAF（进程内计数不跨实例）

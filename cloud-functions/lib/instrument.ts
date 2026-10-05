@@ -9,6 +9,8 @@
  * - 否则 DASHSCOPE_API_KEY → DashScope（qwen-plus）
  */
 
+import { redactSecrets } from './guard'
+
 // ===== Provider 抽象 =====
 
 export interface AIProviderConfig {
@@ -27,8 +29,18 @@ const DASHSCOPE_MODEL = 'qwen-plus'
 
 /** 输出上限（商汤网关约束 max_tokens ∈ [1, 65536]）；插桩产物较长 */
 const MAX_OUTPUT_TOKENS = 8192
-/** 请求超时对齐 EdgeOne 云函数 maxDuration=60 */
+/** 单次模型调用超时上限（对齐 EdgeOne 云函数 maxDuration=60） */
 const TIMEOUT_MS = 55_000
+/** 整个插桩请求的总预算：多次尝试 + 退避都要落在这里面，否则函数会被平台掐断 */
+const TOTAL_BUDGET_MS = 52_000
+/** 留给「组装响应 + 网络回传」的安全余量 */
+const ATTEMPT_SAFETY_MS = 2_000
+/** 低于此剩余预算就不值得再开一次调用（模型出一次产物至少要十几秒） */
+const MIN_ATTEMPT_MS = 12_000
+/** 最多 3 次尝试（含格式回灌重试） */
+const MAX_ATTEMPTS = 3
+/** 上游可重试错误（限流 / 5xx / 超时 / 网络抖）的退避步长 */
+const BACKOFF_MS = [800, 2500]
 const MAX_INPUT_CHARS = 8000
 
 /** 按环境变量解析模型服务：SENSENOVA_API_KEY 优先，其次 DASHSCOPE_API_KEY */
@@ -58,11 +70,41 @@ export function resolveProvider(env: Record<string, string | undefined>): AIProv
 
 export class InstrumentError extends Error {
   status: number
-  constructor(status: number, message: string) {
+  /** 可在不改写 messages 的前提下直接重试（限流 / 5xx / 超时 / 网络抖） */
+  retryable: boolean
+  /** 属于「模型输出不合格」，重试前要把失败原因回灌给模型 */
+  feedback: boolean
+  constructor(
+    status: number,
+    message: string,
+    options?: { retryable?: boolean; feedback?: boolean },
+  ) {
     super(message)
     this.status = status
+    this.retryable = options?.retryable ?? false
+    this.feedback = options?.feedback ?? false
   }
 }
+
+/** 模型输出不合格：可重试，且需要把原因回灌给模型 */
+function formatError(message: string): InstrumentError {
+  return new InstrumentError(502, message, { retryable: true, feedback: true })
+}
+
+/** 服务端日志签名（完整细节只留服务端，不外泄给浏览器） */
+export type ServerLog = (message: string, detail?: unknown) => void
+
+const defaultLog: ServerLog = (message, detail) => {
+  if (typeof console !== 'undefined' && typeof console.error === 'function') {
+    console.error(
+      `[instrument] ${message}`,
+      detail === undefined ? '' : redactSecrets(String(detail), 1000),
+    )
+  }
+}
+
+/** 无日志需求时的静默实现（测试用） */
+export const silentLog: ServerLog = () => undefined
 
 export interface InstrumentRequest {
   problem: string
@@ -133,7 +175,7 @@ __rec.step({
 4) 二维表格（DP 填表）：{ kind:'matrix', values:[[...],[...]], rowLabels:[...], colLabels:[...], marks:[{row,col,tone}], activeRow, activeCol, title }
    - 未填入的格写 null（播放器显示为浅点）；行/列下标从 0 开始
    - rowLabels/colLabels 是表头标签（第一项可为空串，与 dp 的第 0 行/列对应）
-   - activeRow/activeCol 渲染当前扫描行的十字弱高亮（每次只给一个当前格 mark）
+   - activeRow/activeCol 渲染当前扫描行列的十字弱高亮（每次只给一个当前格 mark）；表未开始填时写 -1 表示无当前格
 5) 二叉树：{ kind:'tree', nodes:[{id,value}], edges:[[父id,子id,'left'|'right'],...], marks:[{id,tone}], pointers:{标签:节点id|null}, title }
    - id 表示节点身份，跨帧保持稳定（建议 n+值 或用循环编号）；布局由播放器自动计算，无需坐标
 6) 网格（岛屿/迷宫/地图）：{ kind:'grid', cells:[['1','0'],...], marks:[{row,col,tone}], title }
@@ -187,6 +229,11 @@ function extractUpstreamMessage(bodyText: string): string {
   return bodyText.slice(0, 200)
 }
 
+/** 透传给客户端的上游错误：只留可读要点，抹掉 Key 形态字符串并截断 */
+function clientSafeMessage(bodyText: string): string {
+  return redactSecrets(extractUpstreamMessage(bodyText), 160)
+}
+
 /** 构造请求体（导出供测试）；商汤网关只收参数表内字段，请求体保持最小集 */
 export function buildRequestBody(
   provider: AIProviderConfig,
@@ -204,9 +251,22 @@ export function buildRequestBody(
   return body
 }
 
-async function callModel(provider: AIProviderConfig, messages: Message[]): Promise<string> {
+function errMsg(value: unknown): string {
+  return value instanceof Error ? value.message : String(value)
+}
+
+/**
+ * 调用一次模型。timeoutMs 由调用方按「总预算 - 已耗时」给出，
+ * 保证多次尝试相加不会超过云函数 maxDuration。
+ */
+async function callModel(
+  provider: AIProviderConfig,
+  messages: Message[],
+  timeoutMs: number,
+  log: ServerLog,
+): Promise<string> {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const res = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -219,26 +279,35 @@ async function callModel(provider: AIProviderConfig, messages: Message[]): Promi
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
+      log(`上游 ${res.status}`, text)
       if (res.status === 429) {
-        throw new InstrumentError(429, '模型服务繁忙（上游限流），请稍后重试')
+        // 限流是最值得退避重试的一类，状态码原样透传给前端
+        throw new InstrumentError(429, '模型服务繁忙（上游限流），请稍后重试', { retryable: true })
       }
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         throw new InstrumentError(502, '模型服务鉴权失败，请检查服务端 API Key')
       }
-      throw new InstrumentError(502, `模型调用失败（HTTP ${res.status}）：${extractUpstreamMessage(text)}`)
+      throw new InstrumentError(
+        502,
+        `模型调用失败（HTTP ${res.status}）：${clientSafeMessage(text)}`,
+        { retryable: res.status >= 500 },
+      )
     }
     const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> }
     const content = data.choices?.[0]?.message?.content
     if (typeof content !== 'string' || !content.trim()) {
-      throw new InstrumentError(502, '模型返回内容为空')
+      throw new InstrumentError(502, '模型返回内容为空', { retryable: true })
     }
     return content
   } catch (e) {
     if (e instanceof InstrumentError) throw e
     if (e instanceof Error && e.name === 'AbortError') {
-      throw new InstrumentError(504, `模型调用超时（> ${TIMEOUT_MS / 1000}s）`)
+      throw new InstrumentError(504, `模型调用超时（> ${Math.round(timeoutMs / 1000)}s）`, {
+        retryable: true,
+      })
     }
-    throw new InstrumentError(502, `模型调用失败：${e instanceof Error ? e.message : String(e)}`)
+    log('模型调用异常', errMsg(e))
+    throw new InstrumentError(502, `模型调用失败：${redactSecrets(errMsg(e), 160)}`, { retryable: true })
   } finally {
     clearTimeout(timer)
   }
@@ -252,7 +321,7 @@ export function parseModelOutput(content: string): Record<string, unknown> {
   const start = text.indexOf('{')
   const end = text.lastIndexOf('}')
   if (start === -1 || end <= start) {
-    throw new InstrumentError(502, '模型输出不是合法 JSON（找不到 JSON 对象）')
+    throw formatError('模型输出不是合法 JSON（找不到 JSON 对象）')
   }
   try {
     const parsed = JSON.parse(text.slice(start, end + 1)) as unknown
@@ -261,7 +330,7 @@ export function parseModelOutput(content: string): Record<string, unknown> {
     }
     return parsed as Record<string, unknown>
   } catch {
-    throw new InstrumentError(502, '模型输出不是合法 JSON')
+    throw formatError('模型输出不是合法 JSON')
   }
 }
 
@@ -269,14 +338,14 @@ export function parseModelOutput(content: string): Record<string, unknown> {
 export function pickOutput(raw: Record<string, unknown>): InstrumentOutput {
   const fnName = typeof raw.fnName === 'string' ? raw.fnName.trim() : ''
   if (!/^[A-Za-z_$][\w$]*$/.test(fnName)) {
-    throw new InstrumentError(502, '模型输出缺少合法的入口函数名')
+    throw formatError('模型输出缺少合法的入口函数名')
   }
   const instrumentedCode = typeof raw.instrumentedCode === 'string' ? raw.instrumentedCode : ''
   if (!instrumentedCode.includes('__rec.step(')) {
-    throw new InstrumentError(502, '模型输出缺少 __rec.step 插桩代码')
+    throw formatError('模型输出缺少 __rec.step 插桩代码')
   }
   if (!instrumentedCode.includes('__rec.tests(')) {
-    throw new InstrumentError(502, '模型输出缺少 __rec.tests 测试注册')
+    throw formatError('模型输出缺少 __rec.tests 测试注册')
   }
   const rawClean = typeof raw.cleanCode === 'string' ? raw.cleanCode.trim() : ''
   const cleanCode = rawClean && !rawClean.includes('__rec.') ? rawClean : ''
@@ -284,10 +353,29 @@ export function pickOutput(raw: Record<string, unknown>): InstrumentOutput {
   return { fnName, summary, cleanCode, instrumentedCode }
 }
 
+/** 可注入时钟与等待（测试用确定性时间，生产用真实时间） */
+export interface InstrumentOptions {
+  /** 注入时钟（测退避与预算时用确定性时间） */
+  now?: () => number
+  /** 注入等待（避免测试真的睡 800ms） */
+  sleep?: (ms: number) => Promise<void>
+  /** 服务端日志，默认打控制台 */
+  log?: ServerLog
+}
+
+const realSleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
+
 export async function instrumentSolution(
   env: Record<string, string | undefined>,
   req: InstrumentRequest,
+  options: InstrumentOptions = {},
 ): Promise<InstrumentOutput> {
+  const now = options.now ?? Date.now
+  const sleep = options.sleep ?? realSleep
+  const log = options.log ?? defaultLog
+  const startedAt = now()
+  const deadline = startedAt + TOTAL_BUDGET_MS
   const provider = resolveProvider(env)
   if (!provider) {
     throw new InstrumentError(
@@ -308,20 +396,44 @@ export async function instrumentSolution(
     { role: 'user', content: buildUserPrompt(problem, code, req.language) },
   ]
 
-  let lastError: unknown = null
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const content = await callModel(provider, messages)
+  /*
+   * 重试策略（此前只有「输出不合格」会重试，429 / 504 直接冒泡——而那两类恰恰最值得重试）：
+   * - 不可重试（鉴权失败 / 入参非法）→ 立即抛出
+   * - 上游可重试（429 / 5xx / 超时 / 网络抖）→ 退避后重试，不改写 messages
+   * - 输出不合格 → 把原因回灌给模型再问一次
+   * 三条路径共用同一个总预算；预算不足即停止，并把最后一次错误透传给前端。
+   */
+  let lastError: InstrumentError | null = null
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      const wait = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)] ?? 0
+      if (wait > 0) {
+        if (now() + wait + MIN_ATTEMPT_MS > deadline) break
+        await sleep(wait)
+      }
+    }
+    const remaining = deadline - now() - ATTEMPT_SAFETY_MS
+    if (remaining < MIN_ATTEMPT_MS) {
+      log('总预算不足，停止重试', `已用 ${Math.round(now() - startedAt)}ms`)
+      break
+    }
     try {
+      const content = await callModel(provider, messages, Math.min(TIMEOUT_MS, remaining), log)
       return pickOutput(parseModelOutput(content))
     } catch (e) {
-      lastError = e
-      messages.push({
-        role: 'user',
-        content: `你上一次的输出不合格：${e instanceof Error ? e.message : String(e)}。请重新完整输出一次，确保是可直接 JSON.parse 的单个 JSON 对象（所有字段齐全，instrumentedCode 含 __rec.step 与 __rec.tests）。`,
-      })
+      const error =
+        e instanceof InstrumentError
+          ? e
+          : new InstrumentError(502, `插桩失败：${redactSecrets(errMsg(e), 160)}`, { retryable: true })
+      lastError = error
+      if (!error.retryable) throw error
+      if (error.feedback) {
+        messages.push({
+          role: 'user',
+          content: `你上一次的输出不合格：${error.message}。请重新完整输出一次，确保是可直接 JSON.parse 的单个 JSON 对象（所有字段齐全，instrumentedCode 含 __rec.step 与 __rec.tests）。`,
+        })
+      }
     }
   }
-  throw lastError instanceof InstrumentError
-    ? lastError
-    : new InstrumentError(502, '模型连续两次输出不合格，请重试')
+  throw lastError ?? new InstrumentError(502, '模型连续多次输出不合格，请重试')
 }

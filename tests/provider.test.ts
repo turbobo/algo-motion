@@ -6,6 +6,7 @@ import {
   buildRequestBody,
   instrumentSolution,
   resolveProvider,
+  silentLog,
   type AIProviderConfig,
 } from '../cloud-functions/lib/instrument'
 
@@ -92,24 +93,105 @@ describe('instrumentSolution：调用与错误映射（mock fetch）', () => {
     expect(body.response_format).toBeUndefined()
   })
 
-  it('429 → 限流提示（透传 429）', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(new Response('{"error":{"message":"rate limited"}}', { status: 429 })),
+  it('429 → 退避重试到预算用尽，状态码原样透传', async () => {
+    const fetchMock = vi.fn().mockImplementation(async () =>
+      new Response('{"error":{"message":"rate limited"}}', { status: 429 }),
     )
-    await expect(instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req)).rejects.toMatchObject({
-      status: 429,
-    })
+    vi.stubGlobal('fetch', fetchMock)
+    const waits: number[] = []
+    await expect(
+      instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req, {
+        log: silentLog,
+        sleep: async (ms) => {
+          waits.push(ms)
+        },
+      }),
+    ).rejects.toMatchObject({ status: 429 })
+    // 首次 + 两次退避重试；等待时长取自退避表而不是随机数
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(waits).toEqual([800, 2500])
   })
 
-  it('401 → 鉴权失败（映射为 502）', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('unauthorized', { status: 401 })))
-    await expect(instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req)).rejects.toMatchObject({
-      status: 502,
-    })
+  it('401 → 鉴权失败（映射为 502）且不重试', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('unauthorized', { status: 401 }))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(
+      instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req, { log: silentLog }),
+    ).rejects.toMatchObject({ status: 502, retryable: false })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
   it('未配置任何 Key → 500', async () => {
-    await expect(instrumentSolution({}, req)).rejects.toMatchObject({ status: 500 })
+    await expect(instrumentSolution({}, req, { log: silentLog })).rejects.toMatchObject({ status: 500 })
+  })
+
+  it('429 之后恢复：第二次调用即成功返回', async () => {
+    const okResponse = (): Response =>
+      new Response(JSON.stringify({ choices: [{ message: { content: validContent } }] }), { status: 200 })
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('{"error":{"message":"slow down"}}', { status: 429 }))
+      .mockResolvedValueOnce(okResponse())
+    vi.stubGlobal('fetch', fetchMock)
+    const out = await instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req, {
+      log: silentLog,
+      sleep: async () => undefined,
+    })
+    expect(out.fnName).toBe('solve')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('输出不合格 → 把原因回灌给模型再问一次', async () => {
+    // 注意：这里 mock 的是「响应体合法、content 是散文」——真正的输出不合格分支；
+    // 若响应体本身不是 JSON，走的是「模型调用失败」分支（可重试但不回灌原因）
+    const asContent = (text: string): Response =>
+      new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), { status: 200 })
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(asContent('抱歉，我直接给你一段散文，不是 JSON'))
+      .mockResolvedValueOnce(asContent(validContent))
+    vi.stubGlobal('fetch', fetchMock)
+    await instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req, { log: silentLog, sleep: async () => {} })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const call = fetchMock.mock.calls[1] as [string, { body: string }]
+    const second = JSON.parse(call[1].body) as {
+      messages: Array<{ role: string; content: string }>
+    }
+    expect(second.messages).toHaveLength(3)
+    expect(second.messages[2]?.content).toContain('你上一次的输出不合格')
+    expect(second.messages[2]?.content).toContain('不是合法 JSON')
+  })
+
+  it('总预算不足时不再发起新调用（不会把云函数跑到超时）', async () => {
+    let clock = 0
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      clock += 45_000 // 单次调用就吃掉 45s
+      return new Response('{"error":{"message":"boom"}}', { status: 500 })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(
+      instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req, {
+        log: silentLog,
+        now: () => clock,
+        sleep: async () => undefined,
+      }),
+    ).rejects.toMatchObject({ status: 502 })
+    // 第一次用掉 45s 后剩余预算 < 12s 的最小可开阈值，必须停手而不是硬开到被平台掐断
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('上游 5xx 的错误体不外泄密钥形态字符串', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(async () =>
+        new Response(
+          '{"error":{"message":"quota exceeded for sk-abcdefghijklmnop1234"}}',
+          { status: 503 },
+        ),
+      ),
+    )
+    await expect(
+      instrumentSolution({ SENSENOVA_API_KEY: 'k' }, req, { log: silentLog, sleep: async () => {} }),
+    ).rejects.toThrowError(/\[已隐藏\]/)
   })
 })

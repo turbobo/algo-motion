@@ -1,15 +1,60 @@
 /**
  * LLM 插桩核心（dev 代理与 EdgeOne 云函数共用，运行在 Node 侧）
  *
- * 流程：题目 + 解法 → DashScope(qwen-plus) → JSON 产物（cleanCode / instrumentedCode / tests 内联）
+ * 流程：题目 + 解法 → 模型（商汤日日新 / DashScope）→ JSON 产物（cleanCode / instrumentedCode / tests 内联）
  * 失败重试：解析或形状校验失败时，把错误反馈给模型再试一次。
+ *
+ * Provider 按环境变量解析：
+ * - SENSENOVA_API_KEY 存在 → 商汤日日新（默认 token.sensenova.cn/v1 + deepseek-v4-flash）
+ * - 否则 DASHSCOPE_API_KEY → DashScope（qwen-plus）
  */
 
-const DASHSCOPE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
-const MODEL = 'qwen-plus'
-/** 插桩产物较长，给足时间 */
-const TIMEOUT_MS = 120_000
+// ===== Provider 抽象 =====
+
+export interface AIProviderConfig {
+  name: 'sensenova' | 'dashscope'
+  apiKey: string
+  baseUrl: string
+  model: string
+  /** DashScope 支持 response_format: json_object；商汤网关只收参数表内字段，必须省去该参数 */
+  supportsJsonMode: boolean
+}
+
+const DEFAULT_SENSENOVA_BASE_URL = 'https://token.sensenova.cn/v1'
+const DEFAULT_SENSENOVA_MODEL = 'deepseek-v4-flash'
+const DASHSCOPE_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+const DASHSCOPE_MODEL = 'qwen-plus'
+
+/** 输出上限（商汤网关约束 max_tokens ∈ [1, 65536]）；插桩产物较长 */
+const MAX_OUTPUT_TOKENS = 8192
+/** 请求超时对齐 EdgeOne 云函数 maxDuration=60 */
+const TIMEOUT_MS = 55_000
 const MAX_INPUT_CHARS = 8000
+
+/** 按环境变量解析模型服务：SENSENOVA_API_KEY 优先，其次 DASHSCOPE_API_KEY */
+export function resolveProvider(env: Record<string, string | undefined>): AIProviderConfig | null {
+  const sensenovaKey = (env.SENSENOVA_API_KEY ?? '').trim()
+  if (sensenovaKey) {
+    return {
+      name: 'sensenova',
+      apiKey: sensenovaKey,
+      baseUrl: (env.SENSENOVA_BASE_URL ?? DEFAULT_SENSENOVA_BASE_URL).trim().replace(/\/+$/, ''),
+      model: (env.SENSENOVA_MODEL ?? DEFAULT_SENSENOVA_MODEL).trim(),
+      supportsJsonMode: false,
+    }
+  }
+  const dashscopeKey = (env.DASHSCOPE_API_KEY ?? '').trim()
+  if (dashscopeKey) {
+    return {
+      name: 'dashscope',
+      apiKey: dashscopeKey,
+      baseUrl: DASHSCOPE_BASE_URL,
+      model: DASHSCOPE_MODEL,
+      supportsJsonMode: true,
+    }
+  }
+  return null
+}
 
 export class InstrumentError extends Error {
   status: number
@@ -117,27 +162,57 @@ function buildUserPrompt(problem: string, code: string, language?: string): stri
   ].join('\n')
 }
 
-async function callModel(apiKey: string, messages: Message[]): Promise<string> {
+/** 提取上游错误体的可读信息（商汤网关错误体形如 {"error":{"message":"..."}}） */
+function extractUpstreamMessage(bodyText: string): string {
+  try {
+    const parsed = JSON.parse(bodyText) as { error?: { message?: unknown } }
+    const message = parsed?.error?.message
+    if (typeof message === 'string' && message.trim()) return message.trim()
+  } catch {
+    // 非 JSON 错误体，按原文截断
+  }
+  return bodyText.slice(0, 200)
+}
+
+/** 构造请求体（导出供测试）；商汤网关只收参数表内字段，请求体保持最小集 */
+export function buildRequestBody(
+  provider: AIProviderConfig,
+  messages: Message[],
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    model: provider.model,
+    messages,
+    temperature: 0.2,
+    max_tokens: MAX_OUTPUT_TOKENS,
+  }
+  if (provider.supportsJsonMode) {
+    body.response_format = { type: 'json_object' }
+  }
+  return body
+}
+
+async function callModel(provider: AIProviderConfig, messages: Message[]): Promise<string> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
-    const res = await fetch(DASHSCOPE_URL, {
+    const res = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${provider.apiKey}`,
       },
-      body: JSON.stringify({
-        model: MODEL,
-        messages,
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      }),
+      body: JSON.stringify(buildRequestBody(provider, messages)),
       signal: controller.signal,
     })
     if (!res.ok) {
       const text = await res.text().catch(() => '')
-      throw new InstrumentError(502, `模型调用失败（HTTP ${res.status}）：${text.slice(0, 200)}`)
+      if (res.status === 429) {
+        throw new InstrumentError(429, '模型服务繁忙（上游限流），请稍后重试')
+      }
+      if (res.status === 401) {
+        throw new InstrumentError(502, '模型服务鉴权失败，请检查服务端 API Key')
+      }
+      throw new InstrumentError(502, `模型调用失败（HTTP ${res.status}）：${extractUpstreamMessage(text)}`)
     }
     const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> }
     const content = data.choices?.[0]?.message?.content
@@ -197,11 +272,15 @@ export function pickOutput(raw: Record<string, unknown>): InstrumentOutput {
 }
 
 export async function instrumentSolution(
-  apiKey: string | undefined,
+  env: Record<string, string | undefined>,
   req: InstrumentRequest,
 ): Promise<InstrumentOutput> {
-  if (!apiKey) {
-    throw new InstrumentError(500, '服务端未配置 DASHSCOPE_API_KEY 环境变量')
+  const provider = resolveProvider(env)
+  if (!provider) {
+    throw new InstrumentError(
+      500,
+      '服务端未配置模型 Key：请设置 SENSENOVA_API_KEY（商汤日日新）或 DASHSCOPE_API_KEY',
+    )
   }
   const problem = (req.problem ?? '').trim()
   const code = (req.code ?? '').trim()
@@ -218,7 +297,7 @@ export async function instrumentSolution(
 
   let lastError: unknown = null
   for (let attempt = 0; attempt < 2; attempt++) {
-    const content = await callModel(apiKey, messages)
+    const content = await callModel(provider, messages)
     try {
       return pickOutput(parseModelOutput(content))
     } catch (e) {

@@ -46,9 +46,10 @@ export async function onRequest(context: InstrumentContext): Promise<Response> {
     return json({ error: '请求体不是合法 JSON' }, 400)
   }
 
-  const apiKey = typeof process !== 'undefined' ? process.env.DASHSCOPE_API_KEY : undefined
+  // 支持 SENSENOVA_API_KEY（商汤日日新，优先）与 DASHSCOPE_API_KEY（回退），见 lib/instrument.ts
+  const env = typeof process !== 'undefined' ? process.env : {}
   try {
-    const result = await instrumentSolution(apiKey, {
+    const result = await instrumentSolution(env, {
       problem: body.problem ?? '',
       code: body.code ?? '',
       language: body.language,

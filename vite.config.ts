@@ -2,11 +2,11 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 /**
- * 本地开发代理：/api/instrument 直连 DashScope 插桩（复用云函数的 lib/instrument），
- * API Key 从 .env.local 的 DASHSCOPE_API_KEY 读取。
+ * 本地开发代理：/api/instrument 直连模型服务插桩（复用云函数的 lib/instrument），
+ * 传入完整 env：SENSENOVA_API_KEY（商汤日日新，优先）或 DASHSCOPE_API_KEY（回退）。
  * 生产环境该路由由 EdgeOne Cloud Functions 提供，本插件仅在 `vite dev`（apply: 'serve'）生效。
  */
-function instrumentDevProxy(apiKey: string | undefined): Plugin {
+function instrumentDevProxy(env: Record<string, string>): Plugin {
   return {
     name: 'instrument-dev-proxy',
     apply: 'serve',
@@ -30,7 +30,7 @@ function instrumentDevProxy(apiKey: string | undefined): Plugin {
             language?: string
           }
           const mod = await import('./cloud-functions/lib/instrument')
-          const result = await mod.instrumentSolution(apiKey, {
+          const result = await mod.instrumentSolution(env, {
             problem: body.problem ?? '',
             code: body.code ?? '',
             language: body.language,
@@ -52,7 +52,7 @@ function instrumentDevProxy(apiKey: string | undefined): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
-    plugins: [react(), instrumentDevProxy(env.DASHSCOPE_API_KEY)],
+    plugins: [react(), instrumentDevProxy(env)],
     build: { target: 'es2020' },
     worker: { format: 'es' },
   }

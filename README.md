@@ -7,8 +7,8 @@
 
 ```bash
 npm install
-# 本地生成功能需要 DashScope Key（仅放本地，勿提交）
-echo "DASHSCOPE_API_KEY=sk-xxx" > .env.local
+# 本地生成功能需要模型 Key（仅放本地，勿提交）；商汤日日新优先，DashScope 回退
+echo "SENSENOVA_API_KEY=sk-xxx" > .env.local
 npm run dev            # http://localhost:5173
 ```
 
@@ -31,5 +31,5 @@ npm run dev            # http://localhost:5173
 ## 部署（EdgeOne Pages）
 
 - 构建命令 `npm run build`，输出目录 `dist/`
-- 云函数 `/api/instrument` 需在控制台配置环境变量 `DASHSCOPE_API_KEY`
+- 云函数 `/api/instrument` 需在控制台配置环境变量 `SENSENOVA_API_KEY`（或 `DASHSCOPE_API_KEY`）
 - 使用自定义域名（默认域名返回 401）

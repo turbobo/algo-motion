@@ -5,6 +5,8 @@
   "nodeVersion": "20.18.0",
   "framework": "vite",
   "cloudFunctions": {
-    "nodejs": {}
+    "nodejs": {
+      "maxDuration": 60
+    }
   }
 }

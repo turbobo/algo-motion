@@ -118,17 +118,30 @@ __rec.step({
   vars: {...}   // 可选：变量面板 { 变量名: 显示值字符串 }
 });
 
-### 视图对象（三种类型）
-1) 数组/序列：{ kind:'array', values:[...], marks:[{index, tone}], pointers:{标签:索引}, title }
-   - values：当前数组完整值的快照（用 [...arr] 拷贝）
+### 视图对象（按题型选用，可组合多个，每次都给完整快照）
+1) 数组/序列：{ kind:'array', values:[...], marks:[{index, tone}], pointers:{标签:索引}, ranges:[{from, to, label, tone}], title }
+   - values：当前值的完整快照（用 [...arr] 拷贝）
    - tone 取值：'active'(正在处理) / 'ok'(命中或完成) / 'warn'(注意) / 'danger'(冲突) / 'muted'(已排除)
    - pointers：指针标签（i、j、left、right、slow、fast 等）
+   - ranges：滑动窗口/二分区间色带（from/to 为闭区间下标，label 如 "窗口 3"）
+   - 队列也可以用 array 表示（出队后展示剩余元素）
 2) 哈希表/字典：{ kind:'hashmap', entries:[[key,value],...], highlightKeys:[...], title }
    - entries 与 highlightKeys 的键值全部转成字符串（如 ['7','0']）
 3) 链表：{ kind:'linkedlist', nodes:[{id,value}], next:[[fromId, toId|null],...], pointers:{标签:节点id|null}, marks:[{id,tone}], title }
    - nodes 按视觉从左到右排列；id 表示节点身份，同一个节点跨帧必须保持同一个 id（在插桩代码开头用循环给原节点编号，如 const ids = new Map()，遍历时 ids.set(p, 'n'+i)）
    - next 描述当前链的形态（反转会改变它），终点写 null
-   - pointers 的值可以是 null（空指针不绘制）
+4) 二维表格（DP 填表）：{ kind:'matrix', values:[[...],[...]], rowLabels:[...], colLabels:[...], marks:[{row,col,tone}], activeRow, activeCol, title }
+   - 未填入的格写 null（播放器显示为浅点）；行/列下标从 0 开始
+   - rowLabels/colLabels 是表头标签（第一项可为空串，与 dp 的第 0 行/列对应）
+   - activeRow/activeCol 渲染当前扫描行的十字弱高亮（每次只给一个当前格 mark）
+5) 二叉树：{ kind:'tree', nodes:[{id,value}], edges:[[父id,子id,'left'|'right'],...], marks:[{id,tone}], pointers:{标签:节点id|null}, title }
+   - id 表示节点身份，跨帧保持稳定（建议 n+值 或用循环编号）；布局由播放器自动计算，无需坐标
+6) 网格（岛屿/迷宫/地图）：{ kind:'grid', cells:[['1','0'],...], marks:[{row,col,tone}], title }
+   - '1'/'#' 渲染为陆地色块，'0'/'.'/空串 渲染为水色，其他字符显示为文本
+7) 栈：{ kind:'stack', items:[栈底,...,栈顶], marks:[{index,tone}], title }
+   - 栈顶自动渲染在上方；队列用 kind:'array' 表示
+
+组合建议：BFS = grid + array（队列）；迭代中序遍历 = tree + stack；DP = matrix（十字高亮）；滑动窗口 = array（pointer + ranges） + hashmap
 
 ## 插桩节奏（决定动画质量）
 1. 总帧数控制在 10~60 帧之间。

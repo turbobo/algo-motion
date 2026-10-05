@@ -21,6 +21,8 @@ export interface ArrayView {
   marks?: Array<{ index: number; tone: Tone }>
   /** 指针标注：标签 → 索引（如 { i: 2, j: 5 }） */
   pointers?: Record<string, number>
+  /** 区间标记（滑动窗口/二分区间）：格子下方的色带 */
+  ranges?: Array<{ from: number; to: number; label?: string; tone?: Tone }>
   title?: string
 }
 
@@ -54,7 +56,53 @@ export interface LinkedListView {
   title?: string
 }
 
-export type View = ArrayView | HashmapView | LinkedListView
+/** 二维表格视图（DP 填表等）：行头/列头 + 当前行列十字参考线 */
+export interface MatrixView {
+  kind: 'matrix'
+  /** 表格值（null 表示未填）；行 × 列 */
+  values: (string | number | null)[][]
+  /** 行头标签（可选，如 LCS 的行字符；第一项可为空串表示首行是初始行） */
+  rowLabels?: string[]
+  /** 列头标签（可选） */
+  colLabels?: string[]
+  /** 单元格标注 */
+  marks?: Array<{ row: number; col: number; tone: Tone }>
+  /** 当前激活行/列（渲染十字弱高亮，用于展示扫描位置） */
+  activeRow?: number
+  activeCol?: number
+  title?: string
+}
+
+/** 二叉树视图：节点身份用稳定 id；布局由渲染器自动计算（中序序号定 x，深度定 y） */
+export interface TreeView {
+  kind: 'tree'
+  nodes: Array<{ id: string; value: string }>
+  /** 边：[父id, 子id, 左/右] */
+  edges: Array<[string, string, 'left' | 'right']>
+  marks?: Array<{ id: string; tone: Tone }>
+  /** 指针标注：标签 → 节点 id 或 null；null 渲染为节点下方的小 null 标记 */
+  pointers?: Record<string, string | null>
+  title?: string
+}
+
+/** 网格视图（岛屿/迷宫等）：'1'/'#' 等实体格与 '0'/'.' 空格自动着色 */
+export interface GridView {
+  kind: 'grid'
+  cells: (string | number)[][]
+  marks?: Array<{ row: number; col: number; tone: Tone }>
+  title?: string
+}
+
+/** 栈视图（垂直堆叠，栈顶在上） */
+export interface StackView {
+  kind: 'stack'
+  /** 从栈底到栈顶 */
+  items: (string | number)[]
+  marks?: Array<{ index: number; tone: Tone }>
+  title?: string
+}
+
+export type View = ArrayView | HashmapView | LinkedListView | MatrixView | TreeView | GridView | StackView
 
 // ===== 帧 =====
 

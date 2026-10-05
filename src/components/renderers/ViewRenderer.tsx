@@ -1,8 +1,12 @@
 /** 视图分发器：按 kind 渲染对应视图 */
 import type { View } from '../../types'
 import { ArrayView } from './ArrayView'
+import { GridView } from './GridView'
 import { HashmapView } from './HashmapView'
 import { LinkedListView } from './LinkedListView'
+import { MatrixView } from './MatrixView'
+import { StackView } from './StackView'
+import { TreeView } from './TreeView'
 
 export function ViewRenderer({ view }: { view: View }) {
   switch (view.kind) {
@@ -12,5 +16,13 @@ export function ViewRenderer({ view }: { view: View }) {
       return <HashmapView view={view} />
     case 'linkedlist':
       return <LinkedListView view={view} />
+    case 'matrix':
+      return <MatrixView view={view} />
+    case 'tree':
+      return <TreeView view={view} />
+    case 'grid':
+      return <GridView view={view} />
+    case 'stack':
+      return <StackView view={view} />
   }
 }

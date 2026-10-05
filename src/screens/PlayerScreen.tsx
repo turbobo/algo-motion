@@ -6,7 +6,9 @@
  * 切换用例时播放状态自然重置。
  */
 import { useEffect, useState } from 'react'
-import type { AlgorithmCase, Frame } from '../types'
+import type { AlgorithmCase, Frame, FrameDiagnostics } from '../types'
+import { describeDiagnostics, hasDiagnostics } from '../engine/sanitize'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { usePlayer } from '../hooks/usePlayer'
 import { CodePanel } from '../components/player/CodePanel'
 import { PlaybackBar } from '../components/player/PlaybackBar'
@@ -16,6 +18,11 @@ import { VarsPanel } from '../components/player/VarsPanel'
 interface Props {
   algoCase: AlgorithmCase
   onBack: () => void
+}
+
+/** 诊断摘要（无异常时返回空数组，徽章不展示） */
+function diagnosticLines(diag: FrameDiagnostics | undefined): string[] {
+  return hasDiagnostics(diag) ? describeDiagnostics(diag as FrameDiagnostics) : []
 }
 
 /** 默认播放：第一个「通过且产帧」的用例 */
@@ -59,6 +66,8 @@ interface InnerProps {
 function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack }: InnerProps) {
   const { cursor, playing, speed, setSpeed, next, prev, seek, toggle, setPlaying } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
+  const diagLines = diagnosticLines(algoCase.diagnostics)
+  const diagCount = diagLines.reduce((sum, line) => sum + (Number(line.match(/\d+/)?.[0]) ?? 0), 0)
 
   // 进入后自动开播（给舞台一点时间渲染首帧）
   useEffect(() => {
@@ -87,6 +96,15 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
         >
           用例校验 {passedCount}/{algoCase.tests.length}
         </span>
+        {diagCount > 0 ? (
+          /* 沙箱对不可信帧数据的修复统计：异常不静默，但也不阻断播放 */
+          <span
+            className="shrink-0 rounded-full border border-warn/40 bg-warn/10 px-2.5 py-1 font-mono text-[11px] text-warn"
+            title={diagLines.join('\n')}
+          >
+            已清洗 {diagCount} 处
+          </span>
+        ) : null}
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-3 lg:flex-row">
@@ -106,7 +124,10 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
         {/* 舞台列 */}
         <section className="order-1 flex min-h-0 flex-1 flex-col gap-3 lg:order-2">
           <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-white/8 bg-bg/60 p-3 md:p-4">
-            <StageView frame={frame} />
+            {/* 单帧视图出错只影响舞台，翻帧（cursor 变化）自动恢复 */}
+            <ErrorBoundary resetKey={cursor} label="舞台">
+              <StageView frame={frame} />
+            </ErrorBoundary>
           </div>
 
           {/* 讲解条 */}

@@ -15,5 +15,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.worker.ts", "src/engine/protocol.ts", "src/types.ts"]
+  "include": ["src/**/*.worker.ts", "src/engine/protocol.ts", "src/engine/sanitize.ts", "src/types.ts"]
 }

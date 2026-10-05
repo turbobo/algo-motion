@@ -33,6 +33,7 @@ export default function App() {
         result: sample.result,
         framesByTest,
         tests: run.tests,
+        diagnostics: run.diagnostics,
       })
     } finally {
       setLoading(false)
@@ -60,6 +61,7 @@ export default function App() {
         result,
         framesByTest,
         tests: run.tests,
+        diagnostics: run.diagnostics,
       })
     } catch (e) {
       setError(e instanceof Error ? e.message : '生成失败')

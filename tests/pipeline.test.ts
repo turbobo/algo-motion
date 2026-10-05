@@ -8,6 +8,12 @@
  */
 import { describe, expect, it } from 'vitest'
 import { runInstrumented, stripInstrumentLines, resolveLineNumbers } from '../src/engine/protocol'
+import { emptyDiagnostics, hasDiagnostics, sanitizeView } from '../src/engine/sanitize'
+
+/** 便于在 Object.entries 循环里复用清洗层入口 */
+function requireZero(): { sanitizeView: typeof sanitizeView; emptyDiagnostics: typeof emptyDiagnostics } {
+  return { sanitizeView, emptyDiagnostics }
+}
 import { SAMPLES } from '../src/samples'
 import { parseModelOutput, pickOutput } from '../cloud-functions/lib/instrument'
 
@@ -32,6 +38,42 @@ describe('内置样题：插桩产物可执行且帧可解析', () => {
       expect(frames.every((f) => Object.keys(f.views).length > 0)).toBe(true)
     })
   }
+})
+
+/**
+ * 内置样题是「协议合规」的基准线：手写插桩代码必须一个异常都触不发，
+ * 否则说明清洗层的判定尺度与 System Prompt / 渲染器约定不一致（先于 LLM 暴露问题）。
+ */
+describe('内置样题不应触发任何帧清洗', () => {
+  for (const sample of SAMPLES) {
+    it(`${sample.title}：诊断记录为空`, () => {
+      const run = runInstrumented({
+        instrumentedCode: sample.result.instrumentedCode,
+        fnName: sample.result.fnName,
+      })
+      expect(run.ok).toBe(true)
+      expect(hasDiagnostics(run.diagnostics)).toBe(false)
+    })
+  }
+
+  it('七种视图 kind 全部被清洗层识别', () => {
+    const minimal: Record<string, Record<string, unknown>> = {
+      array: { kind: 'array', values: [1] },
+      hashmap: { kind: 'hashmap', entries: [['a', '1']] },
+      linkedlist: { kind: 'linkedlist', nodes: [{ id: 'n0', value: '1' }], next: [['n0', null]] },
+      matrix: { kind: 'matrix', values: [[1]] },
+      grid: { kind: 'grid', cells: [['1']] },
+      stack: { kind: 'stack', items: [1] },
+      tree: { kind: 'tree', nodes: [{ id: 'n0', value: '1' }], edges: [] },
+    }
+    const { sanitizeView, emptyDiagnostics } = requireZero()
+    for (const [kind, raw] of Object.entries(minimal)) {
+      const diag = emptyDiagnostics()
+      const view = sanitizeView(raw, diag)
+      expect(view?.kind, `${kind} 应被识别`).toBe(kind)
+      expect(diag.repairedViews, `${kind} 干净数据不应被判修复`).toBe(0)
+    }
+  })
 })
 
 describe('stripInstrumentLines：剥离插桩行得到展示代码', () => {

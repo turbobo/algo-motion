@@ -67,7 +67,7 @@ export interface MatrixView {
   colLabels?: string[]
   /** 单元格标注 */
   marks?: Array<{ row: number; col: number; tone: Tone }>
-  /** 当前激活行/列（渲染十字弱高亮，用于展示扫描位置） */
+  /** 当前激活行/列（渲染十字弱高亮，用于展示扫描位置）；-1 或省略表示无当前格 */
   activeRow?: number
   activeCol?: number
   title?: string
@@ -145,6 +145,23 @@ export interface TestOutcome {
   frameCount: number
 }
 
+/**
+ * 帧清洗诊断：沙箱对不可信插桩数据的修复统计。
+ * 不为零时播放页透明提示（与「用例校验 N/M」徽章同一设计取向）。
+ */
+export interface FrameDiagnostics {
+  /** 超出帧数上限被丢弃的帧数 */
+  droppedFrames: number
+  /** 结构非法（不是对象 / 读取时抛错）被整帧丢弃的数量 */
+  invalidFrames: number
+  /** 视图被整体剔除的数量（未知 kind / 必填字段非法 / 超出单帧视图上限） */
+  droppedViews: number
+  /** 视图字段被修正或截断的数量（越界索引、重复键、超长集合、类型归一） */
+  repairedViews: number
+  /** 超出上限或非法的测试用例被丢弃数量 */
+  droppedTests: number
+}
+
 /** 沙箱执行结果 */
 export interface RunResult {
   ok: boolean
@@ -153,6 +170,8 @@ export interface RunResult {
   tests: TestOutcome[]
   /** 整体执行错误（代码编译失败、未注册测试等） */
   error?: string
+  /** 帧清洗诊断（执行失败时可能缺失） */
+  diagnostics?: FrameDiagnostics
 }
 
 // ===== LLM 插桩产物 =====
@@ -181,4 +200,6 @@ export interface AlgorithmCase {
   /** 分层帧序列（按测试用例分组，已解析行号） */
   framesByTest: Frame[][]
   tests: TestOutcome[]
+  /** 沙箱帧清洗诊断（有异常时才提示用户） */
+  diagnostics?: FrameDiagnostics
 }

@@ -1,12 +1,21 @@
 /**
  * 沙箱协议核心（纯逻辑，主线程与 Web Worker 两侧共用）
  *
- * 三个职责：
+ * 四个职责：
  * 1. runInstrumented —— 在隔离环境执行插桩代码：注入 __rec、运行测试、收集帧
- * 2. stripInstrumentLines —— 剥离 __rec 调用行，还原「展示代码」
- * 3. resolveLineNumbers —— 用 at 锚点在展示代码上顺序解析帧行号
+ * 2. sanitize.ts（独立模块）—— 把不可信帧数据清洗成渲染层可无条件信任的结构
+ * 3. stripInstrumentLines —— 剥离 __rec 调用行，还原「展示代码」
+ * 4. resolveLineNumbers —— 用 at 锚点在展示代码上顺序解析帧行号
  */
-import type { Frame, RawFrame, RunResult, TestOutcome, TestSpec } from '../types'
+import type {
+  Frame,
+  FrameDiagnostics,
+  RawFrame,
+  RunResult,
+  TestOutcome,
+  TestSpec,
+} from '../types'
+import { emptyDiagnostics, MAX_TESTS, MAX_TOTAL_FRAMES, sanitizeFrame } from './sanitize'
 
 // ===== Worker 消息协议 =====
 
@@ -23,6 +32,7 @@ export interface WorkerResponse {
 
 /** 单组帧数量上限（防插桩过密导致内存膨胀） */
 export const MAX_FRAMES_PER_GROUP = 500
+
 
 // ===== 工具 =====
 
@@ -126,6 +136,17 @@ interface RecorderState {
   frameGroups: RawFrame[][]
   tests: TestSpec[]
   active: number
+  /** 累计入组帧数（跨用例，用于全局上限） */
+  total: number
+}
+
+/** 用例必须是带同步 run 函数的对象（非法定性的直接过滤掉，不留到运行时抛错） */
+function isTestSpec(value: unknown): value is TestSpec {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    typeof (value as { run?: unknown }).run === 'function'
+  )
 }
 
 /**
@@ -134,15 +155,30 @@ interface RecorderState {
  * 每个用例在 run() 内构造输入 → 调用解法 → 断言（失败 throw）。
  */
 export function runInstrumented(req: WorkerRequest): RunResult {
-  const state: RecorderState = { frameGroups: [], tests: [], active: -1 }
+  const diagnostics: FrameDiagnostics = emptyDiagnostics()
+  const state: RecorderState = { frameGroups: [], tests: [], active: -1, total: 0 }
 
   const rec = {
-    step: (frame: RawFrame): void => {
+    /** 入参完全由 LLM 生成的代码提供：先清洗再入组，异常数据永不进渲染层 */
+    step: (frame: unknown): void => {
       const group = state.frameGroups[state.active]
-      if (group && group.length < MAX_FRAMES_PER_GROUP) group.push(frame)
+      if (!group) return
+      if (group.length >= MAX_FRAMES_PER_GROUP || state.total >= MAX_TOTAL_FRAMES) {
+        diagnostics.droppedFrames++
+        return
+      }
+      const clean = sanitizeFrame(frame, diagnostics)
+      if (!clean) return // sanitizeFrame 已计入 invalidFrames
+      group.push(clean)
+      state.total++
     },
-    tests: (list: TestSpec[]): void => {
-      state.tests = Array.isArray(list) ? list : []
+    tests: (list: unknown): void => {
+      if (!Array.isArray(list)) return
+      const shaped = list.filter(isTestSpec)
+      diagnostics.droppedTests += Math.max(list.length - shaped.length, 0)
+      const kept = shaped.slice(0, MAX_TESTS)
+      diagnostics.droppedTests += Math.max(shaped.length - kept.length, 0)
+      state.tests = kept
     },
   }
 
@@ -154,23 +190,34 @@ export function runInstrumented(req: WorkerRequest): RunResult {
     )
     fn = factory(rec)
   } catch (e) {
-    return { ok: false, frameGroups: [], tests: [], error: `代码无法编译：${errMsg(e)}` }
+    return { ok: false, frameGroups: [], tests: [], diagnostics, error: `代码无法编译：${errMsg(e)}` }
   }
   if (typeof fn !== 'function') {
-    return { ok: false, frameGroups: [], tests: [], error: `未找到入口函数 ${req.fnName}` }
+    return {
+      ok: false,
+      frameGroups: [],
+      tests: [],
+      diagnostics,
+      error: `未找到入口函数 ${req.fnName}`,
+    }
   }
   if (state.tests.length === 0) {
-    return { ok: false, frameGroups: [], tests: [], error: '插桩代码未通过 __rec.tests([...]) 注册测试用例' }
+    return {
+      ok: false,
+      frameGroups: [],
+      tests: [],
+      diagnostics,
+      error: '插桩代码未通过 __rec.tests([...]) 注册可用的测试用例',
+    }
   }
 
   state.frameGroups = state.tests.map(() => [])
   const outcomes: TestOutcome[] = []
-  for (let i = 0; i < state.tests.length; i++) {
-    const spec = state.tests[i]
-    const label = typeof spec?.label === 'string' ? spec.label : `用例 ${i + 1}`
+  // 用 entries() 而非下标取值：isTestSpec 已过滤非法项，这里 spec 必然可用
+  for (const [i, spec] of state.tests.entries()) {
+    const label = typeof spec.label === 'string' ? spec.label : `用例 ${i + 1}`
     state.active = i
     try {
-      if (!spec || typeof spec.run !== 'function') throw new Error('用例缺少 run 函数')
       const ret = spec.run() as unknown
       if (ret && typeof (ret as { then?: unknown }).then === 'function') {
         throw new Error('测试用例必须同步执行（run 不能是 async）')
@@ -186,5 +233,5 @@ export function runInstrumented(req: WorkerRequest): RunResult {
       })
     }
   }
-  return { ok: true, frameGroups: state.frameGroups, tests: outcomes }
+  return { ok: true, frameGroups: state.frameGroups, tests: outcomes, diagnostics }
 }

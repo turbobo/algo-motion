@@ -14,14 +14,15 @@ function reverseList(head) {
     nodes: [...ids.entries()].map(([p, id]) => ({ id: id, value: String(p.val) })),
     next: [...ids.entries()].map(([p, id]) => [id, idOf(p.next)]),
     pointers: pointers,
-    marks: marks || [],
+    // 空链表等场景下 idOf() 返回 null，这类幽灵标注直接不画
+    marks: (marks || []).filter((m) => m && m.id),
     title: '链表',
   });
   __rec.step({
     at: 'let prev = null',
     msg: '先摆好两个指针：prev = null（反转后它将成为表尾），curr = 表头，从第一个节点开始处理。',
     views: {
-      list: snap({ prev: null, curr: 'n1' }, []),
+      list: snap({ prev: null, curr: idOf(head) }, []),
     },
     vars: { prev: 'null', curr: '链头' },
   });

@@ -102,6 +102,8 @@ import minPathSumInstrumented from './raw/minPathSum.js?raw'
 import longestPalindromeInstrumented from './raw/longestPalindrome.js?raw'
 import editDistanceInstrumented from './raw/editDistance.js?raw'
 import longestValidParenthesesInstrumented from './raw/longestValidParentheses.js?raw'
+import searchInsertInstrumented from './raw/searchInsert.js?raw'
+import nQueensInstrumented from './raw/nQueens.js?raw'
 
 export interface Sample {
   id: string
@@ -2311,6 +2313,57 @@ const LONGEST_VALID_PAREN_SOURCE = [
   '}',
 ].join('\n')
 
+const SEARCH_INSERT_SOURCE = [
+  'function searchInsert(nums, target) {',
+  '  let lo = 0;',
+  '  let hi = nums.length - 1;',
+  '  while (lo <= hi) {',
+  '    const mid = Math.floor((lo + hi) / 2);',
+  '    if (nums[mid] === target) {',
+  '      return mid;',
+  '    }',
+  '    if (nums[mid] < target) {',
+  '      lo = mid + 1;',
+  '    } else {',
+  '      hi = mid - 1;',
+  '    }',
+  '  }',
+  '  return lo;',
+  '}',
+].join('\n')
+
+const N_QUEENS_SOURCE = [
+  'function solveNQueens(n) {',
+  '  const res = [];',
+  '  const cols = new Set();',
+  '  const diag1 = new Set();',
+  '  const diag2 = new Set();',
+  "  const board = Array.from({ length: n }, () => new Array(n).fill('.'));",
+  '  const backtrack = (r) => {',
+  '    if (r === n) {',
+  "      res.push(board.map((row) => row.join('')));",
+  '      return;',
+  '    }',
+  '    for (let c = 0; c < n; c++) {',
+  '      if (cols.has(c) || diag1.has(r + c) || diag2.has(r - c)) {',
+  '        continue;',
+  '      }',
+  '      cols.add(c);',
+  '      diag1.add(r + c);',
+  '      diag2.add(r - c);',
+  "      board[r][c] = 'Q';",
+  '      backtrack(r + 1);',
+  "      board[r][c] = '.';",
+  '      cols.delete(c);',
+  '      diag1.delete(r + c);',
+  '      diag2.delete(r - c);',
+  '    }',
+  '  };',
+  '  backtrack(0);',
+  '  return res;',
+  '}',
+].join('\n')
+
 export const SAMPLES: Sample[] = [
   {
     id: 'two-sum',
@@ -3587,6 +3640,32 @@ export const SAMPLES: Sample[] = [
       instrumentedCode: longestValidParenthesesInstrumented,
       fnName: 'longestValidParentheses',
       summary: '栈底哨兵：存未配对下标，弹栈后 i − 栈顶即有效长度',
+    },
+  },
+  {
+    id: 'search-insert',
+    title: '35. 搜索插入位置',
+    problem:
+      '给定一个排序数组和一个目标值，在数组中找到目标值并返回其索引；目标值不存在于数组中，返回它将会被按顺序插入的位置。示例：[1,3,5,6], 5 → 2；[1,3,5,6], 2 → 1。',
+    sourceCode: SEARCH_INSERT_SOURCE,
+    result: {
+      displayCode: SEARCH_INSERT_SOURCE,
+      instrumentedCode: searchInsertInstrumented,
+      fnName: 'searchInsert',
+      summary: '二分查找：窗口收缩到空时 lo 即插入位',
+    },
+  },
+  {
+    id: 'n-queens',
+    title: '51. N 皇后',
+    problem:
+      '按照国际象棋的规则，皇后可以攻击同一行、同一列、同一斜线上的棋子。将 n 个皇后放置在 n×n 的棋盘上，使彼此之间不能相互攻击，返回所有不同的解决方案。示例：n=4 → 2 种解。',
+    sourceCode: N_QUEENS_SOURCE,
+    result: {
+      displayCode: N_QUEENS_SOURCE,
+      instrumentedCode: nQueensInstrumented,
+      fnName: 'solveNQueens',
+      summary: '回溯 + 三集合剪枝：列 / 主对角 / 副对角冲突即时跳过',
     },
   },
 ]

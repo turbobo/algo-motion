@@ -46,6 +46,20 @@ import copyRandomListInstrumented from './raw/copyRandomList.js?raw'
 import sortListInstrumented from './raw/sortList.js?raw'
 import mergeKListsInstrumented from './raw/mergeKLists.js?raw'
 import lruCacheInstrumented from './raw/lruCache.js?raw'
+import maxDepthInstrumented from './raw/maxDepth.js?raw'
+import invertTreeInstrumented from './raw/invertTree.js?raw'
+import isSymmetricInstrumented from './raw/isSymmetric.js?raw'
+import levelOrderInstrumented from './raw/levelOrder.js?raw'
+import sortedArrayToBSTInstrumented from './raw/sortedArrayToBST.js?raw'
+import isValidBSTInstrumented from './raw/isValidBST.js?raw'
+import kthSmallestInstrumented from './raw/kthSmallest.js?raw'
+import rightSideViewInstrumented from './raw/rightSideView.js?raw'
+import buildTreePreInInstrumented from './raw/buildTreePreIn.js?raw'
+import flattenInstrumented from './raw/flatten.js?raw'
+import lowestCommonAncestorInstrumented from './raw/lowestCommonAncestor.js?raw'
+import diameterOfBinaryTreeInstrumented from './raw/diameterOfBinaryTree.js?raw'
+import pathSum3Instrumented from './raw/pathSum3.js?raw'
+import maxPathSumInstrumented from './raw/maxPathSum.js?raw'
 
 export interface Sample {
   id: string
@@ -953,6 +967,288 @@ const LRU_CACHE_SOURCE = [
   '}',
 ].join('\n')
 
+const MAX_DEPTH_SOURCE = [
+  'function maxDepth(root) {',
+  '  if (root === null) {',
+  '    return 0;',
+  '  }',
+  '  const left = maxDepth(root.left);',
+  '  const right = maxDepth(root.right);',
+  '  return Math.max(left, right) + 1;',
+  '}',
+].join('\n')
+
+const INVERT_TREE_SOURCE = [
+  'function invertTree(root) {',
+  '  if (root === null) {',
+  '    return null;',
+  '  }',
+  '  const tmp = root.left;',
+  '  root.left = root.right;',
+  '  root.right = tmp;',
+  '  invertTree(root.left);',
+  '  invertTree(root.right);',
+  '  return root;',
+  '}',
+].join('\n')
+
+const IS_SYMMETRIC_SOURCE = [
+  'function isSymmetric(root) {',
+  '  if (root === null) {',
+  '    return true;',
+  '  }',
+  '  const check = (a, b) => {',
+  '    if (a === null && b === null) {',
+  '      return true;',
+  '    }',
+  '    if (a === null || b === null || a.val !== b.val) {',
+  '      return false;',
+  '    }',
+  '    return check(a.left, b.right) && check(a.right, b.left);',
+  '  };',
+  '  return check(root.left, root.right);',
+  '}',
+].join('\n')
+
+const LEVEL_ORDER_SOURCE = [
+  'function levelOrder(root) {',
+  '  const res = [];',
+  '  if (root === null) {',
+  '    return [];',
+  '  }',
+  '  const queue = [root];',
+  '  while (queue.length > 0) {',
+  '    const levelSize = queue.length;',
+  '    const level = [];',
+  '    for (let i = 0; i < levelSize; i++) {',
+  '      const node = queue.shift();',
+  '      level.push(node.val);',
+  '      if (node.left !== null) {',
+  '        queue.push(node.left);',
+  '      }',
+  '      if (node.right !== null) {',
+  '        queue.push(node.right);',
+  '      }',
+  '    }',
+  '    res.push(level);',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const SORTED_ARRAY_TO_BST_SOURCE = [
+  'function sortedArrayToBST(nums) {',
+  '  if (nums.length === 0) {',
+  '    return null;',
+  '  }',
+  '  const build = (lo, hi) => {',
+  '    if (lo > hi) {',
+  '      return null;',
+  '    }',
+  '    const mid = Math.floor((lo + hi) / 2);',
+  '    const node = { val: nums[mid], left: null, right: null };',
+  '    node.left = build(lo, mid - 1);',
+  '    node.right = build(mid + 1, hi);',
+  '    return node;',
+  '  };',
+  '  return build(0, nums.length - 1);',
+  '}',
+].join('\n')
+
+const IS_VALID_BST_SOURCE = [
+  'function isValidBST(root) {',
+  '  let prev = null;',
+  '  let ok = true;',
+  '  const inorder = (node) => {',
+  '    if (node === null || !ok) {',
+  '      return;',
+  '    }',
+  '    inorder(node.left);',
+  '    if (prev !== null && prev.val >= node.val) {',
+  '      ok = false;',
+  '      return;',
+  '    }',
+  '    prev = node;',
+  '    inorder(node.right);',
+  '  };',
+  '  inorder(root);',
+  '  return ok;',
+  '}',
+].join('\n')
+
+const KTH_SMALLEST_SOURCE = [
+  'function kthSmallest(root, k) {',
+  '  const stack = [];',
+  '  let cur = root;',
+  '  let remaining = k;',
+  '  while (cur !== null || stack.length > 0) {',
+  '    while (cur !== null) {',
+  '      stack.push(cur);',
+  '      cur = cur.left;',
+  '    }',
+  '    cur = stack.pop();',
+  '    remaining--;',
+  '    if (remaining === 0) {',
+  '      return cur.val;',
+  '    }',
+  '    cur = cur.right;',
+  '  }',
+  '  return -1;',
+  '}',
+].join('\n')
+
+const RIGHT_SIDE_VIEW_SOURCE = [
+  'function rightSideView(root) {',
+  '  const res = [];',
+  '  if (root === null) {',
+  '    return [];',
+  '  }',
+  '  const queue = [root];',
+  '  while (queue.length > 0) {',
+  '    const levelSize = queue.length;',
+  '    for (let i = 0; i < levelSize; i++) {',
+  '      const node = queue.shift();',
+  '      if (i === levelSize - 1) {',
+  '        res.push(node.val);',
+  '      }',
+  '      if (node.left !== null) {',
+  '        queue.push(node.left);',
+  '      }',
+  '      if (node.right !== null) {',
+  '        queue.push(node.right);',
+  '      }',
+  '    }',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const BUILD_TREE_PRE_IN_SOURCE = [
+  'function buildTree(preorder, inorder) {',
+  '  if (preorder.length === 0) {',
+  '    return null;',
+  '  }',
+  '  const indexOf = new Map();',
+  '  for (let i = 0; i < inorder.length; i++) {',
+  '    indexOf.set(inorder[i], i);',
+  '  }',
+  '  const build = (preLo, preHi, inLo, inHi) => {',
+  '    if (preLo > preHi) {',
+  '      return null;',
+  '    }',
+  '    const rootVal = preorder[preLo];',
+  '    const node = { val: rootVal, left: null, right: null };',
+  '    const inRoot = indexOf.get(rootVal);',
+  '    const leftSize = inRoot - inLo;',
+  '    node.left = build(preLo + 1, preLo + leftSize, inLo, inRoot - 1);',
+  '    node.right = build(preLo + leftSize + 1, preHi, inRoot + 1, inHi);',
+  '    return node;',
+  '  };',
+  '  return build(0, preorder.length - 1, 0, inorder.length - 1);',
+  '}',
+].join('\n')
+
+const FLATTEN_SOURCE = [
+  'function flatten(root) {',
+  '  if (root === null) {',
+  '    return root;',
+  '  }',
+  '  const nodes = [];',
+  '  const preorder = (node) => {',
+  '    if (node === null) {',
+  '      return;',
+  '    }',
+  '    nodes.push(node);',
+  '    preorder(node.left);',
+  '    preorder(node.right);',
+  '  };',
+  '  preorder(root);',
+  '  for (let i = 0; i < nodes.length - 1; i++) {',
+  '    nodes[i].left = null;',
+  '    nodes[i].right = nodes[i + 1];',
+  '  }',
+  '  if (nodes.length > 0) {',
+  '    nodes[nodes.length - 1].left = null;',
+  '    nodes[nodes.length - 1].right = null;',
+  '  }',
+  '  return root;',
+  '}',
+].join('\n')
+
+const LOWEST_COMMON_ANCESTOR_SOURCE = [
+  'function lowestCommonAncestor(root, p, q) {',
+  '  const dfs = (node) => {',
+  '    if (node === null || node === p || node === q) {',
+  '      return node;',
+  '    }',
+  '    const left = dfs(node.left);',
+  '    const right = dfs(node.right);',
+  '    if (left !== null && right !== null) {',
+  '      return node;',
+  '    }',
+  '    return left !== null ? left : right;',
+  '  };',
+  '  return dfs(root);',
+  '}',
+].join('\n')
+
+const DIAMETER_OF_BINARY_TREE_SOURCE = [
+  'function diameterOfBinaryTree(root) {',
+  '  let best = 0;',
+  '  const depth = (node) => {',
+  '    if (node === null) {',
+  '      return 0;',
+  '    }',
+  '    const l = depth(node.left);',
+  '    const r = depth(node.right);',
+  '    best = Math.max(best, l + r);',
+  '    return Math.max(l, r) + 1;',
+  '  };',
+  '  depth(root);',
+  '  return best;',
+  '}',
+].join('\n')
+
+const PATH_SUM_3_SOURCE = [
+  'function pathSum(root, targetSum) {',
+  '  let count = 0;',
+  '  const prefix = new Map();',
+  '  prefix.set(0, 1);',
+  '  const dfs = (node, sum) => {',
+  '    if (node === null) {',
+  '      return;',
+  '    }',
+  '    sum += node.val;',
+  '    if (prefix.has(sum - targetSum)) {',
+  '      count += prefix.get(sum - targetSum);',
+  '    }',
+  '    prefix.set(sum, (prefix.get(sum) || 0) + 1);',
+  '    dfs(node.left, sum);',
+  '    dfs(node.right, sum);',
+  '    prefix.set(sum, prefix.get(sum) - 1);',
+  '  };',
+  '  dfs(root, 0);',
+  '  return count;',
+  '}',
+].join('\n')
+
+const MAX_PATH_SUM_SOURCE = [
+  'function maxPathSum(root) {',
+  '  let best = -Infinity;',
+  '  const gain = (node) => {',
+  '    if (node === null) {',
+  '      return 0;',
+  '    }',
+  '    const left = Math.max(gain(node.left), 0);',
+  '    const right = Math.max(gain(node.right), 0);',
+  '    best = Math.max(best, node.val + left + right);',
+  '    return node.val + Math.max(left, right);',
+  '  };',
+  '  gain(root);',
+  '  return best;',
+  '}',
+].join('\n')
+
 export const SAMPLES: Sample[] = [
   {
     id: 'two-sum',
@@ -1510,6 +1806,188 @@ export const SAMPLES: Sample[] = [
       instrumentedCode: lruCacheInstrumented,
       fnName: 'LRUCache',
       summary: '哈希表 + 使用顺序表：get/put 都把 key 挪到最近端，满则淘汰最旧',
+    },
+  },
+  {
+    id: 'max-depth',
+    title: '104. 二叉树的最大深度',
+    problem:
+      '给定一个二叉树 root，返回其最大深度（从根节点到最远叶子节点的最长路径上的节点数）。',
+    sourceCode: MAX_DEPTH_SOURCE,
+    result: {
+      displayCode: MAX_DEPTH_SOURCE,
+      instrumentedCode: maxDepthInstrumented,
+      fnName: 'maxDepth',
+      summary: '后序递归：子树深度先算出，父节点 = max(左, 右) + 1',
+    },
+  },
+  {
+    id: 'invert-tree',
+    title: '226. 翻转二叉树',
+    problem:
+      '给你一棵二叉树的根节点 root，翻转这棵二叉树（左右子树互换），并返回其根节点。示例：[4,2,7,1,3,6,9] → [4,7,2,9,6,3,1]。',
+    sourceCode: INVERT_TREE_SOURCE,
+    result: {
+      displayCode: INVERT_TREE_SOURCE,
+      instrumentedCode: invertTreeInstrumented,
+      fnName: 'invertTree',
+      summary: '递归交换每个节点的左右孩子，树形态实时镜像翻转',
+    },
+  },
+  {
+    id: 'is-symmetric',
+    title: '101. 对称二叉树',
+    problem:
+      '给你一个二叉树的根节点 root，检查它是否轴对称。示例：[1,2,2,3,4,4,3] → true；[1,2,2,null,3,null,3] → false。',
+    sourceCode: IS_SYMMETRIC_SOURCE,
+    result: {
+      displayCode: IS_SYMMETRIC_SOURCE,
+      instrumentedCode: isSymmetricInstrumented,
+      fnName: 'isSymmetric',
+      summary: '镜像递归：a 的左对 b 的右、a 的右对 b 的左交叉比较',
+    },
+  },
+  {
+    id: 'level-order',
+    title: '102. 二叉树的层序遍历',
+    problem:
+      '给你二叉树的根节点 root，返回其节点值的层序遍历结果（逐层从左到右）。示例：[3,9,20,null,null,15,7] → [[3],[9,20],[15,7]]。',
+    sourceCode: LEVEL_ORDER_SOURCE,
+    result: {
+      displayCode: LEVEL_ORDER_SOURCE,
+      instrumentedCode: levelOrderInstrumented,
+      fnName: 'levelOrder',
+      summary: 'BFS 队列：每轮先记层大小，处理这么多节点即收完一层',
+    },
+  },
+  {
+    id: 'sorted-array-to-bst',
+    title: '108. 将有序数组转换为二叉搜索树',
+    problem:
+      '给你一个整数数组 nums（升序排列），请你将其转换为一棵高度平衡的二叉搜索树。示例：[-10,-3,0,5,9] → [0,-10,5,null,-3,null,9]。',
+    sourceCode: SORTED_ARRAY_TO_BST_SOURCE,
+    result: {
+      displayCode: SORTED_ARRAY_TO_BST_SOURCE,
+      instrumentedCode: sortedArrayToBSTInstrumented,
+      fnName: 'sortedArrayToBST',
+      summary: '分治取中点当根：左右区间递归，天然高度平衡',
+    },
+  },
+  {
+    id: 'is-valid-bst',
+    title: '98. 验证二叉搜索树',
+    problem:
+      '给你一个二叉树的根节点 root，判断其是否是一个有效的二叉搜索树。（BST 要求中序遍历严格递增）',
+    sourceCode: IS_VALID_BST_SOURCE,
+    result: {
+      displayCode: IS_VALID_BST_SOURCE,
+      instrumentedCode: isValidBSTInstrumented,
+      fnName: 'isValidBST',
+      summary: '中序遍历 + 前驱检查：序列必须严格递增',
+    },
+  },
+  {
+    id: 'kth-smallest',
+    title: '230. 二叉搜索树中第 K 小的元素',
+    problem:
+      '给定一个二叉搜索树的根节点 root 和一个整数 k，请你设计一个算法查找其中第 k 小的元素。示例：[3,1,4,null,2], k=3 → 3。',
+    sourceCode: KTH_SMALLEST_SOURCE,
+    result: {
+      displayCode: KTH_SMALLEST_SOURCE,
+      instrumentedCode: kthSmallestInstrumented,
+      fnName: 'kthSmallest',
+      summary: '栈式迭代中序 + k 倒计时：减到 0 即答案',
+    },
+  },
+  {
+    id: 'right-side-view',
+    title: '199. 二叉树的右视图',
+    problem:
+      '给定一个二叉树的根节点 root，想象自己站在它的右侧，按照从顶部到底部的顺序，返回从右侧所能看到的节点值。示例：[1,2,3,null,5,null,4] → [1,3,4]。',
+    sourceCode: RIGHT_SIDE_VIEW_SOURCE,
+    result: {
+      displayCode: RIGHT_SIDE_VIEW_SOURCE,
+      instrumentedCode: rightSideViewInstrumented,
+      fnName: 'rightSideView',
+      summary: '层序遍历：每层最后一个节点就是右视图',
+    },
+  },
+  {
+    id: 'build-tree-pre-in',
+    title: '105. 从前序与中序序列构造二叉树',
+    problem:
+      '给定两个整数数组 preorder 和 inorder（分别为前序与中序遍历序列），请构造并返回二叉树。示例：pre=[3,9,20,15,7], in=[9,3,15,20,7] → [3,9,20,null,null,15,7]。',
+    sourceCode: BUILD_TREE_PRE_IN_SOURCE,
+    result: {
+      displayCode: BUILD_TREE_PRE_IN_SOURCE,
+      instrumentedCode: buildTreePreInInstrumented,
+      fnName: 'buildTree',
+      summary: '前序头定根 + 中序切左右：分治区间递归建树',
+    },
+  },
+  {
+    id: 'flatten-tree',
+    title: '114. 二叉树展开为链表',
+    problem:
+      '给你二叉树的根结点 root，请你将它展开为一个单链表：展开后的链表只使用 right 指针，且顺序与先序遍历相同。示例：[1,2,5,3,4,null,6] → 1→2→3→4→5→6。',
+    sourceCode: FLATTEN_SOURCE,
+    result: {
+      displayCode: FLATTEN_SOURCE,
+      instrumentedCode: flattenInstrumented,
+      fnName: 'flatten',
+      summary: '先序收集 + 逐节点重接：left 清空、right 串链',
+    },
+  },
+  {
+    id: 'lowest-common-ancestor',
+    title: '236. 二叉树的最近公共祖先',
+    problem:
+      '给定一个二叉树，找到该树中两个指定节点 p 和 q 的最近公共祖先。示例：[3,5,1,6,2,0,8,null,null,7,4], p=5, q=4 → 5。',
+    sourceCode: LOWEST_COMMON_ANCESTOR_SOURCE,
+    result: {
+      displayCode: LOWEST_COMMON_ANCESTOR_SOURCE,
+      instrumentedCode: lowestCommonAncestorInstrumented,
+      fnName: 'lowestCommonAncestor',
+      summary: '后序递归：左右各找到一个就往上传自己，否则传递找到的那个',
+    },
+  },
+  {
+    id: 'diameter-of-binary-tree',
+    title: '543. 二叉树的直径',
+    problem:
+      '给你一棵二叉树的根节点，返回该树的直径（任意两个节点之间最长路径的长度，以边数计）。示例：[1,2,3,4,5] → 3。',
+    sourceCode: DIAMETER_OF_BINARY_TREE_SOURCE,
+    result: {
+      displayCode: DIAMETER_OF_BINARY_TREE_SOURCE,
+      instrumentedCode: diameterOfBinaryTreeInstrumented,
+      fnName: 'diameterOfBinaryTree',
+      summary: '后序算高度，顺路更新 max(左深 + 右深)',
+    },
+  },
+  {
+    id: 'path-sum-3',
+    title: '437. 路径总和 III',
+    problem:
+      '给定一个二叉树的根节点 root 和一个整数 targetSum，求该二叉树里节点值之和等于 targetSum 的向下路径的数目。示例：[10,5,-3,3,2,null,11,3,-2,null,1], target=8 → 3。',
+    sourceCode: PATH_SUM_3_SOURCE,
+    result: {
+      displayCode: PATH_SUM_3_SOURCE,
+      instrumentedCode: pathSum3Instrumented,
+      fnName: 'pathSum',
+      summary: '前缀和 DFS：查 sum − target 在祖先路径出现的次数',
+    },
+  },
+  {
+    id: 'max-path-sum',
+    title: '124. 二叉树中的最大路径和',
+    problem:
+      '二叉树中的路径被定义为一条节点序列，同一个节点在序列中最多出现一次。路径和是路径上各节点值之和。给你二叉树的根节点 root，返回其最大路径和。示例：[-10,9,20,null,null,15,7] → 42。',
+    sourceCode: MAX_PATH_SUM_SOURCE,
+    result: {
+      displayCode: MAX_PATH_SUM_SOURCE,
+      instrumentedCode: maxPathSumInstrumented,
+      fnName: 'maxPathSum',
+      summary: '后序 DP：单边最大贡献上传，拐弯和更新全局 best',
     },
   },
 ]

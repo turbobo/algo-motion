@@ -5,8 +5,8 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 
-/** 1x 速度下每帧停留时长（毫秒） */
-const BASE_INTERVAL_MS = 1000
+/** 1x 速度下每帧停留时长（毫秒）——调得偏慢，留给讲解的阅读时间 */
+const BASE_INTERVAL_MS = 1500
 
 export const SPEED_OPTIONS = [0.5, 1, 2, 4] as const
 

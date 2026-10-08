@@ -5,7 +5,7 @@
  * 结构说明：外层负责选择「播放哪个用例的帧」；内层用 key 重挂载，
  * 切换用例时播放状态自然重置。
  */
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { AlgorithmCase, Frame, FrameDiagnostics } from '../types'
 import { describeDiagnostics, hasDiagnostics } from '../engine/sanitize'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -64,16 +64,32 @@ interface InnerProps {
 }
 
 function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack }: InnerProps) {
-  const { cursor, playing, speed, setSpeed, next, prev, seek, toggle, setPlaying } = usePlayer(frames.length)
+  const { cursor, playing, speed, setSpeed, next, prev, seek, toggle } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
   const diagLines = diagnosticLines(algoCase.diagnostics)
   const diagCount = diagLines.reduce((sum, line) => sum + (Number(line.match(/\d+/)?.[0]) ?? 0), 0)
 
-  // 进入后自动开播（给舞台一点时间渲染首帧）
-  useEffect(() => {
-    const timer = window.setTimeout(() => setPlaying(true), 700)
-    return () => window.clearTimeout(timer)
-  }, [setPlaying])
+  // 开场不自动播：停在第一帧，等用户点中央播放按钮（任何播放/步进/拖拽也算已开始）
+  const [started, setStarted] = useState(false)
+  const handleToggle = useCallback(() => {
+    setStarted(true)
+    toggle()
+  }, [toggle])
+  const handlePrev = useCallback(() => {
+    setStarted(true)
+    prev()
+  }, [prev])
+  const handleNext = useCallback(() => {
+    setStarted(true)
+    next()
+  }, [next])
+  const handleSeek = useCallback(
+    (n: number) => {
+      setStarted(true)
+      seek(n)
+    },
+    [seek],
+  )
 
   const lineCount = algoCase.result.displayCode.split('\n').length
 
@@ -123,11 +139,29 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
 
         {/* 舞台列 */}
         <section className="order-1 flex min-h-0 flex-1 flex-col gap-3 lg:order-2">
-          <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-white/8 bg-bg/60 p-3 md:p-4">
-            {/* 单帧视图出错只影响舞台，翻帧（cursor 变化）自动恢复 */}
-            <ErrorBoundary resetKey={cursor} label="舞台">
-              <StageView frame={frame} />
-            </ErrorBoundary>
+          <div className="relative min-h-0 flex-1">
+            <div className="h-full overflow-auto rounded-2xl border border-white/8 bg-bg/60 p-3 md:p-4">
+              {/* 单帧视图出错只影响舞台，翻帧（cursor 变化）自动恢复 */}
+              <ErrorBoundary resetKey={cursor} label="舞台">
+                <StageView frame={frame} />
+              </ErrorBoundary>
+            </div>
+            {/* 开场播放按钮：未开始前盖住舞台，等用户准备好再开播 */}
+            {!started ? (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-bg/60">
+                <button
+                  type="button"
+                  onClick={handleToggle}
+                  aria-label="开始播放"
+                  className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/60 bg-accent/20 text-accent shadow-2xl shadow-black/50 transition-all hover:scale-105 hover:bg-accent/30 active:scale-95"
+                >
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M7 4.5v15L19.5 12z" />
+                  </svg>
+                </button>
+                <span className="font-mono text-xs text-sub">点击播放动画</span>
+              </div>
+            ) : null}
           </div>
 
           {/* 讲解条 */}
@@ -168,10 +202,10 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
               total={frames.length}
               playing={playing}
               speed={speed}
-              onToggle={toggle}
-              onPrev={prev}
-              onNext={next}
-              onSeek={seek}
+              onToggle={handleToggle}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onSeek={handleSeek}
               onSpeedChange={setSpeed}
             />
           </div>

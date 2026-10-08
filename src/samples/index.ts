@@ -84,6 +84,24 @@ import trapStackInstrumented from './raw/trapStack.js?raw'
 import findKthLargestInstrumented from './raw/findKthLargest.js?raw'
 import topKFrequentInstrumented from './raw/topKFrequent.js?raw'
 import medianFinderInstrumented from './raw/medianFinder.js?raw'
+import canJumpInstrumented from './raw/canJump.js?raw'
+import jumpGame2Instrumented from './raw/jumpGame2.js?raw'
+import maxProfitInstrumented from './raw/maxProfit.js?raw'
+import partitionLabelsInstrumented from './raw/partitionLabels.js?raw'
+import climbStairsInstrumented from './raw/climbStairs.js?raw'
+import generatePascalInstrumented from './raw/generatePascal.js?raw'
+import robInstrumented from './raw/rob.js?raw'
+import numSquaresInstrumented from './raw/numSquares.js?raw'
+import coinChangeInstrumented from './raw/coinChange.js?raw'
+import wordBreakInstrumented from './raw/wordBreak.js?raw'
+import lengthOfLISInstrumented from './raw/lengthOfLIS.js?raw'
+import maxProductInstrumented from './raw/maxProduct.js?raw'
+import canPartitionInstrumented from './raw/canPartition.js?raw'
+import uniquePathsInstrumented from './raw/uniquePaths.js?raw'
+import minPathSumInstrumented from './raw/minPathSum.js?raw'
+import longestPalindromeInstrumented from './raw/longestPalindrome.js?raw'
+import editDistanceInstrumented from './raw/editDistance.js?raw'
+import longestValidParenthesesInstrumented from './raw/longestValidParentheses.js?raw'
 
 export interface Sample {
   id: string
@@ -1978,6 +1996,321 @@ const MEDIAN_FINDER_SOURCE = [
   '}',
 ].join('\n')
 
+const CAN_JUMP_SOURCE = [
+  'function canJump(nums) {',
+  '  let reach = 0;',
+  '  for (let i = 0; i < nums.length; i++) {',
+  '    if (i > reach) {',
+  '      return false;',
+  '    }',
+  '    reach = Math.max(reach, i + nums[i]);',
+  '  }',
+  '  return true;',
+  '}',
+].join('\n')
+
+const JUMP_GAME_2_SOURCE = [
+  'function jump(nums) {',
+  '  let jumps = 0;',
+  '  let end = 0;',
+  '  let farthest = 0;',
+  '  for (let i = 0; i < nums.length - 1; i++) {',
+  '    farthest = Math.max(farthest, i + nums[i]);',
+  '    if (i === end) {',
+  '      jumps++;',
+  '      end = farthest;',
+  '    }',
+  '  }',
+  '  return jumps;',
+  '}',
+].join('\n')
+
+const MAX_PROFIT_SOURCE = [
+  'function maxProfit(prices) {',
+  '  let minPrice = Infinity;',
+  '  let best = 0;',
+  '  for (let i = 0; i < prices.length; i++) {',
+  '    if (prices[i] < minPrice) {',
+  '      minPrice = prices[i];',
+  '    } else if (prices[i] - minPrice > best) {',
+  '      best = prices[i] - minPrice;',
+  '    }',
+  '  }',
+  '  return best;',
+  '}',
+].join('\n')
+
+const PARTITION_LABELS_SOURCE = [
+  'function partitionLabels(s) {',
+  '  const last = new Map();',
+  '  for (let i = 0; i < s.length; i++) {',
+  '    last.set(s[i], i);',
+  '  }',
+  '  const res = [];',
+  '  let start = 0;',
+  '  let end = 0;',
+  '  for (let i = 0; i < s.length; i++) {',
+  '    end = Math.max(end, last.get(s[i]));',
+  '    if (i === end) {',
+  '      res.push(end - start + 1);',
+  '      start = i + 1;',
+  '      end = start;',
+  '    }',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const CLIMB_STAIRS_SOURCE = [
+  'function climbStairs(n) {',
+  '  const dp = new Array(n + 1).fill(0);',
+  '  dp[0] = 1;',
+  '  dp[1] = 1;',
+  '  for (let i = 2; i <= n; i++) {',
+  '    dp[i] = dp[i - 1] + dp[i - 2];',
+  '  }',
+  '  return dp[n];',
+  '}',
+].join('\n')
+
+const GENERATE_PASCAL_SOURCE = [
+  'function generate(numRows) {',
+  '  const tris = [];',
+  '  for (let i = 0; i < numRows; i++) {',
+  '    const row = new Array(i + 1).fill(1);',
+  '    for (let j = 1; j < i; j++) {',
+  '      row[j] = tris[i - 1][j - 1] + tris[i - 1][j];',
+  '    }',
+  '    tris.push(row);',
+  '  }',
+  '  return tris;',
+  '}',
+].join('\n')
+
+const ROB_SOURCE = [
+  'function rob(nums) {',
+  '  const n = nums.length;',
+  '  const dp = new Array(n).fill(0);',
+  '  dp[0] = nums[0];',
+  '  if (n > 1) {',
+  '    dp[1] = Math.max(nums[0], nums[1]);',
+  '  }',
+  '  for (let i = 2; i < n; i++) {',
+  '    dp[i] = Math.max(dp[i - 1], dp[i - 2] + nums[i]);',
+  '  }',
+  '  return dp[n - 1];',
+  '}',
+].join('\n')
+
+const NUM_SQUARES_SOURCE = [
+  'function numSquares(n) {',
+  '  const dp = new Array(n + 1).fill(0);',
+  '  for (let i = 1; i <= n; i++) {',
+  '    dp[i] = i;',
+  '    for (let k = 1; k * k <= i; k++) {',
+  '      const cand = dp[i - k * k] + 1;',
+  '      if (cand < dp[i]) {',
+  '        dp[i] = cand;',
+  '      }',
+  '    }',
+  '  }',
+  '  return dp[n];',
+  '}',
+].join('\n')
+
+const COIN_CHANGE_SOURCE = [
+  'function coinChange(coins, amount) {',
+  '  const dp = new Array(amount + 1).fill(Infinity);',
+  '  dp[0] = 0;',
+  '  for (const coin of coins) {',
+  '    for (let i = coin; i <= amount; i++) {',
+  '      if (dp[i - coin] + 1 < dp[i]) {',
+  '        dp[i] = dp[i - coin] + 1;',
+  '      }',
+  '    }',
+  '  }',
+  '  return dp[amount] === Infinity ? -1 : dp[amount];',
+  '}',
+].join('\n')
+
+const WORD_BREAK_SOURCE = [
+  'function wordBreak(s, wordDict) {',
+  '  const words = new Set(wordDict);',
+  '  const dp = new Array(s.length + 1).fill(false);',
+  '  dp[0] = true;',
+  '  for (let i = 1; i <= s.length; i++) {',
+  '    for (let j = 0; j < i; j++) {',
+  '      if (dp[j] && words.has(s.slice(j, i))) {',
+  '        dp[i] = true;',
+  '        break;',
+  '      }',
+  '    }',
+  '  }',
+  '  return dp[s.length];',
+  '}',
+].join('\n')
+
+const LENGTH_OF_LIS_SOURCE = [
+  'function lengthOfLIS(nums) {',
+  '  const n = nums.length;',
+  '  const dp = new Array(n).fill(1);',
+  '  let best = 1;',
+  '  for (let i = 0; i < n; i++) {',
+  '    for (let j = 0; j < i; j++) {',
+  '      if (nums[j] < nums[i]) {',
+  '        dp[i] = Math.max(dp[i], dp[j] + 1);',
+  '      }',
+  '    }',
+  '    best = Math.max(best, dp[i]);',
+  '  }',
+  '  return best;',
+  '}',
+].join('\n')
+
+const MAX_PRODUCT_SOURCE = [
+  'function maxProduct(nums) {',
+  '  let maxProd = nums[0];',
+  '  let minProd = nums[0];',
+  '  let best = nums[0];',
+  '  for (let i = 1; i < nums.length; i++) {',
+  '    const x = nums[i];',
+  '    if (x < 0) {',
+  '      const t = maxProd;',
+  '      maxProd = minProd;',
+  '      minProd = t;',
+  '    }',
+  '    maxProd = Math.max(x, maxProd * x);',
+  '    minProd = Math.min(x, minProd * x);',
+  '    best = Math.max(best, maxProd);',
+  '  }',
+  '  return best;',
+  '}',
+].join('\n')
+
+const CAN_PARTITION_SOURCE = [
+  'function canPartition(nums) {',
+  '  let sum = 0;',
+  '  for (const x of nums) {',
+  '    sum += x;',
+  '  }',
+  '  if (sum % 2 !== 0) {',
+  '    return false;',
+  '  }',
+  '  const target = sum / 2;',
+  '  const dp = new Array(target + 1).fill(false);',
+  '  dp[0] = true;',
+  '  for (const num of nums) {',
+  '    for (let j = target; j >= num; j--) {',
+  '      if (dp[j - num]) {',
+  '        dp[j] = true;',
+  '      }',
+  '    }',
+  '  }',
+  '  return dp[target];',
+  '}',
+].join('\n')
+
+const UNIQUE_PATHS_SOURCE = [
+  'function uniquePaths(m, n) {',
+  '  const dp = Array.from({ length: m }, () => new Array(n).fill(1));',
+  '  for (let r = 1; r < m; r++) {',
+  '    for (let c = 1; c < n; c++) {',
+  '      dp[r][c] = dp[r - 1][c] + dp[r][c - 1];',
+  '    }',
+  '  }',
+  '  return dp[m - 1][n - 1];',
+  '}',
+].join('\n')
+
+const MIN_PATH_SUM_SOURCE = [
+  'function minPathSum(grid) {',
+  '  const m = grid.length;',
+  '  const n = grid[0].length;',
+  '  const dp = grid.map((row) => [...row]);',
+  '  for (let r = 1; r < m; r++) {',
+  '    dp[r][0] += dp[r - 1][0];',
+  '  }',
+  '  for (let c = 1; c < n; c++) {',
+  '    dp[0][c] += dp[0][c - 1];',
+  '  }',
+  '  for (let r = 1; r < m; r++) {',
+  '    for (let c = 1; c < n; c++) {',
+  '      dp[r][c] += Math.min(dp[r - 1][c], dp[r][c - 1]);',
+  '    }',
+  '  }',
+  '  return dp[m - 1][n - 1];',
+  '}',
+].join('\n')
+
+const LONGEST_PALINDROME_SOURCE = [
+  'function longestPalindrome(s) {',
+  '  const n = s.length;',
+  '  const dp = Array.from({ length: n }, () => new Array(n).fill(false));',
+  '  let bestL = 0;',
+  '  let bestR = 0;',
+  '  for (let r = 0; r < n; r++) {',
+  '    dp[r][r] = true;',
+  '  }',
+  '  for (let len = 2; len <= n; len++) {',
+  '    for (let i = 0; i + len - 1 < n; i++) {',
+  '      const j = i + len - 1;',
+  '      if (s[i] === s[j] && (len === 2 || dp[i + 1][j - 1])) {',
+  '        dp[i][j] = true;',
+  '        if (len > bestR - bestL + 1) {',
+  '          bestL = i;',
+  '          bestR = j;',
+  '        }',
+  '      }',
+  '    }',
+  '  }',
+  '  return s.slice(bestL, bestR + 1);',
+  '}',
+].join('\n')
+
+const EDIT_DISTANCE_SOURCE = [
+  'function minDistance(word1, word2) {',
+  '  const m = word1.length;',
+  '  const n = word2.length;',
+  '  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));',
+  '  for (let i = 0; i <= m; i++) {',
+  '    dp[i][0] = i;',
+  '  }',
+  '  for (let j = 0; j <= n; j++) {',
+  '    dp[0][j] = j;',
+  '  }',
+  '  for (let i = 1; i <= m; i++) {',
+  '    for (let j = 1; j <= n; j++) {',
+  '      if (word1[i - 1] === word2[j - 1]) {',
+  '        dp[i][j] = dp[i - 1][j - 1];',
+  '      } else {',
+  '        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);',
+  '      }',
+  '    }',
+  '  }',
+  '  return dp[m][n];',
+  '}',
+].join('\n')
+
+const LONGEST_VALID_PAREN_SOURCE = [
+  'function longestValidParentheses(s) {',
+  '  const stack = [-1];',
+  '  let best = 0;',
+  '  for (let i = 0; i < s.length; i++) {',
+  "    if (s[i] === '(') {",
+  '      stack.push(i);',
+  '    } else {',
+  '      stack.pop();',
+  '      if (stack.length === 0) {',
+  '        stack.push(i);',
+  '      } else {',
+  '        best = Math.max(best, i - stack[stack.length - 1]);',
+  '      }',
+  '    }',
+  '  }',
+  '  return best;',
+  '}',
+].join('\n')
+
 export const SAMPLES: Sample[] = [
   {
     id: 'two-sum',
@@ -3026,6 +3359,234 @@ export const SAMPLES: Sample[] = [
       instrumentedCode: medianFinderInstrumented,
       fnName: 'MedianFinder',
       summary: '对顶双堆：左半大顶堆 + 右半小顶堆，堆顶夹出中位数',
+    },
+  },
+  {
+    id: 'jump-game',
+    title: '55. 跳跃游戏',
+    problem:
+      '给你一个非负整数数组 nums，你最初位于数组的第一个下标。数组中的每个元素代表你在该位置可以跳跃的最大长度。判断你是否能够到达最后一个下标。示例：[2,3,1,1,4] → true；[3,2,1,0,4] → false。',
+    sourceCode: CAN_JUMP_SOURCE,
+    result: {
+      displayCode: CAN_JUMP_SOURCE,
+      instrumentedCode: canJumpInstrumented,
+      fnName: 'canJump',
+      summary: '贪心维护最远可达范围，中途掉队即失败',
+    },
+  },
+  {
+    id: 'jump-game-2',
+    title: '45. 跳跃游戏 II',
+    problem:
+      '给定一个长度为 n 的非负整数数组 nums，你最初位于下标 0。每个元素代表在该位置可以跳跃的最大长度。返回到达 n-1 的最小跳跃次数（保证可以到达）。示例：[2,3,1,1,4] → 2。',
+    sourceCode: JUMP_GAME_2_SOURCE,
+    result: {
+      displayCode: JUMP_GAME_2_SOURCE,
+      instrumentedCode: jumpGame2Instrumented,
+      fnName: 'jump',
+      summary: '贪心逐层扩边：走到边界必跳一次，边界推到层内最远',
+    },
+  },
+  {
+    id: 'best-time-stock',
+    title: '121. 买卖股票的最佳时机',
+    problem:
+      '给定一个数组 prices（第 i 天股价），选择某一天买入并在未来某一天卖出，求最大利润；不能获利则返回 0。示例：[7,1,5,3,6,4] → 5。',
+    sourceCode: MAX_PROFIT_SOURCE,
+    result: {
+      displayCode: MAX_PROFIT_SOURCE,
+      instrumentedCode: maxProfitInstrumented,
+      fnName: 'maxProfit',
+      summary: '贪心记录历史最低价，每天算"今天卖能赚多少"',
+    },
+  },
+  {
+    id: 'partition-labels',
+    title: '763. 划分字母区间',
+    problem:
+      '给你一个字符串 s，将它划分为尽可能多的片段，同一字母最多出现在一个片段中。返回各片段长度。示例："ababcc" → [4,2]。',
+    sourceCode: PARTITION_LABELS_SOURCE,
+    result: {
+      displayCode: PARTITION_LABELS_SOURCE,
+      instrumentedCode: partitionLabelsInstrumented,
+      fnName: 'partitionLabels',
+      summary: '先记每个字母最后位置，再贪心扩展片段边界',
+    },
+  },
+  {
+    id: 'climb-stairs',
+    title: '70. 爬楼梯',
+    problem: '假设你正在爬楼梯，需要 n 阶你才能到达楼顶。每次你可以爬 1 或 2 个台阶，有多少种不同的方法可以爬到楼顶？示例：n=3 → 3。',
+    sourceCode: CLIMB_STAIRS_SOURCE,
+    result: {
+      displayCode: CLIMB_STAIRS_SOURCE,
+      instrumentedCode: climbStairsInstrumented,
+      fnName: 'climbStairs',
+      summary: '入门一维 DP：dp[i] = dp[i-1] + dp[i-2]',
+    },
+  },
+  {
+    id: 'pascal-triangle',
+    title: '118. 杨辉三角',
+    problem: '给定一个非负整数 numRows，生成杨辉三角的前 numRows 行。示例：5 行 → [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]。',
+    sourceCode: GENERATE_PASCAL_SOURCE,
+    result: {
+      displayCode: GENERATE_PASCAL_SOURCE,
+      instrumentedCode: generatePascalInstrumented,
+      fnName: 'generate',
+      summary: '逐行递推：每格 = 上一行肩膀上两数之和',
+    },
+  },
+  {
+    id: 'house-robber',
+    title: '198. 打家劫舍',
+    problem:
+      '你是一个专业小偷，不能偷相邻的两间房。给定每间房的金额 nums，求一夜之内能偷到的最高金额。示例：[2,7,9,3,1] → 12。',
+    sourceCode: ROB_SOURCE,
+    result: {
+      displayCode: ROB_SOURCE,
+      instrumentedCode: robInstrumented,
+      fnName: 'rob',
+      summary: '一维 DP 二选一：偷（i-2 + 本家）或不偷（i-1）',
+    },
+  },
+  {
+    id: 'perfect-squares',
+    title: '279. 完全平方数',
+    problem: '给你一个整数 n，返回和为 n 的完全平方数的最少数量。示例：n=12 → 3（4+4+4）；n=13 → 2（4+9）。',
+    sourceCode: NUM_SQUARES_SOURCE,
+    result: {
+      displayCode: NUM_SQUARES_SOURCE,
+      instrumentedCode: numSquaresInstrumented,
+      fnName: 'numSquares',
+      summary: '一维 DP 逐格松弛：dp[i] = min(dp[i], dp[i-k²] + 1)',
+    },
+  },
+  {
+    id: 'coin-change',
+    title: '322. 零钱兑换',
+    problem: '给你一个整数数组 coins 表示不同面额的硬币，以及一个整数 amount。计算并返回可以凑成总金额所需的最少的硬币个数；无法凑成则返回 -1。示例：[1,2,5], 11 → 3。',
+    sourceCode: COIN_CHANGE_SOURCE,
+    result: {
+      displayCode: COIN_CHANGE_SOURCE,
+      instrumentedCode: coinChangeInstrumented,
+      fnName: 'coinChange',
+      summary: '完全背包：每种硬币过一轮，Δ 刷新更省的金额',
+    },
+  },
+  {
+    id: 'word-break',
+    title: '139. 单词拆分',
+    problem:
+      '给你一个字符串 s 和一个字符串列表 wordDict 作为字典，判断 s 是否可以由字典中出现的单词拼接而成。示例："leetcode" + [leet,code] → true。',
+    sourceCode: WORD_BREAK_SOURCE,
+    result: {
+      displayCode: WORD_BREAK_SOURCE,
+      instrumentedCode: wordBreakInstrumented,
+      fnName: 'wordBreak',
+      summary: '一维 bool DP：枚举切点 j，dp[j] ✓ 且 s[j..i) 在字典则 dp[i] ✓',
+    },
+  },
+  {
+    id: 'longest-increasing-subsequence',
+    title: '300. 最长递增子序列',
+    problem:
+      '给你一个整数数组 nums，找到其中最长严格递增子序列的长度。示例：[10,9,2,5,3,7,101,18] → 4（[2,3,7,101]）。',
+    sourceCode: LENGTH_OF_LIS_SOURCE,
+    result: {
+      displayCode: LENGTH_OF_LIS_SOURCE,
+      instrumentedCode: lengthOfLISInstrumented,
+      fnName: 'lengthOfLIS',
+      summary: '一维 DP：dp[i] = max(dp[j] + 1)（所有小于 nums[i] 的 j）',
+    },
+  },
+  {
+    id: 'max-product-subarray',
+    title: '152. 乘积最大子数组',
+    problem:
+      '给你一个整数数组 nums，找出乘积最大的非空连续子数组，返回其乘积。示例：[2,3,-2,4] → 6（[2,3]）。',
+    sourceCode: MAX_PRODUCT_SOURCE,
+    result: {
+      displayCode: MAX_PRODUCT_SOURCE,
+      instrumentedCode: maxProductInstrumented,
+      fnName: 'maxProduct',
+      summary: '双状态 DP：同时维护以 i 结尾的最大/最小乘积，遇负数交换',
+    },
+  },
+  {
+    id: 'partition-equal-subset',
+    title: '416. 分割等和子集',
+    problem:
+      '给你一个只包含正整数的非空数组 nums，判断是否可以将这个数组分割成两个子集，使得两个子集的元素和相等。示例：[1,5,11,5] → true。',
+    sourceCode: CAN_PARTITION_SOURCE,
+    result: {
+      displayCode: CAN_PARTITION_SOURCE,
+      instrumentedCode: canPartitionInstrumented,
+      fnName: 'canPartition',
+      summary: '01 背包：目标 = 总和一半，金额逆序扫保证每数只用一次',
+    },
+  },
+  {
+    id: 'unique-paths',
+    title: '62. 不同路径',
+    problem:
+      '一个机器人位于 m×n 网格的左上角，每次只能向下或向右移动一步，试图到达右下角。总共有多少条不同的路径？示例：3×7 → 28。',
+    sourceCode: UNIQUE_PATHS_SOURCE,
+    result: {
+      displayCode: UNIQUE_PATHS_SOURCE,
+      instrumentedCode: uniquePathsInstrumented,
+      fnName: 'uniquePaths',
+      summary: '二维 DP 逐行填表：每格 = 上方 + 左方',
+    },
+  },
+  {
+    id: 'min-path-sum',
+    title: '64. 最小路径和',
+    problem:
+      '给定一个包含非负整数的 m×n 网格 grid，找出一条从左上角到右下角的路径，使得路径上的数字总和为最小（每次只能向下或向右）。示例：[[1,3,1],[1,5,1],[4,2,1]] → 7。',
+    sourceCode: MIN_PATH_SUM_SOURCE,
+    result: {
+      displayCode: MIN_PATH_SUM_SOURCE,
+      instrumentedCode: minPathSumInstrumented,
+      fnName: 'minPathSum',
+      summary: '二维 DP 就地填表：边界先行，其余格 = min(上, 左) + 本格',
+    },
+  },
+  {
+    id: 'longest-palindrome-substr',
+    title: '5. 最长回文子串',
+    problem: '给你一个字符串 s，找到 s 中最长的回文子串。示例："babad" → "bab"；"cbbd" → "bb"。',
+    sourceCode: LONGEST_PALINDROME_SOURCE,
+    result: {
+      displayCode: LONGEST_PALINDROME_SOURCE,
+      instrumentedCode: longestPalindromeInstrumented,
+      fnName: 'longestPalindrome',
+      summary: '区间 DP：按长度从小到大，头尾相等且内层回文则整体回文',
+    },
+  },
+  {
+    id: 'edit-distance',
+    title: '72. 编辑距离',
+    problem:
+      '给你两个单词 word1 和 word2，返回将 word1 转换成 word2 所使用的最少操作数（插入、删除、替换一个字符）。示例："horse" → "ros" 需要 3 步。',
+    sourceCode: EDIT_DISTANCE_SOURCE,
+    result: {
+      displayCode: EDIT_DISTANCE_SOURCE,
+      instrumentedCode: editDistanceInstrumented,
+      fnName: 'minDistance',
+      summary: '二维 DP：相同继承左上，不同则 min(删/插/改) + 1',
+    },
+  },
+  {
+    id: 'longest-valid-parentheses',
+    title: '32. 最长有效括号',
+    problem: '给你一个只包含 \'(\' 和 \')\' 的字符串，找出最长有效（格式正确且连续）括号子串的长度。示例："(()" → 2；")()())" → 4。',
+    sourceCode: LONGEST_VALID_PAREN_SOURCE,
+    result: {
+      displayCode: LONGEST_VALID_PAREN_SOURCE,
+      instrumentedCode: longestValidParenthesesInstrumented,
+      fnName: 'longestValidParentheses',
+      summary: '栈底哨兵：存未配对下标，弹栈后 i − 栈顶即有效长度',
     },
   },
 ]

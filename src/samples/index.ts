@@ -20,6 +20,19 @@ import findAnagramsInstrumented from './raw/findAnagrams.js?raw'
 import subarraySumInstrumented from './raw/subarraySum.js?raw'
 import maxSlidingWindowInstrumented from './raw/maxSlidingWindow.js?raw'
 import minWindowInstrumented from './raw/minWindow.js?raw'
+import mergeIntervalsInstrumented from './raw/mergeIntervals.js?raw'
+import rotateArrayInstrumented from './raw/rotateArray.js?raw'
+import productExceptSelfInstrumented from './raw/productExceptSelf.js?raw'
+import firstMissingPositiveInstrumented from './raw/firstMissingPositive.js?raw'
+import setZeroesInstrumented from './raw/setZeroes.js?raw'
+import spiralOrderInstrumented from './raw/spiralOrder.js?raw'
+import rotateImageInstrumented from './raw/rotateImage.js?raw'
+import searchMatrix2Instrumented from './raw/searchMatrix2.js?raw'
+import singleNumberInstrumented from './raw/singleNumber.js?raw'
+import majorityElementInstrumented from './raw/majorityElement.js?raw'
+import sortColorsInstrumented from './raw/sortColors.js?raw'
+import nextPermutationInstrumented from './raw/nextPermutation.js?raw'
+import findDuplicateInstrumented from './raw/findDuplicate.js?raw'
 
 export interface Sample {
   id: string
@@ -368,6 +381,292 @@ const MIN_WINDOW_SOURCE = [
   '}',
 ].join('\n')
 
+const MERGE_INTERVALS_SOURCE = [
+  'function merge(intervals) {',
+  '  intervals.sort((a, b) => a[0] - b[0]);',
+  '  const res = [];',
+  '  for (const interval of intervals) {',
+  '    if (res.length > 0 && res[res.length - 1][1] >= interval[0]) {',
+  '      res[res.length - 1][1] = Math.max(res[res.length - 1][1], interval[1]);',
+  '    } else {',
+  '      res.push([...interval]);',
+  '    }',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const ROTATE_ARRAY_SOURCE = [
+  'function rotate(nums, k) {',
+  '  const n = nums.length;',
+  '  k = k % n;',
+  '  const reverse = (l, r) => {',
+  '    while (l < r) {',
+  '      const tmp = nums[l];',
+  '      nums[l] = nums[r];',
+  '      nums[r] = tmp;',
+  '      l++;',
+  '      r--;',
+  '    }',
+  '  };',
+  '  reverse(0, n - 1);',
+  '  reverse(0, k - 1);',
+  '  reverse(k, n - 1);',
+  '  return nums;',
+  '}',
+].join('\n')
+
+const PRODUCT_EXCEPT_SELF_SOURCE = [
+  'function productExceptSelf(nums) {',
+  '  const n = nums.length;',
+  '  const res = new Array(n).fill(1);',
+  '  let prefix = 1;',
+  '  for (let i = 0; i < n; i++) {',
+  '    res[i] = prefix;',
+  '    prefix *= nums[i];',
+  '  }',
+  '  let suffix = 1;',
+  '  for (let i = n - 1; i >= 0; i--) {',
+  '    res[i] *= suffix;',
+  '    suffix *= nums[i];',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const FIRST_MISSING_POSITIVE_SOURCE = [
+  'function firstMissingPositive(nums) {',
+  '  const n = nums.length;',
+  '  for (let i = 0; i < n; i++) {',
+  '    while (nums[i] > 0 && nums[i] <= n && nums[nums[i] - 1] !== nums[i]) {',
+  '      const target = nums[i] - 1;',
+  '      const tmp = nums[target];',
+  '      nums[target] = nums[i];',
+  '      nums[i] = tmp;',
+  '    }',
+  '  }',
+  '  for (let i = 0; i < n; i++) {',
+  '    if (nums[i] !== i + 1) {',
+  '      return i + 1;',
+  '    }',
+  '  }',
+  '  return n + 1;',
+  '}',
+].join('\n')
+
+const SET_ZEROES_SOURCE = [
+  'function setZeroes(matrix) {',
+  '  const m = matrix.length;',
+  '  const n = matrix[0].length;',
+  '  let firstRowZero = false;',
+  '  let firstColZero = false;',
+  '  for (let j = 0; j < n; j++) {',
+  '    if (matrix[0][j] === 0) firstRowZero = true;',
+  '  }',
+  '  for (let i = 0; i < m; i++) {',
+  '    if (matrix[i][0] === 0) firstColZero = true;',
+  '  }',
+  '  for (let i = 1; i < m; i++) {',
+  '    for (let j = 1; j < n; j++) {',
+  '      if (matrix[i][j] === 0) {',
+  '        matrix[i][0] = 0;',
+  '        matrix[0][j] = 0;',
+  '      }',
+  '    }',
+  '  }',
+  '  for (let i = 1; i < m; i++) {',
+  '    for (let j = 1; j < n; j++) {',
+  '      if (matrix[i][0] === 0 || matrix[0][j] === 0) {',
+  '        matrix[i][j] = 0;',
+  '      }',
+  '    }',
+  '  }',
+  '  if (firstRowZero) {',
+  '    for (let j = 0; j < n; j++) {',
+  '      matrix[0][j] = 0;',
+  '    }',
+  '  }',
+  '  if (firstColZero) {',
+  '    for (let i = 0; i < m; i++) {',
+  '      matrix[i][0] = 0;',
+  '    }',
+  '  }',
+  '  return matrix;',
+  '}',
+].join('\n')
+
+const SPIRAL_ORDER_SOURCE = [
+  'function spiralOrder(matrix) {',
+  '  const res = [];',
+  '  let top = 0;',
+  '  let bottom = matrix.length - 1;',
+  '  let left = 0;',
+  '  let right = matrix[0].length - 1;',
+  '  while (top <= bottom && left <= right) {',
+  '    for (let j = left; j <= right; j++) {',
+  '      res.push(matrix[top][j]);',
+  '    }',
+  '    top++;',
+  '    for (let i = top; i <= bottom; i++) {',
+  '      res.push(matrix[i][right]);',
+  '    }',
+  '    right--;',
+  '    if (top <= bottom) {',
+  '      for (let j = right; j >= left; j--) {',
+  '        res.push(matrix[bottom][j]);',
+  '      }',
+  '    }',
+  '    bottom--;',
+  '    if (left <= right) {',
+  '      for (let i = bottom; i >= top; i--) {',
+  '        res.push(matrix[i][left]);',
+  '      }',
+  '    }',
+  '    left++;',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const ROTATE_IMAGE_SOURCE = [
+  'function rotate(matrix) {',
+  '  const n = matrix.length;',
+  '  for (let i = 0; i < n; i++) {',
+  '    for (let j = i + 1; j < n; j++) {',
+  '      const tmp = matrix[i][j];',
+  '      matrix[i][j] = matrix[j][i];',
+  '      matrix[j][i] = tmp;',
+  '    }',
+  '  }',
+  '  for (let i = 0; i < n; i++) {',
+  '    for (let j = 0; j < Math.floor(n / 2); j++) {',
+  '      const tmp = matrix[i][j];',
+  '      matrix[i][j] = matrix[i][n - 1 - j];',
+  '      matrix[i][n - 1 - j] = tmp;',
+  '    }',
+  '  }',
+  '  return matrix;',
+  '}',
+].join('\n')
+
+const SEARCH_MATRIX_2_SOURCE = [
+  'function searchMatrix(matrix, target) {',
+  '  const m = matrix.length;',
+  '  const n = matrix[0].length;',
+  '  let row = 0;',
+  '  let col = n - 1;',
+  '  while (row < m && col >= 0) {',
+  '    const cur = matrix[row][col];',
+  '    if (cur === target) {',
+  '      return true;',
+  '    } else if (cur > target) {',
+  '      col--;',
+  '    } else {',
+  '      row++;',
+  '    }',
+  '  }',
+  '  return false;',
+  '}',
+].join('\n')
+
+const SINGLE_NUMBER_SOURCE = [
+  'function singleNumber(nums) {',
+  '  let res = 0;',
+  '  for (let i = 0; i < nums.length; i++) {',
+  '    res ^= nums[i];',
+  '  }',
+  '  return res;',
+  '}',
+].join('\n')
+
+const MAJORITY_ELEMENT_SOURCE = [
+  'function majorityElement(nums) {',
+  '  let cand = nums[0];',
+  '  let count = 1;',
+  '  for (let i = 1; i < nums.length; i++) {',
+  '    if (count === 0) {',
+  '      cand = nums[i];',
+  '      count = 1;',
+  '    } else if (nums[i] === cand) {',
+  '      count++;',
+  '    } else {',
+  '      count--;',
+  '    }',
+  '  }',
+  '  return cand;',
+  '}',
+].join('\n')
+
+const SORT_COLORS_SOURCE = [
+  'function sortColors(nums) {',
+  '  let low = 0;',
+  '  let mid = 0;',
+  '  let high = nums.length - 1;',
+  '  while (mid <= high) {',
+  '    if (nums[mid] === 0) {',
+  '      const tmp = nums[low];',
+  '      nums[low] = nums[mid];',
+  '      nums[mid] = tmp;',
+  '      low++;',
+  '      mid++;',
+  '    } else if (nums[mid] === 1) {',
+  '      mid++;',
+  '    } else {',
+  '      const tmp = nums[mid];',
+  '      nums[mid] = nums[high];',
+  '      nums[high] = tmp;',
+  '      high--;',
+  '    }',
+  '  }',
+  '  return nums;',
+  '}',
+].join('\n')
+
+const NEXT_PERMUTATION_SOURCE = [
+  'function nextPermutation(nums) {',
+  '  let i = nums.length - 2;',
+  '  while (i >= 0 && nums[i] >= nums[i + 1]) {',
+  '    i--;',
+  '  }',
+  '  if (i >= 0) {',
+  '    let j = nums.length - 1;',
+  '    while (nums[j] <= nums[i]) {',
+  '      j--;',
+  '    }',
+  '    const tmp = nums[i];',
+  '    nums[i] = nums[j];',
+  '    nums[j] = tmp;',
+  '  }',
+  '  let l = i + 1;',
+  '  let r = nums.length - 1;',
+  '  while (l < r) {',
+  '    const tmp = nums[l];',
+  '    nums[l] = nums[r];',
+  '    nums[r] = tmp;',
+  '    l++;',
+  '    r--;',
+  '  }',
+  '  return nums;',
+  '}',
+].join('\n')
+
+const FIND_DUPLICATE_SOURCE = [
+  'function findDuplicate(nums) {',
+  '  let slow = nums[0];',
+  '  let fast = nums[0];',
+  '  do {',
+  '    slow = nums[slow];',
+  '    fast = nums[nums[fast]];',
+  '  } while (slow !== fast);',
+  '  slow = nums[0];',
+  '  while (slow !== fast) {',
+  '    slow = nums[slow];',
+  '    fast = nums[fast];',
+  '  }',
+  '  return slow;',
+  '}',
+].join('\n')
+
 export const SAMPLES: Sample[] = [
   {
     id: 'two-sum',
@@ -587,6 +886,175 @@ export const SAMPLES: Sample[] = [
       instrumentedCode: minWindowInstrumented,
       fnName: 'minWindow',
       summary: '可变滑窗 + 达标计数：扩张到覆盖全部需求后收缩挤水分',
+    },
+  },
+  {
+    id: 'merge-intervals',
+    title: '56. 合并区间',
+    problem:
+      '以数组 intervals 表示若干区间的集合，请合并所有重叠的区间。示例：[[1,3],[2,6],[8,10],[15,18]] → [[1,6],[8,10],[15,18]]。',
+    sourceCode: MERGE_INTERVALS_SOURCE,
+    result: {
+      displayCode: MERGE_INTERVALS_SOURCE,
+      instrumentedCode: mergeIntervalsInstrumented,
+      fnName: 'merge',
+      summary: '排序 + 双列表：能接上就延伸右端，接不上开新区间',
+    },
+  },
+  {
+    id: 'rotate-array',
+    title: '189. 轮转数组',
+    problem:
+      '给定一个整数数组 nums，将数组中的元素向右轮转 k 个位置。示例：[1,2,3,4,5,6,7], k=3 → [5,6,7,1,2,3,4]。',
+    sourceCode: ROTATE_ARRAY_SOURCE,
+    result: {
+      displayCode: ROTATE_ARRAY_SOURCE,
+      instrumentedCode: rotateArrayInstrumented,
+      fnName: 'rotate',
+      summary: '三次反转法：整体反转 + 前 k 段反转 + 剩余段反转',
+    },
+  },
+  {
+    id: 'product-except-self',
+    title: '238. 除自身以外数组的乘积',
+    problem:
+      '给你一个整数数组 nums，返回数组 answer，其中 answer[i] 等于 nums 中除 nums[i] 之外其余各元素的乘积。要求不使用除法且 O(n)。示例：[1,2,3,4] → [24,12,8,6]。',
+    sourceCode: PRODUCT_EXCEPT_SELF_SOURCE,
+    result: {
+      displayCode: PRODUCT_EXCEPT_SELF_SOURCE,
+      instrumentedCode: productExceptSelfInstrumented,
+      fnName: 'productExceptSelf',
+      summary: '前后缀积两趟扫描：先填左侧积，再从右乘上右侧积',
+    },
+  },
+  {
+    id: 'first-missing-positive',
+    title: '41. 缺失的第一个正数',
+    problem:
+      '给你一个未排序的整数数组 nums，请你找出其中没有出现的最小的正整数。要求 O(n) 时间、O(1) 额外空间。示例：[3,4,-1,1] → 2。',
+    sourceCode: FIRST_MISSING_POSITIVE_SOURCE,
+    result: {
+      displayCode: FIRST_MISSING_POSITIVE_SOURCE,
+      instrumentedCode: firstMissingPositiveInstrumented,
+      fnName: 'firstMissingPositive',
+      summary: '原地哈希：把数字 x 交换到下标 x−1，再从左扫第一个错位',
+    },
+  },
+  {
+    id: 'set-zeroes',
+    title: '73. 矩阵置零',
+    problem:
+      '给定一个 m × n 的矩阵，如果一个元素为 0，则将其所在行和列的所有元素都设为 0。请使用原地算法。示例：[[0,1,2],[3,4,5],[1,2,0]] → [[0,0,0],[0,4,0],[0,0,0]]。',
+    sourceCode: SET_ZEROES_SOURCE,
+    result: {
+      displayCode: SET_ZEROES_SOURCE,
+      instrumentedCode: setZeroesInstrumented,
+      fnName: 'setZeroes',
+      summary: '首行首列当标记位：标记行头列头，再批量置零',
+    },
+  },
+  {
+    id: 'spiral-order',
+    title: '54. 螺旋矩阵',
+    problem:
+      '给你一个 m 行 n 列的矩阵 matrix，请按照顺时针螺旋顺序，返回矩阵中的所有元素。示例：[[1,2,3],[4,5,6],[7,8,9]] → [1,2,3,6,9,8,7,4,5]。',
+    sourceCode: SPIRAL_ORDER_SOURCE,
+    result: {
+      displayCode: SPIRAL_ORDER_SOURCE,
+      instrumentedCode: spiralOrderInstrumented,
+      fnName: 'spiralOrder',
+      summary: '四边界收缩：上→右→下→左轮流收割，已收集灰化',
+    },
+  },
+  {
+    id: 'rotate-image',
+    title: '48. 旋转图像',
+    problem:
+      '给定一个 n × n 的二维矩阵 matrix 表示一个图像，请你将图像顺时针旋转 90 度。必须原地旋转。示例：[[1,2,3],[4,5,6],[7,8,9]] → [[7,4,1],[8,5,2],[9,6,3]]。',
+    sourceCode: ROTATE_IMAGE_SOURCE,
+    result: {
+      displayCode: ROTATE_IMAGE_SOURCE,
+      instrumentedCode: rotateImageInstrumented,
+      fnName: 'rotate',
+      summary: '转置 + 行反转：两步原地交换等价于顺时针旋转 90°',
+    },
+  },
+  {
+    id: 'search-matrix-2',
+    title: '240. 搜索二维矩阵 II',
+    problem:
+      '编写一个高效的算法来搜索 m × n 矩阵 matrix 中的一个目标值 target。该矩阵每行从左到右递增、每列从上到下递增。',
+    sourceCode: SEARCH_MATRIX_2_SOURCE,
+    result: {
+      displayCode: SEARCH_MATRIX_2_SOURCE,
+      instrumentedCode: searchMatrix2Instrumented,
+      fnName: 'searchMatrix',
+      summary: '右上角出发：大了往左、小了往下，Z 字形逼近',
+    },
+  },
+  {
+    id: 'single-number',
+    title: '136. 只出现一次的数字',
+    problem:
+      '给你一个非空整数数组，除了某个元素只出现一次以外，其余每个元素均出现两次。找出那个只出现了一次的元素。要求线性时间、常数空间。示例：[4,1,2,1,2] → 4。',
+    sourceCode: SINGLE_NUMBER_SOURCE,
+    result: {
+      displayCode: SINGLE_NUMBER_SOURCE,
+      instrumentedCode: singleNumberInstrumented,
+      fnName: 'singleNumber',
+      summary: '异或抵消：x ^ x = 0，成对的数全部消失只剩落单的',
+    },
+  },
+  {
+    id: 'majority-element',
+    title: '169. 多数元素',
+    problem:
+      '给定一个大小为 n 的数组 nums，返回其中的多数元素（出现次数大于 n/2 的元素）。你可以假设数组是非空的，并且给定的数组总是存在多数元素。示例：[2,2,1,1,1,2,2] → 2。',
+    sourceCode: MAJORITY_ELEMENT_SOURCE,
+    result: {
+      displayCode: MAJORITY_ELEMENT_SOURCE,
+      instrumentedCode: majorityElementInstrumented,
+      fnName: 'majorityElement',
+      summary: 'Boyer-Moore 投票：同票加、异票减、归零换人',
+    },
+  },
+  {
+    id: 'sort-colors',
+    title: '75. 颜色分类',
+    problem:
+      '给定一个包含红色(0)、白色(1)、蓝色(2)的数组，原地对它们进行排序，使得相同颜色的元素相邻并按照红色、白色、蓝色顺序排列。示例：[2,0,2,1,1,0] → [0,0,1,1,2,2]。',
+    sourceCode: SORT_COLORS_SOURCE,
+    result: {
+      displayCode: SORT_COLORS_SOURCE,
+      instrumentedCode: sortColorsInstrumented,
+      fnName: 'sortColors',
+      summary: '荷兰国旗三指针：low/mid/high 把数组分成四个区',
+    },
+  },
+  {
+    id: 'next-permutation',
+    title: '31. 下一个排列',
+    problem:
+      '整数数组的下一个排列是其字典序中下一个更大的排列。如果不存在下一个更大的排列，则将数字重新排列成最小的排列。必须原地修改。示例：[1,2,3] → [1,3,2]。',
+    sourceCode: NEXT_PERMUTATION_SOURCE,
+    result: {
+      displayCode: NEXT_PERMUTATION_SOURCE,
+      instrumentedCode: nextPermutationInstrumented,
+      fnName: 'nextPermutation',
+      summary: '找升序转折点 → 交换最小更大数 → 后缀反转升序',
+    },
+  },
+  {
+    id: 'find-duplicate',
+    title: '287. 寻找重复数',
+    problem:
+      '给定一个包含 n + 1 个整数的数组 nums，其数字都在 [1, n] 范围内，可知至少存在一个重复的整数。假设只有一个重复的整数，找出这个重复的数。要求不修改数组且只用常量级额外空间。示例：[1,3,4,2,2] → 2。',
+    sourceCode: FIND_DUPLICATE_SOURCE,
+    result: {
+      displayCode: FIND_DUPLICATE_SOURCE,
+      instrumentedCode: findDuplicateInstrumented,
+      fnName: 'findDuplicate',
+      summary: 'Floyd 判环：把值当下标看成链，两次相遇找环入口',
     },
   },
 ]

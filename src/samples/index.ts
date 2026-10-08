@@ -33,6 +33,19 @@ import majorityElementInstrumented from './raw/majorityElement.js?raw'
 import sortColorsInstrumented from './raw/sortColors.js?raw'
 import nextPermutationInstrumented from './raw/nextPermutation.js?raw'
 import findDuplicateInstrumented from './raw/findDuplicate.js?raw'
+import hasCycleInstrumented from './raw/hasCycle.js?raw'
+import detectCycleInstrumented from './raw/detectCycle.js?raw'
+import isPalindromeInstrumented from './raw/isPalindrome.js?raw'
+import getIntersectionNodeInstrumented from './raw/getIntersectionNode.js?raw'
+import mergeTwoListsInstrumented from './raw/mergeTwoLists.js?raw'
+import addTwoNumbersInstrumented from './raw/addTwoNumbers.js?raw'
+import removeNthFromEndInstrumented from './raw/removeNthFromEnd.js?raw'
+import swapPairsInstrumented from './raw/swapPairs.js?raw'
+import reverseKGroupInstrumented from './raw/reverseKGroup.js?raw'
+import copyRandomListInstrumented from './raw/copyRandomList.js?raw'
+import sortListInstrumented from './raw/sortList.js?raw'
+import mergeKListsInstrumented from './raw/mergeKLists.js?raw'
+import lruCacheInstrumented from './raw/lruCache.js?raw'
 
 export interface Sample {
   id: string
@@ -667,6 +680,279 @@ const FIND_DUPLICATE_SOURCE = [
   '}',
 ].join('\n')
 
+const HAS_CYCLE_SOURCE = [
+  'function hasCycle(head) {',
+  '  let slow = head;',
+  '  let fast = head;',
+  '  while (fast !== null && fast.next !== null) {',
+  '    slow = slow.next;',
+  '    fast = fast.next.next;',
+  '    if (slow === fast) {',
+  '      return true;',
+  '    }',
+  '  }',
+  '  return false;',
+  '}',
+].join('\n')
+
+const DETECT_CYCLE_SOURCE = [
+  'function detectCycle(head) {',
+  '  let slow = head;',
+  '  let fast = head;',
+  '  while (fast !== null && fast.next !== null) {',
+  '    slow = slow.next;',
+  '    fast = fast.next.next;',
+  '    if (slow === fast) {',
+  '      break;',
+  '    }',
+  '  }',
+  '  if (fast === null || fast.next === null) {',
+  '    return null;',
+  '  }',
+  '  slow = head;',
+  '  while (slow !== fast) {',
+  '    slow = slow.next;',
+  '    fast = fast.next;',
+  '  }',
+  '  return slow;',
+  '}',
+].join('\n')
+
+const IS_PALINDROME_SOURCE = [
+  'function isPalindrome(head) {',
+  '  const vals = [];',
+  '  for (let p = head; p !== null; p = p.next) {',
+  '    vals.push(p.val);',
+  '  }',
+  '  let l = 0;',
+  '  let r = vals.length - 1;',
+  '  while (l < r) {',
+  '    if (vals[l] !== vals[r]) {',
+  '      return false;',
+  '    }',
+  '    l++;',
+  '    r--;',
+  '  }',
+  '  return true;',
+  '}',
+].join('\n')
+
+const GET_INTERSECTION_NODE_SOURCE = [
+  'function getIntersectionNode(headA, headB) {',
+  '  let pA = headA;',
+  '  let pB = headB;',
+  '  while (pA !== pB) {',
+  '    if (pA === null) {',
+  '      pA = headB;',
+  '    } else {',
+  '      pA = pA.next;',
+  '    }',
+  '    if (pB === null) {',
+  '      pB = headA;',
+  '    } else {',
+  '      pB = pB.next;',
+  '    }',
+  '  }',
+  '  return pA;',
+  '}',
+].join('\n')
+
+const MERGE_TWO_LISTS_SOURCE = [
+  'function mergeTwoLists(list1, list2) {',
+  '  const dummy = { val: 0, next: null };',
+  '  let cur = dummy;',
+  '  while (list1 !== null && list2 !== null) {',
+  '    if (list1.val <= list2.val) {',
+  '      cur.next = list1;',
+  '      list1 = list1.next;',
+  '    } else {',
+  '      cur.next = list2;',
+  '      list2 = list2.next;',
+  '    }',
+  '    cur = cur.next;',
+  '  }',
+  '  cur.next = list1 !== null ? list1 : list2;',
+  '  return dummy.next;',
+  '}',
+].join('\n')
+
+const ADD_TWO_NUMBERS_SOURCE = [
+  'function addTwoNumbers(l1, l2) {',
+  '  const dummy = { val: 0, next: null };',
+  '  let cur = dummy;',
+  '  let carry = 0;',
+  '  while (l1 !== null || l2 !== null || carry !== 0) {',
+  '    const a = l1 !== null ? l1.val : 0;',
+  '    const b = l2 !== null ? l2.val : 0;',
+  '    const sum = a + b + carry;',
+  '    carry = Math.floor(sum / 10);',
+  '    cur.next = { val: sum % 10, next: null };',
+  '    cur = cur.next;',
+  '    if (l1 !== null) l1 = l1.next;',
+  '    if (l2 !== null) l2 = l2.next;',
+  '  }',
+  '  return dummy.next;',
+  '}',
+].join('\n')
+
+const REMOVE_NTH_FROM_END_SOURCE = [
+  'function removeNthFromEnd(head, n) {',
+  '  const dummy = { val: 0, next: head };',
+  '  let fast = dummy;',
+  '  let slow = dummy;',
+  '  for (let i = 0; i <= n; i++) {',
+  '    fast = fast.next;',
+  '  }',
+  '  while (fast !== null) {',
+  '    fast = fast.next;',
+  '    slow = slow.next;',
+  '  }',
+  '  slow.next = slow.next.next;',
+  '  return dummy.next;',
+  '}',
+].join('\n')
+
+const SWAP_PAIRS_SOURCE = [
+  'function swapPairs(head) {',
+  '  const dummy = { val: 0, next: head };',
+  '  let prev = dummy;',
+  '  while (prev.next !== null && prev.next.next !== null) {',
+  '    const first = prev.next;',
+  '    const second = first.next;',
+  '    first.next = second.next;',
+  '    second.next = first;',
+  '    prev.next = second;',
+  '    prev = first;',
+  '  }',
+  '  return dummy.next;',
+  '}',
+].join('\n')
+
+const REVERSE_K_GROUP_SOURCE = [
+  'function reverseKGroup(head, k) {',
+  '  const dummy = { val: 0, next: head };',
+  '  let groupPrev = dummy;',
+  '  while (true) {',
+  '    let kth = groupPrev;',
+  '    for (let i = 0; i < k && kth !== null; i++) {',
+  '      kth = kth.next;',
+  '    }',
+  '    if (kth === null) {',
+  '      break;',
+  '    }',
+  '    const groupNext = kth.next;',
+  '    let prev = groupNext;',
+  '    let cur = groupPrev.next;',
+  '    for (let i = 0; i < k; i++) {',
+  '      const next = cur.next;',
+  '      cur.next = prev;',
+  '      prev = cur;',
+  '      cur = next;',
+  '    }',
+  '    const newGroupTail = groupPrev.next;',
+  '    groupPrev.next = prev;',
+  '    groupPrev = newGroupTail;',
+  '  }',
+  '  return dummy.next;',
+  '}',
+].join('\n')
+
+const COPY_RANDOM_LIST_SOURCE = [
+  'function copyRandomList(head) {',
+  '  const map = new Map();',
+  '  for (let p = head; p !== null; p = p.next) {',
+  '    map.set(p, { val: p.val, next: null, random: null });',
+  '  }',
+  '  for (let p = head; p !== null; p = p.next) {',
+  '    const copy = map.get(p);',
+  '    copy.next = p.next ? map.get(p.next) : null;',
+  '    copy.random = p.random ? map.get(p.random) : null;',
+  '  }',
+  '  return head ? map.get(head) : null;',
+  '}',
+].join('\n')
+
+const SORT_LIST_SOURCE = [
+  'function sortList(head) {',
+  '  if (head === null) {',
+  '    return null;',
+  '  }',
+  '  const vals = [];',
+  '  for (let p = head; p !== null; p = p.next) {',
+  '    vals.push(p.val);',
+  '  }',
+  '  vals.sort((a, b) => a - b);',
+  '  let p = head;',
+  '  for (let i = 0; i < vals.length; i++) {',
+  '    p.val = vals[i];',
+  '    p = p.next;',
+  '  }',
+  '  return head;',
+  '}',
+].join('\n')
+
+const MERGE_K_LISTS_SOURCE = [
+  'function mergeKLists(lists) {',
+  '  const mergeTwo = (a, b) => {',
+  '    const dummy = { val: 0, next: null };',
+  '    let cur = dummy;',
+  '    while (a !== null && b !== null) {',
+  '      if (a.val <= b.val) {',
+  '        cur.next = a;',
+  '        a = a.next;',
+  '      } else {',
+  '        cur.next = b;',
+  '        b = b.next;',
+  '      }',
+  '      cur = cur.next;',
+  '    }',
+  '    cur.next = a !== null ? a : b;',
+  '    return dummy.next;',
+  '  };',
+  '  let result = lists[0] || null;',
+  '  for (let i = 1; i < lists.length; i++) {',
+  '    result = mergeTwo(result, lists[i]);',
+  '  }',
+  '  return result;',
+  '}',
+].join('\n')
+
+const LRU_CACHE_SOURCE = [
+  'class LRUCache {',
+  '  constructor(capacity) {',
+  '    this.capacity = capacity;',
+  '    this.map = new Map();',
+  '    this.order = [];',
+  '  }',
+  '  touch(key) {',
+  '    const idx = this.order.indexOf(key);',
+  '    if (idx >= 0) {',
+  '      this.order.splice(idx, 1);',
+  '    }',
+  '    this.order.push(key);',
+  '  }',
+  '  get(key) {',
+  '    if (!this.map.has(key)) {',
+  '      return -1;',
+  '    }',
+  '    this.touch(key);',
+  '    return this.map.get(key);',
+  '  }',
+  '  put(key, value) {',
+  '    if (!this.map.has(key) && this.order.length >= this.capacity) {',
+  '      const evict = this.order.shift();',
+  '      this.map.delete(evict);',
+  '    }',
+  '    this.map.set(key, value);',
+  '    const idx = this.order.indexOf(key);',
+  '    if (idx >= 0) {',
+  '      this.order.splice(idx, 1);',
+  '    }',
+  '    this.order.push(key);',
+  '  }',
+  '}',
+].join('\n')
+
 export const SAMPLES: Sample[] = [
   {
     id: 'two-sum',
@@ -1055,6 +1341,175 @@ export const SAMPLES: Sample[] = [
       instrumentedCode: findDuplicateInstrumented,
       fnName: 'findDuplicate',
       summary: 'Floyd 判环：把值当下标看成链，两次相遇找环入口',
+    },
+  },
+  {
+    id: 'has-cycle',
+    title: '141. 环形链表',
+    problem:
+      '给你一个链表的头节点 head，判断链表中是否有环。示例：[3,2,0,-4] 尾部回指第 1 个节点 → true。',
+    sourceCode: HAS_CYCLE_SOURCE,
+    result: {
+      displayCode: HAS_CYCLE_SOURCE,
+      instrumentedCode: hasCycleInstrumented,
+      fnName: 'hasCycle',
+      summary: '快慢指针：快指针两步慢指针一步，有环必相遇',
+    },
+  },
+  {
+    id: 'detect-cycle',
+    title: '142. 环形链表 II',
+    problem:
+      '给定一个链表的头节点 head，返回链表开始入环的第一个节点；如果链表无环，则返回 null。不允许修改链表。',
+    sourceCode: DETECT_CYCLE_SOURCE,
+    result: {
+      displayCode: DETECT_CYCLE_SOURCE,
+      instrumentedCode: detectCycleInstrumented,
+      fnName: 'detectCycle',
+      summary: '两阶段快慢指针：先相遇，再从头与相遇点同速走到环入口',
+    },
+  },
+  {
+    id: 'is-palindrome',
+    title: '234. 回文链表',
+    problem:
+      '给你一个单链表的头节点 head，请你判断该链表是否为回文链表。示例：[1,2,2,1] → true；[1,2] → false。',
+    sourceCode: IS_PALINDROME_SOURCE,
+    result: {
+      displayCode: IS_PALINDROME_SOURCE,
+      instrumentedCode: isPalindromeInstrumented,
+      fnName: 'isPalindrome',
+      summary: '取值到数组 + 双指针收拢对碰（直观解法）',
+    },
+  },
+  {
+    id: 'get-intersection-node',
+    title: '160. 相交链表',
+    problem:
+      '给你两个单链表的头节点 headA 和 headB，找出并返回两个单链表相交的起始节点。如果两个链表不存在相交节点，返回 null。',
+    sourceCode: GET_INTERSECTION_NODE_SOURCE,
+    result: {
+      displayCode: GET_INTERSECTION_NODE_SOURCE,
+      instrumentedCode: getIntersectionNodeInstrumented,
+      fnName: 'getIntersectionNode',
+      summary: '双指针走对方的路：总路程相同，有交点必同时到达',
+    },
+  },
+  {
+    id: 'merge-two-lists',
+    title: '21. 合并两个有序链表',
+    problem:
+      '将两个升序链表合并为一个新的升序链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。示例：[1,2,4] + [1,3,4] → 1→1→2→3→4→4。',
+    sourceCode: MERGE_TWO_LISTS_SOURCE,
+    result: {
+      displayCode: MERGE_TWO_LISTS_SOURCE,
+      instrumentedCode: mergeTwoListsInstrumented,
+      fnName: 'mergeTwoLists',
+      summary: '哑结点 + 双指针接力：谁小接谁，剩余整段直连',
+    },
+  },
+  {
+    id: 'add-two-numbers',
+    title: '2. 两数相加',
+    problem:
+      '给你两个非空链表，表示两个非负整数（每位数字逆序存储）。请将它们相加并以相同形式返回一个表示和的链表。示例：(2→4→3) + (5→6→4) = 807 → 7→0→8。',
+    sourceCode: ADD_TWO_NUMBERS_SOURCE,
+    result: {
+      displayCode: ADD_TWO_NUMBERS_SOURCE,
+      instrumentedCode: addTwoNumbersInstrumented,
+      fnName: 'addTwoNumbers',
+      summary: '逐位相加 + 进位传递：sum % 10 留本位，Math.floor(sum/10) 进位',
+    },
+  },
+  {
+    id: 'remove-nth-from-end',
+    title: '19. 删除链表的倒数第 N 个结点',
+    problem:
+      '给你一个链表，删除链表的倒数第 n 个结点，并且返回链表的头结点。示例：[1,2,3,4,5] n=2 → [1,2,3,5]。',
+    sourceCode: REMOVE_NTH_FROM_END_SOURCE,
+    result: {
+      displayCode: REMOVE_NTH_FROM_END_SOURCE,
+      instrumentedCode: removeNthFromEndInstrumented,
+      fnName: 'removeNthFromEnd',
+      summary: '快指针先走 N+1 步，快慢同速时 slow 停在删除点前一个',
+    },
+  },
+  {
+    id: 'swap-pairs',
+    title: '24. 两两交换链表中的节点',
+    problem:
+      '给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。必须在不修改节点内部值的情况下完成。示例：[1,2,3,4] → [2,1,4,3]。',
+    sourceCode: SWAP_PAIRS_SOURCE,
+    result: {
+      displayCode: SWAP_PAIRS_SOURCE,
+      instrumentedCode: swapPairsInstrumented,
+      fnName: 'swapPairs',
+      summary: '哑结点 + 三指针重接：first/second 翻转后接回主干',
+    },
+  },
+  {
+    id: 'reverse-k-group',
+    title: '25. K 个一组翻转链表',
+    problem:
+      '给你链表的头节点 head，每 k 个节点一组进行翻转（不足 k 个保持原序），返回修改后的链表。示例：[1,2,3,4,5] k=2 → [2,1,4,3,5]。',
+    sourceCode: REVERSE_K_GROUP_SOURCE,
+    result: {
+      displayCode: REVERSE_K_GROUP_SOURCE,
+      instrumentedCode: reverseKGroupInstrumented,
+      fnName: 'reverseKGroup',
+      summary: '探路数满 k 个 → 组内反转 → 接回主干，逐组推进',
+    },
+  },
+  {
+    id: 'copy-random-list',
+    title: '138. 随机链表的复制',
+    problem:
+      '给你一个长度为 n 的链表，每个节点包含 next 和 random 两个指针。请返回该链表的深拷贝。',
+    sourceCode: COPY_RANDOM_LIST_SOURCE,
+    result: {
+      displayCode: COPY_RANDOM_LIST_SOURCE,
+      instrumentedCode: copyRandomListInstrumented,
+      fnName: 'copyRandomList',
+      summary: '哈希映射原→新：第一遍建节点，第二遍统一连两指针',
+    },
+  },
+  {
+    id: 'sort-list',
+    title: '148. 排序链表',
+    problem:
+      '给你链表的头结点 head，请将其按升序排列并返回排序后的链表。示例：[4,2,1,3] → [1,2,3,4]。',
+    sourceCode: SORT_LIST_SOURCE,
+    result: {
+      displayCode: SORT_LIST_SOURCE,
+      instrumentedCode: sortListInstrumented,
+      fnName: 'sortList',
+      summary: '取值排序回填（直观版）：数组排序后按序写回节点值',
+    },
+  },
+  {
+    id: 'merge-k-lists',
+    title: '23. 合并 K 个升序链表',
+    problem:
+      '给你一个链表数组，每个链表都已经按升序排列。请你将所有链表合并到一个升序链表中，返回合并后的链表。示例：[[1,4,5],[1,3,4],[2,6]] → 1→1→2→3→4→4→5→6。',
+    sourceCode: MERGE_K_LISTS_SOURCE,
+    result: {
+      displayCode: MERGE_K_LISTS_SOURCE,
+      instrumentedCode: mergeKListsInstrumented,
+      fnName: 'mergeKLists',
+      summary: '逐个归并：复用两两合并，把每条链依次并进结果',
+    },
+  },
+  {
+    id: 'lru-cache',
+    title: '146. LRU 缓存',
+    problem:
+      '请你设计并实现一个满足 LRU（最近最少使用）缓存约束的数据结构：get(key) 存在则返回值否则 -1；put(key, value) 写入，容量满时淘汰最久未使用的 key。（教学直观版：数组维护使用顺序）',
+    sourceCode: LRU_CACHE_SOURCE,
+    result: {
+      displayCode: LRU_CACHE_SOURCE,
+      instrumentedCode: lruCacheInstrumented,
+      fnName: 'LRUCache',
+      summary: '哈希表 + 使用顺序表：get/put 都把 key 挪到最近端，满则淘汰最旧',
     },
   },
 ]

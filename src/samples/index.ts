@@ -105,6 +105,8 @@ import longestValidParenthesesInstrumented from './raw/longestValidParentheses.j
 import searchInsertInstrumented from './raw/searchInsert.js?raw'
 import nQueensInstrumented from './raw/nQueens.js?raw'
 
+export type Difficulty = '简单' | '中等' | '困难'
+
 export interface Sample {
   id: string
   title: string
@@ -112,7 +114,14 @@ export interface Sample {
   /** 原始解法（用户视角的代码） */
   sourceCode: string
   result: InstrumentResult
+  /** Hot 100 官方分类（如「二叉树」「动态规划」） */
+  category: string
+  /** LeetCode 官方难度 */
+  difficulty: Difficulty
 }
+
+/** 装配前的样题：分类与难度由 SAMPLE_META 统一补齐 */
+type RawSample = Omit<Sample, 'category' | 'difficulty'>
 
 const TWO_SUM_SOURCE = [
   'function twoSum(nums, target) {',
@@ -2364,7 +2373,7 @@ const N_QUEENS_SOURCE = [
   '}',
 ].join('\n')
 
-export const SAMPLES: Sample[] = [
+const RAW_SAMPLES: RawSample[] = [
   {
     id: 'two-sum',
     title: '1. 两数之和',
@@ -3669,6 +3678,119 @@ export const SAMPLES: Sample[] = [
     },
   },
 ]
+
+/** 样题元数据：Hot 100 官方分类 + LeetCode 官方难度 */
+const SAMPLE_META: Record<string, { category: string; difficulty: Difficulty }> = {
+  'add-two-numbers': { category: '链表', difficulty: '中等' },
+  'best-time-stock': { category: '贪心', difficulty: '简单' },
+  'build-tree-pre-in': { category: '二叉树', difficulty: '中等' },
+  'can-finish': { category: '图论', difficulty: '中等' },
+  'climb-stairs': { category: '动态规划', difficulty: '简单' },
+  'coin-change': { category: '动态规划', difficulty: '中等' },
+  'combination-sum': { category: '回溯', difficulty: '中等' },
+  'copy-random-list': { category: '链表', difficulty: '中等' },
+  'daily-temperatures': { category: '栈', difficulty: '中等' },
+  'decode-string': { category: '栈', difficulty: '中等' },
+  'detect-cycle': { category: '链表', difficulty: '中等' },
+  'diameter-of-binary-tree': { category: '二叉树', difficulty: '简单' },
+  'edit-distance': { category: '多维动态规划', difficulty: '困难' },
+  'find-anagrams': { category: '滑动窗口', difficulty: '中等' },
+  'find-duplicate': { category: '技巧', difficulty: '中等' },
+  'find-median-sorted-arrays': { category: '二分查找', difficulty: '困难' },
+  'find-min-rotated': { category: '二分查找', difficulty: '中等' },
+  'first-missing-positive': { category: '普通数组', difficulty: '困难' },
+  'flatten-tree': { category: '二叉树', difficulty: '中等' },
+  'generate-parenthesis': { category: '回溯', difficulty: '中等' },
+  'get-intersection-node': { category: '链表', difficulty: '简单' },
+  'group-anagrams': { category: '哈希', difficulty: '中等' },
+  'has-cycle': { category: '链表', difficulty: '简单' },
+  'house-robber': { category: '动态规划', difficulty: '中等' },
+  'inorder-traversal': { category: '二叉树', difficulty: '简单' },
+  'invert-tree': { category: '二叉树', difficulty: '简单' },
+  'is-palindrome': { category: '链表', difficulty: '简单' },
+  'is-symmetric': { category: '二叉树', difficulty: '简单' },
+  'is-valid-bst': { category: '二叉树', difficulty: '中等' },
+  'jump-game': { category: '贪心', difficulty: '中等' },
+  'jump-game-2': { category: '贪心', difficulty: '中等' },
+  'kth-largest': { category: '堆', difficulty: '中等' },
+  'kth-smallest': { category: '二叉树', difficulty: '中等' },
+  'largest-rectangle': { category: '栈', difficulty: '困难' },
+  'lcs': { category: '多维动态规划', difficulty: '中等' },
+  'letter-combinations': { category: '回溯', difficulty: '中等' },
+  'level-order': { category: '二叉树', difficulty: '中等' },
+  'longest-consecutive': { category: '哈希', difficulty: '中等' },
+  'longest-increasing-subsequence': { category: '动态规划', difficulty: '中等' },
+  'longest-palindrome-substr': { category: '多维动态规划', difficulty: '中等' },
+  'longest-substring': { category: '滑动窗口', difficulty: '中等' },
+  'longest-valid-parentheses': { category: '动态规划', difficulty: '困难' },
+  'lowest-common-ancestor': { category: '二叉树', difficulty: '中等' },
+  'lru-cache': { category: '链表', difficulty: '中等' },
+  'majority-element': { category: '技巧', difficulty: '简单' },
+  'max-area': { category: '双指针', difficulty: '中等' },
+  'max-depth': { category: '二叉树', difficulty: '简单' },
+  'max-path-sum': { category: '二叉树', difficulty: '困难' },
+  'max-product-subarray': { category: '动态规划', difficulty: '中等' },
+  'max-sliding-window': { category: '子串', difficulty: '困难' },
+  'max-sub-array': { category: '普通数组', difficulty: '中等' },
+  'median-finder': { category: '堆', difficulty: '困难' },
+  'merge-intervals': { category: '普通数组', difficulty: '中等' },
+  'merge-k-lists': { category: '链表', difficulty: '困难' },
+  'merge-two-lists': { category: '链表', difficulty: '简单' },
+  'min-path-sum': { category: '多维动态规划', difficulty: '中等' },
+  'min-stack': { category: '栈', difficulty: '中等' },
+  'min-window': { category: '子串', difficulty: '困难' },
+  'move-zeroes': { category: '双指针', difficulty: '简单' },
+  'n-queens': { category: '回溯', difficulty: '困难' },
+  'next-permutation': { category: '技巧', difficulty: '中等' },
+  'num-islands': { category: '图论', difficulty: '中等' },
+  'oranges-rotting': { category: '图论', difficulty: '中等' },
+  'palindrome-partitioning': { category: '回溯', difficulty: '中等' },
+  'partition-equal-subset': { category: '动态规划', difficulty: '中等' },
+  'partition-labels': { category: '贪心', difficulty: '中等' },
+  'pascal-triangle': { category: '动态规划', difficulty: '简单' },
+  'path-sum-3': { category: '二叉树', difficulty: '中等' },
+  'perfect-squares': { category: '动态规划', difficulty: '中等' },
+  'permute': { category: '回溯', difficulty: '中等' },
+  'product-except-self': { category: '普通数组', difficulty: '中等' },
+  'remove-nth-from-end': { category: '链表', difficulty: '中等' },
+  'reverse-k-group': { category: '链表', difficulty: '困难' },
+  'reverse-list': { category: '链表', difficulty: '简单' },
+  'right-side-view': { category: '二叉树', difficulty: '中等' },
+  'rotate-array': { category: '普通数组', difficulty: '中等' },
+  'rotate-image': { category: '矩阵', difficulty: '中等' },
+  'search-insert': { category: '二分查找', difficulty: '简单' },
+  'search-matrix-2': { category: '矩阵', difficulty: '中等' },
+  'search-matrix-binary': { category: '二分查找', difficulty: '中等' },
+  'search-range': { category: '二分查找', difficulty: '中等' },
+  'search-rotated': { category: '二分查找', difficulty: '中等' },
+  'set-zeroes': { category: '矩阵', difficulty: '中等' },
+  'single-number': { category: '技巧', difficulty: '简单' },
+  'sort-colors': { category: '技巧', difficulty: '中等' },
+  'sort-list': { category: '链表', difficulty: '中等' },
+  'sorted-array-to-bst': { category: '二叉树', difficulty: '简单' },
+  'spiral-order': { category: '矩阵', difficulty: '中等' },
+  'subarray-sum': { category: '子串', difficulty: '中等' },
+  'subsets': { category: '回溯', difficulty: '中等' },
+  'swap-pairs': { category: '链表', difficulty: '中等' },
+  'three-sum': { category: '双指针', difficulty: '中等' },
+  'top-k-frequent': { category: '堆', difficulty: '中等' },
+  'trap': { category: '双指针', difficulty: '困难' },
+  'trap-stack': { category: '双指针', difficulty: '困难' },
+  'trie': { category: '图论', difficulty: '中等' },
+  'two-sum': { category: '哈希', difficulty: '简单' },
+  'unique-paths': { category: '多维动态规划', difficulty: '中等' },
+  'valid-parentheses': { category: '栈', difficulty: '简单' },
+  'word-break': { category: '动态规划', difficulty: '中等' },
+  'word-search': { category: '回溯', difficulty: '中等' },
+}
+
+export const SAMPLES: Sample[] = RAW_SAMPLES.map((sample) => {
+  const meta = SAMPLE_META[sample.id]
+  if (!meta) {
+    throw new Error(`样题 ${sample.id} 缺少分类/难度元数据`)
+  }
+  return { ...sample, category: meta.category, difficulty: meta.difficulty }
+})
 
 export function findSample(id: string): Sample | undefined {
   return SAMPLES.find((s) => s.id === id)

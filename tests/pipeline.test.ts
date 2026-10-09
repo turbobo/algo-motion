@@ -17,6 +17,19 @@ function requireZero(): { sanitizeView: typeof sanitizeView; emptyDiagnostics: t
 import { SAMPLES } from '../src/samples'
 import { parseModelOutput, pickOutput } from '../cloud-functions/lib/instrument'
 
+describe('内置样题：分类与难度元数据完整', () => {
+  it('每个样题都有合法的分类与难度', () => {
+    const CATEGORIES = new Set([
+      '哈希', '双指针', '滑动窗口', '子串', '普通数组', '矩阵', '链表', '二叉树',
+      '图论', '回溯', '二分查找', '栈', '堆', '贪心', '动态规划', '多维动态规划', '技巧',
+    ])
+    for (const sample of SAMPLES) {
+      expect(CATEGORIES.has(sample.category), `${sample.id} category=${sample.category}`).toBe(true)
+      expect(['简单', '中等', '困难']).toContain(sample.difficulty)
+    }
+  })
+})
+
 describe('内置样题：插桩产物可执行且帧可解析', () => {
   for (const sample of SAMPLES) {
     it(`${sample.title}`, () => {

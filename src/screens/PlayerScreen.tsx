@@ -14,6 +14,7 @@ import { CodePanel } from '../components/player/CodePanel'
 import { PlaybackBar } from '../components/player/PlaybackBar'
 import { StageView } from '../components/player/StageView'
 import { FrameList } from '../components/player/FrameList'
+import { CallStackPanel } from '../components/player/CallStackPanel'
 import { VarsPanel } from '../components/player/VarsPanel'
 import { diffViews } from '../components/renderers/frameDiff'
 
@@ -248,6 +249,7 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
                 {frame?.msg ?? ''}
               </p>
             </div>
+            <CallStackPanel stack={frame?.stack} />
             <VarsPanel vars={frame?.vars} flash={flashVars} frameKey={cursor} />
           </div>
 

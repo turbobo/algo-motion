@@ -26,8 +26,11 @@ function invertTree(root) {
       .concat(cur && ids.has(cur) ? [{ id: ids.get(cur), tone: 'active' }] : []),
     title: '二叉树（绿色 = 左右子树已交换）',
   });
+  const __stack = [];
   const __impl = (node) => {
+    __stack.push(node === null ? 'invertTree(null)' : `invertTree(${node.val})`);
     if (node === null) {
+      __stack.pop();
       return null;
     }
     const tmp = node.left;
@@ -38,10 +41,12 @@ function invertTree(root) {
       msg: `交换节点 ${ids.get(node)}（值 ${node.val}）的左右子树——看图中这两个分支换边了`,
       views: { tree: treeSnap(node) },
       vars: { 当前节点: String(node.val) },
+      stack: [...__stack],
     });
     done.add(node);
     __impl(node.left);
     __impl(node.right);
+    __stack.pop();
     return node;
   };
   if (root === null) {
@@ -50,6 +55,7 @@ function invertTree(root) {
       msg: '空树无需翻转——直接返回 null',
       views: { tree: treeSnap(null) },
       vars: {},
+      stack: ['invertTree(null)'],
     });
     return null;
   }
@@ -58,6 +64,7 @@ function invertTree(root) {
     msg: '翻转 = 每个节点的左右子树互换位置。对每个节点：交换它的 left 和 right，然后递归进两个子树——注意交换后"左"已经是原来的右子树了',
     views: { tree: treeSnap(root) },
     vars: {},
+    stack: [`invertTree(${root.val})`],
   });
   __impl(root);
   __rec.step({
@@ -65,6 +72,7 @@ function invertTree(root) {
     msg: '所有节点都交换完毕——整棵树完成了左右镜像翻转',
     views: { tree: treeSnap(null) },
     vars: { 答案: '镜像翻转后的树' },
+    stack: [`invertTree(${root.val})`],
   });
   return root;
 }

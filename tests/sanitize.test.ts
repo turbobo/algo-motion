@@ -19,6 +19,26 @@ function diag() {
 }
 
 describe('sanitizeFrame：帧级底线', () => {
+  it('stack：字符串直通、空值剔除、超深截断、非数组忽略且不产生诊断', () => {
+    const d = diag()
+    const frame = sanitizeFrame(
+      { at: 'a', msg: 'm', views: {}, stack: ['f(1)', '', 42, null, 'f(2)'] },
+      d,
+    )
+    expect(frame?.stack).toEqual(['f(1)', '42', 'f(2)'])
+
+    const d2 = diag()
+    const f2 = sanitizeFrame({ at: 'a', msg: 'm', views: {}, stack: 'not-array' }, d2)
+    expect(f2?.stack).toBeUndefined()
+    expect(hasDiagnostics(d2)).toBe(false) // 栈为纯展示字段：静默降级
+
+    const d3 = diag()
+    const f3 = sanitizeFrame(
+      { at: 'a', msg: 'm', views: {}, stack: Array.from({ length: 20 }, (_, i) => `f(${i})`) },
+      d3,
+    )
+    expect(f3?.stack).toHaveLength(12)
+  })
   it('非对象入参整帧丢弃并计数', () => {
     const d = diag()
     for (const bad of [null, undefined, 42, 'step', [], true]) {

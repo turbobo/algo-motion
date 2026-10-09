@@ -21,8 +21,11 @@ function permute(nums) {
     values: res.map((r) => r.join('')),
     title: '已收集的排列',
   });
+  const __stack = [];
   const backtrack = () => {
+    __stack.push(`backtrack(已选 [${path.join(', ')}])`);
     if (path.length === nums.length) {
+      __stack.pop();
       res.push([...path]);
       return;
     }
@@ -40,17 +43,20 @@ function permute(nums) {
             : `选择 ${nums[i]}（第 ${path.length} 位）。回溯的本质：选一个 → 往下试 → 试完撤销回来，换下一个`,
         views: { path: pathSnap(), used: usedSnap(), res: resSnap() },
         vars: { 当前深度: String(path.length), 已收集: String(res.length) },
+        stack: [...__stack],
       });
       backtrack();
       path.pop();
       used[i] = false;
     }
+    __stack.pop();
   };
   __rec.step({
     at: 'const backtrack = () => {',
     msg: `${nums.length} 个数字的全排列 = 一个 ${nums.length} 层的决策树：每一层挑一个"还没用过"的数，选满 ${nums.length} 位就是一种排列`,
     views: { path: pathSnap(), used: usedSnap(), res: resSnap() },
     vars: {},
+    stack: ['backtrack(已选 [])'],
   });
   backtrack();
   return res;

@@ -26,8 +26,11 @@ function maxDepth(root) {
       .concat(cur && ids.has(cur) ? [{ id: ids.get(cur), tone: 'active' }] : []),
     title: '二叉树（绿色 = 深度已算出）',
   });
+  const __stack = [];
   const __impl = (node) => {
+    __stack.push(node === null ? 'maxDepth(null)' : `maxDepth(${node.val})`);
     if (node === null) {
+      __stack.pop();
       return 0;
     }
     const left = __impl(node.left);
@@ -37,8 +40,10 @@ function maxDepth(root) {
       msg: `节点 ${ids.get(node)}（值 ${node.val}）收到子树结果：左 ${left}、右 ${right} → max(${left}, ${right}) + 1 = ${Math.max(left, right) + 1}`,
       views: { tree: treeSnap(node) },
       vars: { 左深度: String(left), 右深度: String(right), 返回: String(Math.max(left, right) + 1) },
+      stack: [...__stack],
     });
     done.add(node);
+    __stack.pop();
     return Math.max(left, right) + 1;
   };
   if (root === null) {
@@ -47,6 +52,7 @@ function maxDepth(root) {
       msg: '空节点（null）的深度定义为 0——递归的停机条件',
       views: { tree: treeSnap(null) },
       vars: { 深度: '0' },
+      stack: ['maxDepth(null)'],
     });
     return 0;
   }
@@ -55,6 +61,7 @@ function maxDepth(root) {
     msg: '树的最大深度 = 左右子树深度的最大值 + 1。用后序遍历：先递归算出两棵子树的深度，再往上合并——绿色节点表示它的深度已经算出来了',
     views: { tree: treeSnap(root) },
     vars: {},
+    stack: [`maxDepth(${root.val})`],
   });
   const result = __impl(root);
   return result;

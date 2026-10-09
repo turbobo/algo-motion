@@ -116,6 +116,8 @@ export interface RawFrame {
   views: Record<string, View>
   /** 变量面板：变量名 → 显示值 */
   vars?: Record<string, string>
+  /** 递归调用栈快照（栈底 → 栈顶；仅递归题提供，如 ["maxDepth(3)", "maxDepth(9)"]） */
+  stack?: string[]
 }
 
 /** 完成行号解析的帧（展示用） */

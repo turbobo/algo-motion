@@ -50,6 +50,9 @@ const MAX_HIGHLIGHTS = 16
 const CELL_TEXT_LEN = 32
 const TITLE_TEXT_LEN = 80
 const LABEL_TEXT_LEN = 24
+/** 调用栈帧文字长度 / 最大深度（递归教学题足够；超出静默截断，不计入诊断） */
+const STACK_TEXT_LEN = 48
+const MAX_STACK_DEPTH = 12
 const ID_TEXT_LEN = 16
 
 const TONES: readonly string[] = ['active', 'ok', 'warn', 'danger', 'muted']
@@ -720,6 +723,16 @@ export function sanitizeFrame(raw: unknown, diag: FrameDiagnostics): RawFrame | 
         count++
       }
       if (count > 0) frame.vars = vars
+    }
+
+    const stackRaw = source.stack
+    if (Array.isArray(stackRaw)) {
+      const stack: string[] = []
+      for (const item of stackRaw.slice(0, MAX_STACK_DEPTH)) {
+        const label = text(item, STACK_TEXT_LEN)
+        if (label) stack.push(label)
+      }
+      if (stack.length > 0) frame.stack = stack
     }
 
     return frame

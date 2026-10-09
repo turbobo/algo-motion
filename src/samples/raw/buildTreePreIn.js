@@ -36,6 +36,7 @@ function buildTree(preorder, inorder) {
       msg: '空序列构造不出树——返回 null',
       views: { tree: treeSnap(), pre: preSnap(0, -1), ino: inSnap(0, -1, -1) },
       vars: {},
+      stack: ['build(空)'],
     });
     return null;
   }
@@ -43,8 +44,11 @@ function buildTree(preorder, inorder) {
   for (let i = 0; i < inorder.length; i++) {
     indexOf.set(inorder[i], i);
   }
+  const __stack = [];
   const build = (preLo, preHi, inLo, inHi) => {
+    __stack.push(`build(pre[${preLo}..${preHi}])`);
     if (preLo > preHi) {
+      __stack.pop();
       return null;
     }
     const rootVal = preorder[preLo];
@@ -58,9 +62,11 @@ function buildTree(preorder, inorder) {
       msg: `前序段的第一个 ${rootVal} 就是根；在中序里找到它的位置 ${inRoot}：左边 ${leftSize} 个是左子树（中序 [${inLo}..${inRoot - 1}]），右边是右子树——两段长度又在 preorder 里切出对应的子段`,
       views: { tree: treeSnap(), pre: preSnap(preLo, preHi), ino: inSnap(inLo, inHi, inRoot) },
       vars: { 根: String(rootVal), 左子树大小: String(leftSize) },
+      stack: [...__stack],
     });
     node.left = build(preLo + 1, preLo + leftSize, inLo, inRoot - 1);
     node.right = build(preLo + leftSize + 1, preHi, inRoot + 1, inHi);
+    __stack.pop();
     return node;
   };
   const result = build(0, preorder.length - 1, 0, inorder.length - 1);
@@ -69,6 +75,7 @@ function buildTree(preorder, inorder) {
     msg: '所有区间切片都递归完毕——唯一的一棵树构建完成',
     views: { tree: treeSnap(), pre: preSnap(0, -1), ino: inSnap(0, -1, -1) },
     vars: { 答案: '按前序+中序重建的树' },
+    stack: [`build(pre[0..${preorder.length - 1}])`],
   });
   return result;
 }

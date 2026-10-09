@@ -29,8 +29,11 @@ function maxPathSum(root) {
     };
   };
   let best = -Infinity;
+  const __stack = [];
   const gain = (node) => {
+    __stack.push(node === null ? 'gain(null)' : `gain(${node.val})`);
     if (node === null) {
+      __stack.pop();
       return 0;
     }
     const left = Math.max(gain(node.left), 0);
@@ -42,8 +45,10 @@ function maxPathSum(root) {
       msg: `节点 ${node.val}：左右孩子的最大贡献是 ${left} 和 ${right}（负贡献按 0 处理，不如不带）。① 路径在这里拐弯：和 = ${node.val}+${left}+${right} = ${through}，全局 best 更新为 ${best}；② 向上层只传单边最大贡献：${node.val} + max(${left},${right}) = ${node.val + Math.max(left, right)}`,
       views: { tree: treeSnap(node) },
       vars: { 左贡献: String(left), 右贡献: String(right), 拐弯和: String(through), best: String(best) },
+      stack: [...__stack],
     });
     done.add(node);
+    __stack.pop();
     return node.val + Math.max(left, right);
   };
   gain(root);
@@ -52,6 +57,7 @@ function maxPathSum(root) {
     msg: `全部节点算完——整棵树里的最大路径和为 ${best}`,
     views: { tree: treeSnap(null) },
     vars: { 答案: String(best) },
+    stack: [`gain(${root === null ? 'null' : root.val})`],
   });
   return best;
 }

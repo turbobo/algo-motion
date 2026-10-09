@@ -31,8 +31,11 @@ function isValidBST(root) {
   };
   let prev = null;
   let ok = true;
+  const __stack = [];
   const inorder = (node) => {
+    __stack.push(node === null ? 'inorder(null)' : `inorder(${node.val})`);
     if (node === null || !ok) {
+      __stack.pop();
       return;
     }
     inorder(node.left);
@@ -42,8 +45,10 @@ function isValidBST(root) {
         msg: `中序访问到 ${node.val}，但上一个访问的节点是 ${prev.val} —— 中序序列必须严格递增，这里塌了！不是合法的 BST`,
         views: { tree: treeSnap(node, 'danger') },
         vars: { 上一步: String(prev.val), 当前: String(node.val) },
+        stack: [...__stack],
       });
       ok = false;
+      __stack.pop();
       return;
     }
     __rec.step({
@@ -51,16 +56,19 @@ function isValidBST(root) {
       msg: `中序访问 ${node.val}：比上一个访问的 ${prev === null ? '（还没有）' : prev.val + ' 大 ✓'}。原理：BST 的中序遍历必然严格递增——边遍历边检查邻居即可`,
       views: { tree: treeSnap(node) },
       vars: { prev: prev === null ? 'null' : String(prev.val), 当前: String(node.val) },
+      stack: [...__stack],
     });
     done.push(node);
     prev = node;
     inorder(node.right);
+    __stack.pop();
   };
   __rec.step({
     at: 'inorder(root)',
     msg: '验证 BST 最优雅的方法：跑一次中序遍历，检查生成的值序列是否严格递增——不用传上下界，也不用管每棵子树的范围',
     views: { tree: treeSnap(root, null) },
     vars: {},
+    stack: [`inorder(${root === null ? 'null' : root.val})`],
   });
   inorder(root);
   __rec.step({
@@ -68,6 +76,7 @@ function isValidBST(root) {
     msg: ok ? '中序遍历全程严格递增——是合法的二叉搜索树' : '过程中发现了不递增的相邻节点——不是合法的 BST',
     views: { tree: treeSnap(null, null) },
     vars: { 答案: String(ok) },
+    stack: [`inorder(${root === null ? 'null' : root.val})`],
   });
   return ok;
 }

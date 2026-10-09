@@ -29,8 +29,11 @@ function diameterOfBinaryTree(root) {
     };
   };
   let best = 0;
+  const __stack = [];
   const depth = (node) => {
+    __stack.push(node === null ? 'depth(null)' : `depth(${node.val})`);
     if (node === null) {
+      __stack.pop();
       return 0;
     }
     const l = depth(node.left);
@@ -42,8 +45,10 @@ function diameterOfBinaryTree(root) {
       msg: `节点 ${ids.get(node)}（值 ${node.val}）：左深 ${l}、右深 ${r}。直径如果从这里拐弯就是 ${l} + ${r} = ${through} → 全局最大更新为 ${best}；向上层返回高度 max(${l}, ${r}) + 1 = ${Math.max(l, r) + 1}`,
       views: { tree: treeSnap(node, best === through && through > 0 ? 'warn' : 'active') },
       vars: { 左深: String(l), 右深: String(r), 当前直径: String(through), best: String(best) },
+      stack: [...__stack],
     });
     done.add(node);
+    __stack.pop();
     return Math.max(l, r) + 1;
   };
   depth(root);
@@ -52,6 +57,7 @@ function diameterOfBinaryTree(root) {
     msg: `所有节点都算完了——直径（任意两节点间最长路径的边数）为 ${best}`,
     views: { tree: treeSnap(null) },
     vars: { 答案: String(best) },
+    stack: [`depth(${root === null ? 'null' : root.val})`],
   });
   return best;
 }

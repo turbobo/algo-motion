@@ -30,8 +30,11 @@ function pathSum(root, targetSum) {
   let count = 0;
   const prefix = new Map();
   prefix.set(0, 1);
+  const __stack = [];
   const dfs = (node, sum) => {
+    __stack.push(node === null ? 'dfs(null)' : `dfs(${node.val})`);
     if (node === null) {
+      __stack.pop();
       return;
     }
     sum += node.val;
@@ -45,10 +48,12 @@ function pathSum(root, targetSum) {
       msg: `走到 ${node.val}：根到它的路径和 sum = ${sum}；查 sum − target = ${sum - targetSum} 在祖先路径上出现过 ${hits} 次 → ${hits > 0 ? `新增 ${hits} 条合法路径，count = ${count}` : '本轮没有以它为终点的路径'}。把 ${sum} 记进 prefix 继续往下`,
       views: { tree: treeSnap(node), prefix: prefixSnap(sum - targetSum) },
       vars: { 当前: String(node.val), sum: String(sum), count: String(count) },
+      stack: [...__stack],
     });
     dfs(node.left, sum);
     dfs(node.right, sum);
     prefix.set(sum, prefix.get(sum) - 1);
+    __stack.pop();
   };
   dfs(root, 0);
   __rec.step({
@@ -56,6 +61,7 @@ function pathSum(root, targetSum) {
     msg: `DFS 全部回溯完毕——和为 ${targetSum} 的向下路径共有 ${count} 条。注意 prefix 在每层回溯时"减回去"，保证它始终只反映当前根路径`,
     views: { tree: treeSnap(null), prefix: prefixSnap(null) },
     vars: { 答案: String(count) },
+    stack: [`dfs(${root === null ? 'null' : root.val})`],
   });
   return count;
 }

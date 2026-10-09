@@ -32,11 +32,15 @@ function isSymmetric(root) {
       msg: '空树对称（递归的停机条件之一）',
       views: { tree: treeSnap(null, null, null) },
       vars: {},
+      stack: ['check(null, null)'],
     });
     return true;
   }
+  const __stack = [];
   const check = (a, b) => {
+    __stack.push(`check(${a === null ? 'null' : a.val}, ${b === null ? 'null' : b.val})`);
     if (a === null && b === null) {
+      __stack.pop();
       return true;
     }
     if (a === null || b === null || a.val !== b.val) {
@@ -47,7 +51,9 @@ function isSymmetric(root) {
         msg: `镜像位置出现 ${aText} vs ${bText} —— 一边有一边没有，或值不相等 → 不对称，返回 false`,
         views: { tree: treeSnap(a, b, 'danger') },
         vars: { 比较: `${aText} vs ${bText}` },
+        stack: [...__stack],
       });
+      __stack.pop();
       return false;
     }
     __rec.step({
@@ -55,14 +61,18 @@ function isSymmetric(root) {
       msg: `镜像位置 ${a.val} = ${b.val} ✓。继续往下一层：a 的左孩子要对上 b 的右孩子，a 的右孩子要对上 b 的左孩子（交叉比较）`,
       views: { tree: treeSnap(a, b, 'ok') },
       vars: { 对: `${a.val} ↔ ${b.val}` },
+      stack: [...__stack],
     });
-    return check(a.left, b.right) && check(a.right, b.left);
+    const ok = check(a.left, b.right) && check(a.right, b.left);
+    __stack.pop();
+    return ok;
   };
   __rec.step({
     at: 'return check(root.left, root.right)',
     msg: '对称 = 根的左右子树互为镜像。定义 check(a, b)：a 和 b 的值相等，且 a.left 与 b.right 镜像、a.right 与 b.left 镜像',
     views: { tree: treeSnap(root, null, null) },
     vars: {},
+    stack: [`check(${root.left === null ? 'null' : root.left.val}, ${root.right === null ? 'null' : root.right.val})`],
   });
   return check(root.left, root.right);
 }

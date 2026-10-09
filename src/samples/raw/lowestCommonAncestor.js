@@ -33,9 +33,13 @@ function lowestCommonAncestor(root, p, q) {
     msg: '定义 dfs(node)：如果 subtree 里找到了 p 或 q 就把它往上传；如果左右两边各传回来一个（p 和 q 分处两侧）——那 node 就是最近公共祖先；否则把找到的那个继续上传',
     views: { tree: treeSnap(root) },
     vars: {},
+    stack: [`dfs(${root.val})`],
   });
+  const __stack = [];
   const dfs = (node) => {
+    __stack.push(node === null ? 'dfs(null)' : `dfs(${node.val})`);
     if (node === null || node === p || node === q) {
+      __stack.pop();
       return node;
     }
     const left = dfs(node.left);
@@ -48,7 +52,9 @@ function lowestCommonAncestor(root, p, q) {
         : `节点 ${node.val}：左返回 ${valOf(left)}、右返回 ${valOf(right)} —— ${left !== null || right !== null ? '只有一边找到了' : '两边都没找到'}，把 ${valOf(left !== null ? left : right)} 继续向上传`,
       views: { tree: treeSnap(node) },
       vars: { 左返回: valOf(left), 右返回: valOf(right) },
+      stack: [...__stack],
     });
+    __stack.pop();
     if (isLCA) {
       return node;
     }
@@ -59,6 +65,7 @@ function lowestCommonAncestor(root, p, q) {
     msg: '全网搜索完成——最终返回的节点就是最近公共祖先',
     views: { tree: treeSnap(null) },
     vars: {},
+    stack: [`dfs(${root.val})`],
   });
   return dfs(root);
 }

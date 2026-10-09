@@ -29,11 +29,15 @@ function sortedArrayToBST(nums) {
       msg: '空数组建不出树——直接返回 null',
       views: { tree: treeSnap(), arr: arrSnap(0, -1, -1) },
       vars: {},
+      stack: ['build(空区间)'],
     });
     return null;
   }
+  const __stack = [];
   const build = (lo, hi) => {
+    __stack.push(`build([${lo}..${hi}])`);
     if (lo > hi) {
+      __stack.pop();
       return null;
     }
     const mid = Math.floor((lo + hi) / 2);
@@ -45,9 +49,11 @@ function sortedArrayToBST(nums) {
       msg: `区间 [${lo}, ${hi}] 取中点 mid = ${mid}（值 ${nums[mid]}）作为这棵子树的根——中点保证左右子树高度差不超过 1，天然平衡`,
       views: { tree: treeSnap(), arr: arrSnap(lo, hi, mid) },
       vars: { lo: String(lo), hi: String(hi), mid: String(mid) },
+      stack: [...__stack],
     });
     node.left = build(lo, mid - 1);
     node.right = build(mid + 1, hi);
+    __stack.pop();
     return node;
   };
   const result = build(0, nums.length - 1);
@@ -56,6 +62,7 @@ function sortedArrayToBST(nums) {
     msg: '所有区间都递归完毕——一棵高度平衡的 BST 构建完成',
     views: { tree: treeSnap(), arr: arrSnap(0, nums.length - 1, -1) },
     vars: { 答案: '平衡 BST' },
+    stack: [`build([0..${nums.length - 1}])`],
   });
   return result;
 }

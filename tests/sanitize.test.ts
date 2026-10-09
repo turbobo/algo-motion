@@ -39,6 +39,36 @@ describe('sanitizeFrame：帧级底线', () => {
     )
     expect(f3?.stack).toHaveLength(12)
   })
+
+  it('graph：节点去重、悬空边/自环剔除、marks 引用校验', () => {
+    const d = diag()
+    const frame = sanitizeFrame(
+      {
+        at: 'a',
+        msg: 'm',
+        views: {
+          g: {
+            kind: 'graph',
+            nodes: [
+              { id: 'c0', label: '0' },
+              { id: 'c1', label: '1' },
+              { id: 'c0', label: '重复' },
+            ],
+            edges: [['c0', 'c1'], ['c0', 'c9'], ['c0', 'c0'], ['bad']],
+            marks: [{ id: 'c1', tone: 'ok' }, { id: 'cX', tone: 'ok' }, { id: 'c0', tone: 'nope' }],
+          },
+        },
+      },
+      d,
+    )
+    const g = frame?.views.g
+    expect(g?.kind).toBe('graph')
+    if (g?.kind !== 'graph') throw new Error('unreachable')
+    expect(g.nodes.map((n) => n.id)).toEqual(['c0', 'c1'])
+    expect(g.edges).toEqual([['c0', 'c1']])
+    expect(g.marks).toEqual([{ id: 'c1', tone: 'ok' }])
+    expect(d.repairedViews).toBe(1)
+  })
   it('非对象入参整帧丢弃并计数', () => {
     const d = diag()
     for (const bad of [null, undefined, 42, 'step', [], true]) {

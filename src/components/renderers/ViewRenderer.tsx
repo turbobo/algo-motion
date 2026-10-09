@@ -5,6 +5,7 @@
  */
 import type { View } from '../../types'
 import { ArrayView } from './ArrayView'
+import { GraphView } from './GraphView'
 import { GridView } from './GridView'
 import { HashmapView } from './HashmapView'
 import { LinkedListView } from './LinkedListView'
@@ -38,6 +39,8 @@ export function ViewRenderer({
       return <GridView view={view} flash={flash} frameKey={frameKey} />
     case 'stack':
       return <StackView view={view} flash={flash} frameKey={frameKey} />
+    case 'graph':
+      return <GraphView view={view} flash={flash} frameKey={frameKey} />
     default: {
       const kind = (view as { kind?: unknown }).kind
       return (

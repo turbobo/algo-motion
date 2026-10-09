@@ -102,7 +102,27 @@ export interface StackView {
   title?: string
 }
 
-export type View = ArrayView | HashmapView | LinkedListView | MatrixView | TreeView | GridView | StackView
+/** 图视图（课程表/依赖关系等有向图）：节点环形自动布局，边带箭头 */
+export interface GraphView {
+  kind: 'graph'
+  /** 节点：id 稳定 + 显示标签 */
+  nodes: Array<{ id: string; label: string }>
+  /** 有向边：[fromId, toId]（箭头指向后继/解锁方向） */
+  edges: Array<[string, string]>
+  /** 节点标注：id → 色调 */
+  marks?: Array<{ id: string; tone: Tone }>
+  title?: string
+}
+
+export type View =
+  | ArrayView
+  | HashmapView
+  | LinkedListView
+  | MatrixView
+  | TreeView
+  | GridView
+  | StackView
+  | GraphView
 
 // ===== 帧 =====
 

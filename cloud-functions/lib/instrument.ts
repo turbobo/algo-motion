@@ -185,6 +185,8 @@ __rec.step({
 6) 网格（岛屿/迷宫/地图）：{ kind:'grid', cells:[['1','0'],...], marks:[{row,col,tone}], title }
    - '1'/'#' 渲染为陆地色块，'0'/'.'/空串 渲染为水色，其他字符显示为文本
 7) 栈：{ kind:'stack', items:[栈底,...,栈顶], marks:[{index,tone}], title }
+8) 图（课程表/依赖图等有向图）：{ kind:'graph', nodes:[{id,label}], edges:[[fromId,toId]], marks:[{id,tone}], title }
+   - 节点环形自动布局；edges 为有向边（from → to，渲染箭头，方向 = 依赖/解锁方向）；自环与悬空边会被剔除
    - 栈顶自动渲染在上方；队列用 kind:'array' 表示
 
 组合建议：BFS = grid + array（队列）；迭代中序遍历 = tree + stack；DP = matrix（十字高亮）；滑动窗口 = array（pointer + ranges） + hashmap

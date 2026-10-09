@@ -1,13 +1,19 @@
 // 样题「课程表」的插桩版代码（模拟 LLM 插桩产物）
-// 覆盖场景：Kahn 拓扑排序（邻接表 hashmap + 入度 array + 队列）（Hot 100 · 图论）
+// 覆盖场景：Kahn 拓扑排序（依赖图 graph + 入度 array + 队列）（Hot 100 · 图论）
 function canFinish(numCourses, prerequisites) {
   const indegree = new Array(numCourses).fill(0);
   const graph = new Map();
-  const graphSnap = (hi) => ({
-    kind: 'hashmap',
-    entries: [...graph.entries()].map(([k, v]) => [String(k), '→ [' + v.join(', ') + ']']),
-    highlightKeys: hi !== undefined && hi !== null && graph.has(hi) ? [String(hi)] : [],
-    title: '邻接表：先修课 → 解锁的课',
+  const studiedSet = new Set();
+  const graphSnap = (cur) => ({
+    kind: 'graph',
+    nodes: Array.from({ length: numCourses }, (unused, i) => ({ id: 'c' + i, label: String(i) })),
+    edges: [...graph.entries()].flatMap(([from, tos]) => tos.map((to) => ['c' + from, 'c' + to])),
+    marks: Array.from({ length: numCourses }, (unused, i) => i).flatMap((i) => {
+      if (cur === i) return [{ id: 'c' + i, tone: 'active' }];
+      if (studiedSet.has(i)) return [{ id: 'c' + i, tone: 'ok' }];
+      return [];
+    }),
+    title: '依赖图（箭头 = 先修 → 解锁；绿 = 已修完，橙 = 当前）',
   });
   const indegreeSnap = (hi) => ({
     kind: 'array',
@@ -46,6 +52,7 @@ function canFinish(numCourses, prerequisites) {
   while (queue.length > 0) {
     const cur = queue.shift();
     studied++;
+    studiedSet.add(cur);
     const unlocked = [];
     for (const next of graph.get(cur) || []) {
       indegree[next]--;

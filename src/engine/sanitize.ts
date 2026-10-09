@@ -16,6 +16,7 @@
 import type {
   ArrayView,
   FrameDiagnostics,
+  GraphView,
   GridView,
   HashmapView,
   LinkedListView,
@@ -53,6 +54,9 @@ const LABEL_TEXT_LEN = 24
 /** 调用栈帧文字长度 / 最大深度（递归教学题足够；超出静默截断，不计入诊断） */
 const STACK_TEXT_LEN = 48
 const MAX_STACK_DEPTH = 12
+/** 图视图：节点/边数量上限 */
+const MAX_GRAPH_NODES = 30
+const MAX_GRAPH_EDGES = 100
 const ID_TEXT_LEN = 16
 
 const TONES: readonly string[] = ['active', 'ok', 'warn', 'danger', 'muted']
@@ -594,6 +598,84 @@ function stackView(raw: Record<string, unknown>, diag: FrameDiagnostics): StackV
   return view
 }
 
+function graphView(raw: Record<string, unknown>, diag: FrameDiagnostics): GraphView | null {
+  const nodesRaw = raw.nodes
+  if (!Array.isArray(nodesRaw)) return null
+  let repaired = false
+  if (nodesRaw.length > MAX_GRAPH_NODES) repaired = true
+  const nodes: Array<{ id: string; label: string }> = []
+  const seen = new Set<string>()
+  for (const item of nodesRaw.slice(0, MAX_GRAPH_NODES)) {
+    if (!item || typeof item !== 'object') {
+      repaired = true
+      continue
+    }
+    const n = item as { id?: unknown; label?: unknown }
+    const id = text(n.id, ID_TEXT_LEN)
+    if (!id || seen.has(id)) {
+      repaired = true
+      continue
+    }
+    seen.add(id)
+    nodes.push({ id, label: text(n.label, LABEL_TEXT_LEN) || id })
+  }
+  if (nodes.length === 0) return null
+
+  const edges: Array<[string, string]> = []
+  const edgesRaw = raw.edges
+  if (Array.isArray(edgesRaw)) {
+    if (edgesRaw.length > MAX_GRAPH_EDGES) repaired = true
+    for (const item of edgesRaw.slice(0, MAX_GRAPH_EDGES)) {
+      if (!Array.isArray(item) || item.length < 2) {
+        repaired = true
+        continue
+      }
+      const from = text(item[0], ID_TEXT_LEN)
+      const to = text(item[1], ID_TEXT_LEN)
+      // 悬空边与自环一律剔除（渲染层无法表达）
+      if (!seen.has(from) || !seen.has(to) || from === to) {
+        repaired = true
+        continue
+      }
+      edges.push([from, to])
+    }
+  } else if (edgesRaw != null) {
+    repaired = true
+  }
+
+  const view: GraphView = { kind: 'graph', nodes, edges }
+  const title = readTitle(raw)
+  if (title) view.title = title
+
+  const marks: Array<{ id: string; tone: Tone }> = []
+  const used = new Set<string>()
+  const marksRaw = raw.marks
+  if (Array.isArray(marksRaw)) {
+    if (marksRaw.length > MAX_VIEW_ITEMS) repaired = true
+    for (const item of marksRaw.slice(0, MAX_VIEW_ITEMS)) {
+      if (!item || typeof item !== 'object') {
+        repaired = true
+        continue
+      }
+      const m = item as { id?: unknown; tone?: unknown }
+      const id = text(m.id, ID_TEXT_LEN)
+      const tone = toneOf(m.tone)
+      if (!id || !seen.has(id) || tone === null || used.has(id)) {
+        repaired = true
+        continue
+      }
+      used.add(id)
+      marks.push({ id, tone })
+    }
+  } else if (marksRaw != null) {
+    repaired = true
+  }
+  if (marks.length > 0) view.marks = marks
+
+  if (repaired) diag.repairedViews++
+  return view
+}
+
 function treeView(raw: Record<string, unknown>, diag: FrameDiagnostics): TreeView | null {
   const nodesRaw = raw.nodes
   if (!Array.isArray(nodesRaw)) return null
@@ -669,6 +751,8 @@ export function sanitizeView(raw: Record<string, unknown>, diag: FrameDiagnostic
         return stackView(raw, diag)
       case 'tree':
         return treeView(raw, diag)
+      case 'graph':
+        return graphView(raw, diag)
       default:
         return null
     }

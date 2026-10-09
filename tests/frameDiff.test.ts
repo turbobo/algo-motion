@@ -81,6 +81,20 @@ describe('diffViews：帧间变化识别', () => {
     expect([...(diff.s ?? [])]).toEqual(['2'])
   })
 
+  it('graph：新节点与标签变化收录', () => {
+    const prev: Record<string, View> = {
+      g: { kind: 'graph', nodes: [{ id: 'a', label: 'A' }], edges: [] },
+    }
+    const cur: Record<string, View> = {
+      g: {
+        kind: 'graph',
+        nodes: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }],
+        edges: [['a', 'b']],
+      },
+    }
+    expect([...(diffViews(prev, cur).g ?? [])]).toEqual(['b'])
+  })
+
   it('视图完全相同时返回空', () => {
     const v: Record<string, View> = { nums: array([1, 2, 3]) }
     expect(Object.keys(diffViews(v, v))).toHaveLength(0)

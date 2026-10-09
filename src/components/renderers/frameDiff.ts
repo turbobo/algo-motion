@@ -100,6 +100,15 @@ export function diffViews(
         })
         break
       }
+      case 'graph': {
+        if (p.kind !== 'graph') break
+        const before = new Map(p.nodes.map((node) => [node.id, node.label]))
+        for (const node of v.nodes) {
+          // 新节点或标签变化 → 闪（边变化走节点色调的 transition）
+          if (before.get(node.id) !== node.label) changed.add(node.id)
+        }
+        break
+      }
       default:
         break
     }

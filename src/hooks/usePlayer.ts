@@ -10,10 +10,31 @@ const BASE_INTERVAL_MS = 1500
 
 export const SPEED_OPTIONS = [0.5, 1, 2, 4] as const
 
+/** 倍速偏好本地记忆（白名单校验：脏数据回退 1x） */
+const SPEED_KEY = 'algomotion:speed'
+
+function loadSpeed(): number {
+  try {
+    const n = Number(localStorage.getItem(SPEED_KEY))
+    return (SPEED_OPTIONS as readonly number[]).includes(n) ? n : 1
+  } catch {
+    return 1
+  }
+}
+
 export function usePlayer(totalFrames: number) {
   const [cursor, setCursor] = useState(0)
   const [playing, setPlaying] = useState(false)
-  const [speed, setSpeed] = useState<number>(1)
+  const [speed, setSpeedState] = useState<number>(loadSpeed)
+
+  const setSpeed = useCallback((s: number) => {
+    setSpeedState(s)
+    try {
+      localStorage.setItem(SPEED_KEY, String(s))
+    } catch {
+      /* 存储不可用：仅内存生效 */
+    }
+  }, [])
 
   const clamp = useCallback(
     (n: number) => Math.max(0, Math.min(Math.max(totalFrames - 1, 0), n)),

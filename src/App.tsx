@@ -3,7 +3,7 @@
  */
 import { useCallback, useState } from 'react'
 import type { AlgorithmCase } from './types'
-import type { CatalogEntry } from './samples/catalog'
+import { RELATED_SAMPLES } from './samples/related'
 import { executeInstrumentResult } from './engine/runner'
 import { generateInstrumented, type GenerateInput } from './llm/client'
 import { useProgress } from './hooks/useProgress'
@@ -19,16 +19,16 @@ export default function App() {
 
   /** 打开内置样题：按需加载题库内容 chunk → 沙箱执行 → 进入播放页 */
   const openSample = useCallback(
-    async (entry: CatalogEntry) => {
-      markOpened(entry.id)
+    async (target: { id: string }) => {
+      markOpened(target.id)
       setLoading(true)
       setError(null)
       try {
         // 首页只消费轻量 CATALOG；完整样题（含插桩代码）动态加载
         const { findSample } = await import('./samples')
-        const sample = findSample(entry.id)
+        const sample = findSample(target.id)
         if (!sample) {
-          setError(`样题不存在：${entry.id}`)
+          setError(`样题不存在：${target.id}`)
           return
         }
         const { run, framesByTest } = await executeInstrumentResult(sample.result)
@@ -90,10 +90,24 @@ export default function App() {
     }
   }, [activeCase, markLearned])
 
+  /** 播放页「对照解法」：切到同题的另一个解法 */
+  const handleOpenRelated = useCallback(
+    (id: string) => {
+      void openSample({ id })
+    },
+    [openSample],
+  )
+
   return (
     <div className="h-full bg-bg text-ink">
       {activeCase ? (
-        <PlayerScreen algoCase={activeCase} onBack={() => setActiveCase(null)} onLearned={handleLearned} />
+        <PlayerScreen
+          algoCase={activeCase}
+          onBack={() => setActiveCase(null)}
+          onLearned={handleLearned}
+          relatedId={RELATED_SAMPLES[activeCase.id]}
+          onOpenRelated={handleOpenRelated}
+        />
       ) : (
         <HomeScreen
           loading={loading}

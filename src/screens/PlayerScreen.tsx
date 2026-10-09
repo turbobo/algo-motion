@@ -23,6 +23,10 @@ interface Props {
   onBack: () => void
   /** 播放到最后一帧时回调（首页据此记「已学」） */
   onLearned?: () => void
+  /** 同题对照解法的样题 id（无则不显示切换按钮） */
+  relatedId?: string
+  /** 切换到对照解法 */
+  onOpenRelated?: (id: string) => void
 }
 
 /** 诊断摘要（无异常时返回空数组，徽章不展示） */
@@ -38,7 +42,7 @@ function pickDefaultTest(algoCase: AlgorithmCase): number {
   return anyFrames >= 0 ? anyFrames : 0
 }
 
-export function PlayerScreen({ algoCase, onBack, onLearned }: Props) {
+export function PlayerScreen({ algoCase, onBack, onLearned, relatedId, onOpenRelated }: Props) {
   const [testIdx, setTestIdx] = useState(() => pickDefaultTest(algoCase))
   const frames = algoCase.framesByTest[testIdx] ?? []
   const passedCount = algoCase.tests.filter((t) => t.passed).length
@@ -55,6 +59,8 @@ export function PlayerScreen({ algoCase, onBack, onLearned }: Props) {
       onChangeTest={setTestIdx}
       onBack={onBack}
       onLearned={onLearned}
+      relatedId={relatedId}
+      onOpenRelated={onOpenRelated}
     />
   )
 }
@@ -68,9 +74,22 @@ interface InnerProps {
   onChangeTest: (i: number) => void
   onBack: () => void
   onLearned?: () => void
+  relatedId?: string
+  onOpenRelated?: (id: string) => void
 }
 
-function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack, onLearned }: InnerProps) {
+function PlayerInner({
+  algoCase,
+  frames,
+  testIdx,
+  passedCount,
+  allPassed,
+  onChangeTest,
+  onBack,
+  onLearned,
+  relatedId,
+  onOpenRelated,
+}: InnerProps) {
   const { cursor, playing, speed, setSpeed, next, prev, seek, toggle, setPlaying } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
 
@@ -179,6 +198,16 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
           ← 换一题
         </button>
         <h1 className="min-w-0 flex-1 truncate text-sm font-medium">{algoCase.title}</h1>
+        {relatedId ? (
+          <button
+            type="button"
+            onClick={() => onOpenRelated?.(relatedId)}
+            className="shrink-0 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
+            title="切换到同一道题的另一种解法"
+          >
+            ⇄ 对照解法
+          </button>
+        ) : null}
         <span
           className={`shrink-0 rounded-full border px-2.5 py-1 font-mono text-[11px] ${
             allPassed ? 'border-ok/40 bg-ok/10 text-ok' : 'border-warn/40 bg-warn/10 text-warn'

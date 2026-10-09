@@ -3,6 +3,7 @@
  */
 import { useMemo, useState } from 'react'
 import { CATALOG, type CatalogEntry } from '../samples/catalog'
+import { RELATED_SAMPLES } from '../samples/related'
 import type { GenerateInput } from '../llm/client'
 
 interface Props {
@@ -210,7 +211,10 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
                   <div className="mt-1.5 text-xs leading-relaxed text-sub">{sample.summary}</div>
                   <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
                     <span className="text-accent">点击播放动画 →</span>
-                    <span className="text-sub/70">{sample.category}</span>
+                    <span className="text-sub/70">
+                      {sample.category}
+                      {RELATED_SAMPLES[sample.id] ? <span className="text-accent"> · 双解法</span> : null}
+                    </span>
                   </div>
                 </button>
               ))}

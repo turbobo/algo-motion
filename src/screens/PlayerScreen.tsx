@@ -5,7 +5,7 @@
  * 结构说明：外层负责选择「播放哪个用例的帧」；内层用 key 重挂载，
  * 切换用例时播放状态自然重置。
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AlgorithmCase, Frame, FrameDiagnostics } from '../types'
 import { describeDiagnostics, hasDiagnostics } from '../engine/sanitize'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -19,6 +19,8 @@ import { diffViews } from '../components/renderers/frameDiff'
 interface Props {
   algoCase: AlgorithmCase
   onBack: () => void
+  /** 播放到最后一帧时回调（首页据此记「已学」） */
+  onLearned?: () => void
 }
 
 /** 诊断摘要（无异常时返回空数组，徽章不展示） */
@@ -34,7 +36,7 @@ function pickDefaultTest(algoCase: AlgorithmCase): number {
   return anyFrames >= 0 ? anyFrames : 0
 }
 
-export function PlayerScreen({ algoCase, onBack }: Props) {
+export function PlayerScreen({ algoCase, onBack, onLearned }: Props) {
   const [testIdx, setTestIdx] = useState(() => pickDefaultTest(algoCase))
   const frames = algoCase.framesByTest[testIdx] ?? []
   const passedCount = algoCase.tests.filter((t) => t.passed).length
@@ -50,6 +52,7 @@ export function PlayerScreen({ algoCase, onBack }: Props) {
       allPassed={allPassed}
       onChangeTest={setTestIdx}
       onBack={onBack}
+      onLearned={onLearned}
     />
   )
 }
@@ -62,11 +65,19 @@ interface InnerProps {
   allPassed: boolean
   onChangeTest: (i: number) => void
   onBack: () => void
+  onLearned?: () => void
 }
 
-function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack }: InnerProps) {
+function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack, onLearned }: InnerProps) {
   const { cursor, playing, speed, setSpeed, next, prev, seek, toggle } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
+
+  // 「播完 = 已学」：到达最后一帧（含拖拽直达）即记账给首页
+  useEffect(() => {
+    if (frames.length > 0 && cursor === frames.length - 1) {
+      onLearned?.()
+    }
+  }, [cursor, frames.length, onLearned])
 
   // 帧间变化：与上一帧逐元素对比，让「这一帧变了什么」脉冲高亮（首帧/切片重置为空）
   const flash = useMemo(() => diffViews(frames[cursor - 1]?.views, frames[cursor]?.views), [frames, cursor])

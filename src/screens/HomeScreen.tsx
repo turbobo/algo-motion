@@ -9,6 +9,10 @@ interface Props {
   loading: boolean
   generating: boolean
   error: string | null
+  /** 已学（播完）的样题 id 集 */
+  learned: ReadonlySet<string>
+  /** 最近打开的样题 id（「继续上次」入口） */
+  lastId: string | null
   onOpenSample: (sample: Sample) => void
   onGenerate: (input: GenerateInput) => void
 }
@@ -71,7 +75,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   )
 }
 
-export function HomeScreen({ loading, generating, error, onOpenSample, onGenerate }: Props) {
+export function HomeScreen({ loading, generating, error, learned, lastId, onOpenSample, onGenerate }: Props) {
   const [problem, setProblem] = useState('')
   const [code, setCode] = useState('')
   const [language, setLanguage] = useState('javascript')
@@ -81,6 +85,12 @@ export function HomeScreen({ loading, generating, error, onOpenSample, onGenerat
 
   const busy = loading || generating
   const canSubmit = code.trim().length > 0 && !busy
+
+  const learnedCount = useMemo(() => SAMPLES.filter((s) => learned.has(s.id)).length, [learned])
+  const lastSample = useMemo(
+    () => (lastId ? (SAMPLES.find((s) => s.id === lastId) ?? null) : null),
+    [lastId],
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -108,12 +118,41 @@ export function HomeScreen({ loading, generating, error, onOpenSample, onGenerat
 
         {/* 内置样题 */}
         <div className="mt-8">
-          <div className="mb-3 flex items-baseline justify-between gap-3">
+          <div className="mb-2 flex items-baseline justify-between gap-3">
             <span className="font-mono text-xs tracking-wide text-sub">内置体验</span>
             <span className="font-mono text-[11px] text-sub">
               Hot 100 · 共 {filtered.length} 道
             </span>
           </div>
+
+          {/* 学习进度 */}
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
+              <div
+                className="h-full rounded-full bg-ok/70 transition-all duration-500"
+                style={{ width: `${SAMPLES.length > 0 ? (learnedCount / SAMPLES.length) * 100 : 0}%` }}
+              />
+            </div>
+            <span className="shrink-0 font-mono text-[11px] text-sub">
+              已学 <span className="text-ok">{learnedCount}</span> / {SAMPLES.length}
+            </span>
+          </div>
+
+          {/* 继续上次学习 */}
+          {lastSample ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onOpenSample(lastSample)}
+              className="mb-3 flex w-full items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/8 px-3.5 py-2.5 text-left transition-colors hover:border-accent/50 hover:bg-accent/12 disabled:opacity-50"
+            >
+              <span className="font-mono text-[11px] text-sub">继续上次学习</span>
+              <span className="flex items-center gap-2 text-sm">
+                <span>{lastSample.title}</span>
+                <span className="font-mono text-xs text-accent">→</span>
+              </span>
+            </button>
+          ) : null}
 
           {/* 搜索 + 筛选 */}
           <input
@@ -154,7 +193,14 @@ export function HomeScreen({ loading, generating, error, onOpenSample, onGenerat
                   className="group rounded-2xl border border-white/10 bg-surface p-4 text-left transition-all hover:border-accent/40 hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="text-sm font-medium">{sample.title}</div>
+                    <div className="text-sm font-medium">
+                      {learned.has(sample.id) ? (
+                        <span className="mr-1 text-ok" aria-label="已学">
+                          ✓
+                        </span>
+                      ) : null}
+                      {sample.title}
+                    </div>
                     <span
                       className={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] ${DIFF_STYLE[sample.difficulty] ?? ''}`}
                     >

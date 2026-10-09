@@ -6,6 +6,7 @@ import type { AlgorithmCase } from './types'
 import type { Sample } from './samples'
 import { executeInstrumentResult } from './engine/runner'
 import { generateInstrumented, type GenerateInput } from './llm/client'
+import { useProgress } from './hooks/useProgress'
 import { HomeScreen } from './screens/HomeScreen'
 import { PlayerScreen } from './screens/PlayerScreen'
 
@@ -14,9 +15,11 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { learned, last, markLearned, markOpened } = useProgress()
 
   /** 打开内置样题：走沙箱执行链路 */
   const openSample = useCallback(async (sample: Sample) => {
+    markOpened(sample.id)
     setLoading(true)
     setError(null)
     try {
@@ -70,15 +73,24 @@ export default function App() {
     }
   }, [])
 
+  /** 播放页到达最后一帧：记入「已学」（自定义生成的题目不在样题库内，计数侧天然忽略） */
+  const handleLearned = useCallback(() => {
+    if (activeCase) {
+      markLearned(activeCase.id)
+    }
+  }, [activeCase, markLearned])
+
   return (
     <div className="h-full bg-bg text-ink">
       {activeCase ? (
-        <PlayerScreen algoCase={activeCase} onBack={() => setActiveCase(null)} />
+        <PlayerScreen algoCase={activeCase} onBack={() => setActiveCase(null)} onLearned={handleLearned} />
       ) : (
         <HomeScreen
           loading={loading}
           generating={generating}
           error={error}
+          learned={learned}
+          lastId={last}
           onOpenSample={openSample}
           onGenerate={handleGenerate}
         />

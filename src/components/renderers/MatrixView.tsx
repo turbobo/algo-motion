@@ -69,7 +69,7 @@ export function MatrixView({ view, flash, frameKey }: Props) {
                 const isFlash = flash?.has(`${ri}:${ci}`) ?? false
                 return (
                   <div
-                    key={isFlash ? `f${frameKey ?? 0}` : 's'}
+                    key={isFlash ? `f${frameKey ?? 0}-${ci}` : String(ci)}
                     className={`flex items-center justify-center border font-mono text-xs transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                     style={{
                       width: CELL_W,

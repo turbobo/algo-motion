@@ -52,7 +52,7 @@ export function GridView({ view, flash, frameKey }: Props) {
                       : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)' }
                 return (
                   <div
-                    key={isFlash ? `f${frameKey ?? 0}` : 's'}
+                    key={isFlash ? `f${frameKey ?? 0}-${ci}` : String(ci)}
                     className={`flex items-center justify-center rounded border font-mono text-[11px] transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                     style={{
                       width: CELL,

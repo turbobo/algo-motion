@@ -13,6 +13,7 @@ import { usePlayer } from '../hooks/usePlayer'
 import { CodePanel } from '../components/player/CodePanel'
 import { PlaybackBar } from '../components/player/PlaybackBar'
 import { StageView } from '../components/player/StageView'
+import { FrameList } from '../components/player/FrameList'
 import { VarsPanel } from '../components/player/VarsPanel'
 import { diffViews } from '../components/renderers/frameDiff'
 
@@ -163,6 +164,8 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
           <div className="min-h-0 flex-1">
             <CodePanel code={algoCase.result.displayCode} activeLine={frame?.line ?? null} />
           </div>
+          {/* 关键帧列表：点击直达任意帧（窄屏隐藏，lg 以上显示） */}
+          <FrameList frames={frames} cursor={cursor} onSeek={handleSeek} />
         </section>
 
         {/* 舞台列 */}

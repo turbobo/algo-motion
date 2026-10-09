@@ -26,7 +26,7 @@ export function FrameList({ frames, cursor, onSeek }: Props) {
     <div className="hidden h-48 shrink-0 flex-col border-t border-white/8 lg:flex">
       <div className="flex shrink-0 items-center justify-between px-3 py-2 font-mono text-[11px] text-sub">
         <span>关键帧</span>
-        <span className="text-sub/60">点击直达</span>
+        <span className="text-sub">点击直达</span>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-1.5 pb-1.5">
         {frames.map((f, i) => (
@@ -43,7 +43,7 @@ export function FrameList({ frames, cursor, onSeek }: Props) {
             }`}
           >
             <span
-              className={`mt-px shrink-0 font-mono text-[10px] ${i === cursor ? 'text-accent' : 'text-sub/60'}`}
+              className={`mt-px shrink-0 font-mono text-[10px] ${i === cursor ? 'text-accent' : 'text-sub'}`}
             >
               {String(i + 1).padStart(2, '0')}
             </span>

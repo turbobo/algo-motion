@@ -324,7 +324,7 @@ function PlayerInner({
               onSpeedChange={setSpeed}
               onReplay={handleReplay}
             />
-            <p className="mt-1.5 hidden text-center font-mono text-[10px] text-sub/50 lg:block">
+            <p className="mt-1.5 hidden text-center font-mono text-[10px] text-sub lg:block">
               空格 播放/暂停 · ← → 逐帧 · ↑ ↓ 变速 · R 重放本步
             </p>
           </div>

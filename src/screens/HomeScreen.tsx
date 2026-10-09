@@ -27,7 +27,7 @@ const LANGUAGES = [
 
 const INPUT_CLS =
   'w-full resize-y rounded-xl border border-white/10 bg-bg/60 px-3 py-2 text-sm ' +
-  'placeholder:text-sub/50 transition-colors focus:border-accent/50 focus:outline-none'
+  'placeholder:text-sub transition-colors focus:border-accent/50 focus:outline-none'
 
 /** Hot 100 十七类（与样题 category 取值一致） */
 const CATEGORIES = [
@@ -128,7 +128,14 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
 
           {/* 学习进度 */}
           <div className="mb-3 flex items-center gap-3">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
+            <div
+              role="progressbar"
+              aria-label={`学习进度：已学 ${learnedCount} / ${CATALOG.length} 道`}
+              aria-valuenow={learnedCount}
+              aria-valuemin={0}
+              aria-valuemax={CATALOG.length}
+              className="h-1 flex-1 overflow-hidden rounded-full bg-white/8"
+            >
               <div
                 className="h-full rounded-full bg-ok/70 transition-all duration-500"
                 style={{ width: `${CATALOG.length > 0 ? (learnedCount / CATALOG.length) * 100 : 0}%` }}
@@ -211,7 +218,7 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
                   <div className="mt-1.5 text-xs leading-relaxed text-sub">{sample.summary}</div>
                   <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
                     <span className="text-accent">点击播放动画 →</span>
-                    <span className="text-sub/70">
+                    <span className="text-sub">
                       {sample.category} · {sample.complexity}
                       {RELATED_SAMPLES[sample.id] ? <span className="text-accent"> · 双解法</span> : null}
                     </span>
@@ -263,7 +270,7 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
                 {generating ? '正在生成插桩代码…' : '生成动画'}
               </button>
             </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-sub/80">
+            <p className="mt-2 text-[11px] leading-relaxed text-sub">
               流程：模型翻译并插桩 → 沙箱执行 + 测试用例校验 → 产出帧序列，通常需要 10~60 秒
             </p>
           </div>

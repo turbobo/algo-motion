@@ -17,7 +17,7 @@ export function VarsPanel({ vars, flash, frameKey }: Props) {
         return (
           <span key={key} className="font-mono text-xs">
             <span className="text-sub">{key}</span>
-            <span className="mx-1 text-sub/60">=</span>
+            <span className="mx-1 text-sub">=</span>
             <span
               key={isFlash ? `f${frameKey ?? 0}` : 's'}
               className={`text-ink/90${isFlash ? ' animate-flash-text' : ''}`}

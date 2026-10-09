@@ -26,7 +26,7 @@ export function CallStackPanel({ stack }: Props) {
           </span>
         </span>
       ))}
-      <span className="font-mono text-[10px] text-sub/50">（栈底 → 栈顶）</span>
+      <span className="font-mono text-[10px] text-sub">（栈底 → 栈顶）</span>
     </div>
   )
 }

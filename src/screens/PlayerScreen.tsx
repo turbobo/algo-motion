@@ -5,7 +5,7 @@
  * 结构说明：外层负责选择「播放哪个用例的帧」；内层用 key 重挂载，
  * 切换用例时播放状态自然重置。
  */
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { AlgorithmCase, Frame, FrameDiagnostics } from '../types'
 import { describeDiagnostics, hasDiagnostics } from '../engine/sanitize'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -14,6 +14,7 @@ import { CodePanel } from '../components/player/CodePanel'
 import { PlaybackBar } from '../components/player/PlaybackBar'
 import { StageView } from '../components/player/StageView'
 import { VarsPanel } from '../components/player/VarsPanel'
+import { diffViews } from '../components/renderers/frameDiff'
 
 interface Props {
   algoCase: AlgorithmCase
@@ -66,6 +67,22 @@ interface InnerProps {
 function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack }: InnerProps) {
   const { cursor, playing, speed, setSpeed, next, prev, seek, toggle } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
+
+  // 帧间变化：与上一帧逐元素对比，让「这一帧变了什么」脉冲高亮（首帧/切片重置为空）
+  const flash = useMemo(() => diffViews(frames[cursor - 1]?.views, frames[cursor]?.views), [frames, cursor])
+  const flashVars = useMemo(() => {
+    const out = new Set<string>()
+    const prevFrameObj = frames[cursor - 1]
+    if (!prevFrameObj) return out // 无前帧（首帧 / 用例首帧）：不闪
+    // 前帧存在但无 vars 字段视为空对象：新出现的变量同样算「变化」
+    const prevVars = prevFrameObj.vars ?? {}
+    const curVars = frames[cursor]?.vars
+    if (!curVars) return out
+    for (const [k, v] of Object.entries(curVars)) {
+      if (prevVars[k] !== v) out.add(k)
+    }
+    return out
+  }, [frames, cursor])
   const diagLines = diagnosticLines(algoCase.diagnostics)
   const diagCount = diagLines.reduce((sum, line) => sum + (Number(line.match(/\d+/)?.[0]) ?? 0), 0)
 
@@ -143,7 +160,7 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
             <div className="h-full overflow-auto rounded-2xl border border-white/8 bg-bg/60 p-3 md:p-4">
               {/* 单帧视图出错只影响舞台，翻帧（cursor 变化）自动恢复 */}
               <ErrorBoundary resetKey={cursor} label="舞台">
-                <StageView frame={frame} />
+                <StageView frame={frame} flash={flash} frameKey={cursor} />
               </ErrorBoundary>
             </div>
             {/* 开场播放按钮：未开始前盖住舞台，等用户准备好再开播 */}
@@ -172,7 +189,7 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
                 {frame?.msg ?? ''}
               </p>
             </div>
-            <VarsPanel vars={frame?.vars} />
+            <VarsPanel vars={frame?.vars} flash={flashVars} frameKey={cursor} />
           </div>
 
           {/* 用例切换 */}

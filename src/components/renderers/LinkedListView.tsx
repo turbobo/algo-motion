@@ -19,6 +19,10 @@ const SVG_H = 192
 
 interface Props {
   view: LinkedListViewModel
+  /** 本帧值/出边变化的节点 id 集（frameDiff 产出）；配合 frameKey 触发脉冲 */
+  flash?: ReadonlySet<string>
+  /** 帧序号：连续变化时让节点重新挂载以重播脉冲动画 */
+  frameKey?: number
 }
 
 interface EdgeGeom {
@@ -44,7 +48,7 @@ function edgeGeom(from: number, to: number | null, cx: (i: number) => number): E
   return { d: `M ${x1} ${CY - HALF - 5} Q ${mid} ${CY - HALF - 34} ${x2} ${CY - HALF - 5}` }
 }
 
-export function LinkedListView({ view }: Props) {
+export function LinkedListView({ view, flash, frameKey }: Props) {
   const { nodes, next, pointers = {}, marks = [] } = view
   const index = new Map(nodes.map((n, i) => [n.id, i]))
   const cx = (i: number) => PAD + i * STEP + HALF
@@ -124,10 +128,11 @@ export function LinkedListView({ view }: Props) {
             {nodes.map((node, i) => {
               const tone = markOf.get(node.id)
               const style = tone ? TONE_STYLES[tone] : null
+              const isFlash = flash?.has(node.id) ?? false
               return (
                 <div
-                  key={node.id}
-                  className="absolute flex items-center justify-center rounded-xl border font-mono text-base transition-all duration-300"
+                  key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
+                  className={`absolute flex items-center justify-center rounded-xl border font-mono text-base transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                   style={{
                     left: PAD + i * STEP,
                     top: CY - HALF,

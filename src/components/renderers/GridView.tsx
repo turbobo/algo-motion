@@ -12,6 +12,10 @@ const GAP = 3
 
 interface Props {
   view: GridViewModel
+  /** 本帧值变化的格子集（"r:c" 标识，frameDiff 产出）；配合 frameKey 触发脉冲 */
+  flash?: ReadonlySet<string>
+  /** 帧序号：连续变化时让格子重新挂载以重播脉冲动画 */
+  frameKey?: number
 }
 
 const VOID_CHARS = new Set(['0', '.', ' ', ''])
@@ -24,7 +28,7 @@ function classify(value: string | number): 'void' | 'solid' | 'text' {
   return 'text'
 }
 
-export function GridView({ view }: Props) {
+export function GridView({ view, flash, frameKey }: Props) {
   const markMap = new Map((view.marks ?? []).map((m) => [`${m.row}:${m.col}`, m.tone]))
 
   return (
@@ -38,6 +42,7 @@ export function GridView({ view }: Props) {
                 const tone = markMap.get(`${ri}:${ci}`)
                 const style = tone ? TONE_STYLES[tone] : null
                 const kind = classify(value)
+                const isFlash = flash?.has(`${ri}:${ci}`) ?? false
                 // 默认语义色：水格（暗）与陆格（沙）
                 const fallback =
                   kind === 'solid'
@@ -47,8 +52,8 @@ export function GridView({ view }: Props) {
                       : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)' }
                 return (
                   <div
-                    key={ci}
-                    className="flex items-center justify-center rounded border font-mono text-[11px] transition-all duration-300"
+                    key={isFlash ? `f${frameKey ?? 0}` : 's'}
+                    className={`flex items-center justify-center rounded border font-mono text-[11px] transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                     style={{
                       width: CELL,
                       height: CELL,

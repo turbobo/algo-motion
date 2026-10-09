@@ -12,22 +12,32 @@ import { MatrixView } from './MatrixView'
 import { StackView } from './StackView'
 import { TreeView } from './TreeView'
 
-export function ViewRenderer({ view }: { view: View }) {
+export function ViewRenderer({
+  view,
+  flash,
+  frameKey,
+}: {
+  view: View
+  /** 本帧变化元素标识集（frameDiff 产出，按视图名分发到各渲染器） */
+  flash?: ReadonlySet<string>
+  /** 帧序号：让连续变化的同一元素重新挂载以重播脉冲动画 */
+  frameKey?: number
+}) {
   switch (view.kind) {
     case 'array':
-      return <ArrayView view={view} />
+      return <ArrayView view={view} flash={flash} frameKey={frameKey} />
     case 'hashmap':
-      return <HashmapView view={view} />
+      return <HashmapView view={view} flash={flash} frameKey={frameKey} />
     case 'linkedlist':
-      return <LinkedListView view={view} />
+      return <LinkedListView view={view} flash={flash} frameKey={frameKey} />
     case 'matrix':
-      return <MatrixView view={view} />
+      return <MatrixView view={view} flash={flash} frameKey={frameKey} />
     case 'tree':
-      return <TreeView view={view} />
+      return <TreeView view={view} flash={flash} frameKey={frameKey} />
     case 'grid':
-      return <GridView view={view} />
+      return <GridView view={view} flash={flash} frameKey={frameKey} />
     case 'stack':
-      return <StackView view={view} />
+      return <StackView view={view} flash={flash} frameKey={frameKey} />
     default: {
       const kind = (view as { kind?: unknown }).kind
       return (

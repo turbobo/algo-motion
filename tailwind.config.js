@@ -28,10 +28,22 @@ export default {
           '60%': { transform: 'scale(1.08)' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        /** 帧间变化脉冲：琥珀色光圈扩散 + 轻微放大（注意：不透明度归零靠 boxShadow spread，不动元素背景） */
+        flash: {
+          '0%': { boxShadow: '0 0 0 0 rgba(245, 158, 11, 0.65)', transform: 'scale(1.1)' },
+          '60%': { boxShadow: '0 0 0 7px rgba(245, 158, 11, 0)', transform: 'scale(1)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(245, 158, 11, 0)', transform: 'scale(1)' },
+        },
+        flashText: {
+          from: { color: '#f59e0b' },
+          to: { color: '#e6e6e6' },
+        },
       },
       animation: {
         fadeIn: 'fadeIn 0.3s ease-out',
         popIn: 'popIn 0.25s ease-out',
+        flash: 'flash 0.75s ease-out',
+        'flash-text': 'flashText 0.9s ease-out',
       },
     },
   },

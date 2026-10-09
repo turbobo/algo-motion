@@ -13,6 +13,10 @@ const PAD = 16
 
 interface Props {
   view: TreeViewModel
+  /** 本帧值/子树结构变化的节点 id 集（frameDiff 产出）；配合 frameKey 触发脉冲 */
+  flash?: ReadonlySet<string>
+  /** 帧序号：连续变化时让节点重新挂载以重播脉冲动画 */
+  frameKey?: number
 }
 
 interface Layout {
@@ -61,7 +65,7 @@ function computeLayout(view: TreeViewModel): Layout {
   return { x, y, depthMax }
 }
 
-export function TreeView({ view }: Props) {
+export function TreeView({ view, flash, frameKey }: Props) {
   const { x, y, depthMax } = computeLayout(view)
   const px = (id: string) => PAD + (x.get(id) ?? 0) * STEP_X + NODE_W / 2
   const py = (id: string) => PAD + (y.get(id) ?? 0) * STEP_Y + NODE_H / 2
@@ -111,10 +115,11 @@ export function TreeView({ view }: Props) {
             const tone = markOf.get(node.id)
             const style = tone ? TONE_STYLES[tone] : null
             const labels = pointersByNode.get(node.id)
+            const isFlash = flash?.has(node.id) ?? false
             return (
-              <div key={node.id}>
+              <div key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}>
                 <div
-                  className="absolute flex items-center justify-center rounded-full border font-mono text-sm transition-all duration-300"
+                  className={`absolute flex items-center justify-center rounded-full border font-mono text-sm transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                   style={{
                     left: px(node.id) - NODE_W / 2,
                     top: py(node.id) - NODE_H / 2,

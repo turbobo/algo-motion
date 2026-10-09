@@ -7,9 +7,13 @@ import { TONE_STYLES, ViewTitle } from './tones'
 
 interface Props {
   view: StackViewModel
+  /** 本帧值变化的元素下标集（frameDiff 产出）；配合 frameKey 触发脉冲 */
+  flash?: ReadonlySet<string>
+  /** 帧序号：连续变化时让元素重新挂载以重播脉冲动画 */
+  frameKey?: number
 }
 
-export function StackView({ view }: Props) {
+export function StackView({ view, flash, frameKey }: Props) {
   const markOf = new Map((view.marks ?? []).map((m) => [m.index, m.tone]))
   const topIndex = view.items.length - 1
 
@@ -29,10 +33,11 @@ export function StackView({ view }: Props) {
             const idx = view.items.length - 1 - i
             const tone = markOf.get(idx)
             const style = tone ? TONE_STYLES[tone] : null
+            const isFlash = flash?.has(String(idx)) ?? false
             return (
               <div
-                key={`${idx}-${String(item)}`}
-                className="flex h-7 w-16 animate-popIn items-center justify-center rounded border font-mono text-xs transition-all duration-300"
+                key={`${idx}-${String(item)}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
+                className={`flex h-7 w-16 ${isFlash ? 'animate-flash' : 'animate-popIn'} items-center justify-center rounded border font-mono text-xs transition-all duration-300`}
                 style={{
                   borderColor: style?.border ?? 'rgba(255,255,255,0.14)',
                   background: style?.bg ?? 'rgba(255,255,255,0.04)',

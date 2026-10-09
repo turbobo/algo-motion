@@ -11,9 +11,13 @@ const STEP = 52
 
 interface Props {
   view: ArrayViewModel
+  /** 本帧值变化的元素下标集（frameDiff 产出）；配合 frameKey 触发脉冲 */
+  flash?: ReadonlySet<string>
+  /** 帧序号：连续变化时让格子重新挂载以重播脉冲动画 */
+  frameKey?: number
 }
 
-export function ArrayView({ view }: Props) {
+export function ArrayView({ view, flash, frameKey }: Props) {
   const marks = new Map((view.marks ?? []).map((m) => [m.index, m.tone]))
   const pointersByIndex = new Map<number, string[]>()
   for (const [label, idx] of Object.entries(view.pointers ?? {})) {
@@ -38,6 +42,7 @@ export function ArrayView({ view }: Props) {
                 const tone = marks.get(i)
                 const style = tone ? TONE_STYLES[tone] : null
                 const pointers = pointersByIndex.get(i) ?? []
+                const isFlash = flash?.has(String(i)) ?? false
                 return (
                   <div key={i} className="flex shrink-0 flex-col items-center gap-1">
                     {/* 指针胶囊区（固定高度避免跳动） */}
@@ -52,7 +57,8 @@ export function ArrayView({ view }: Props) {
                       ))}
                     </div>
                     <div
-                      className="flex h-11 w-11 items-center justify-center rounded-lg border font-mono text-sm transition-all duration-300"
+                      key={isFlash ? `f${frameKey ?? 0}` : 's'}
+                      className={`flex h-11 w-11 items-center justify-center rounded-lg border font-mono text-sm transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                       style={{
                         borderColor: style?.border ?? 'rgba(255,255,255,0.12)',
                         background: style?.bg ?? 'rgba(255,255,255,0.04)',

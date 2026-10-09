@@ -15,9 +15,13 @@ const HEAD_H = 22
 
 interface Props {
   view: MatrixViewModel
+  /** 本帧值变化的格子集（"r:c" 标识，frameDiff 产出）；配合 frameKey 触发脉冲 */
+  flash?: ReadonlySet<string>
+  /** 帧序号：连续变化时让格子重新挂载以重播脉冲动画 */
+  frameKey?: number
 }
 
-export function MatrixView({ view }: Props) {
+export function MatrixView({ view, flash, frameKey }: Props) {
   const markMap = new Map((view.marks ?? []).map((m) => [`${m.row}:${m.col}`, m.tone]))
   const hasRowHead = Array.isArray(view.rowLabels) && view.rowLabels.length > 0
   const hasColHead = Array.isArray(view.colLabels) && view.colLabels.length > 0
@@ -62,10 +66,11 @@ export function MatrixView({ view }: Props) {
                 const tone = markMap.get(`${ri}:${ci}`)
                 const style = tone ? TONE_STYLES[tone] : null
                 const inCross = ri === view.activeRow || ci === view.activeCol
+                const isFlash = flash?.has(`${ri}:${ci}`) ?? false
                 return (
                   <div
-                    key={ci}
-                    className="flex items-center justify-center border font-mono text-xs transition-all duration-300"
+                    key={isFlash ? `f${frameKey ?? 0}` : 's'}
+                    className={`flex items-center justify-center border font-mono text-xs transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
                     style={{
                       width: CELL_W,
                       height: CELL_H,

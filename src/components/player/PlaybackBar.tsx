@@ -14,6 +14,8 @@ interface Props {
   onNext: () => void
   onSeek: (n: number) => void
   onSpeedChange: (s: number) => void
+  /** 重放本步：回到上一帧继续播放（再看一遍刚才那步的变化） */
+  onReplay: () => void
 }
 
 const ICON_SIZE = 18
@@ -50,11 +52,19 @@ function IconPause() {
   )
 }
 
+function IconReplay() {
+  return (
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+    </svg>
+  )
+}
+
 const BTN =
   'flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-ink/80 ' +
   'transition-colors hover:border-white/25 hover:text-ink active:scale-95 disabled:opacity-40'
 
-export function PlaybackBar({ cursor, total, playing, speed, onToggle, onPrev, onNext, onSeek, onSpeedChange }: Props) {
+export function PlaybackBar({ cursor, total, playing, speed, onToggle, onPrev, onNext, onSeek, onSpeedChange, onReplay }: Props) {
   const last = Math.max(total - 1, 0)
   const nextSpeed = () => {
     const idx = SPEED_OPTIONS.indexOf(speed as (typeof SPEED_OPTIONS)[number])
@@ -63,6 +73,16 @@ export function PlaybackBar({ cursor, total, playing, speed, onToggle, onPrev, o
 
   return (
     <div className="flex items-center gap-2 rounded-2xl border border-white/8 bg-surface px-3 py-2 md:gap-3">
+      <button
+        type="button"
+        className={BTN}
+        onClick={onReplay}
+        disabled={cursor <= 0}
+        aria-label="重放本步"
+        title="重放本步（R）：回到上一帧继续播"
+      >
+        <IconReplay />
+      </button>
       <button type="button" className={BTN} onClick={onPrev} disabled={cursor <= 0} aria-label="上一帧">
         <IconPrev />
       </button>

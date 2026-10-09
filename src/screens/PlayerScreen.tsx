@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { AlgorithmCase, Frame, FrameDiagnostics } from '../types'
 import { describeDiagnostics, hasDiagnostics } from '../engine/sanitize'
 import { ErrorBoundary } from '../components/ErrorBoundary'
-import { usePlayer } from '../hooks/usePlayer'
+import { SPEED_OPTIONS, usePlayer } from '../hooks/usePlayer'
 import { CodePanel } from '../components/player/CodePanel'
 import { PlaybackBar } from '../components/player/PlaybackBar'
 import { StageView } from '../components/player/StageView'
@@ -70,7 +70,7 @@ interface InnerProps {
 }
 
 function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChangeTest, onBack, onLearned }: InnerProps) {
-  const { cursor, playing, speed, setSpeed, next, prev, seek, toggle } = usePlayer(frames.length)
+  const { cursor, playing, speed, setSpeed, next, prev, seek, toggle, setPlaying } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
 
   // 「播完 = 已学」：到达最后一帧（含拖拽直达）即记账给首页
@@ -119,6 +119,51 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
     },
     [seek],
   )
+  /** 重放本步：回到上一帧并继续播放——再看一遍刚才那步的变化 */
+  const handleReplay = useCallback(() => {
+    if (cursor <= 0) return
+    setStarted(true)
+    seek(cursor - 1)
+    setPlaying(true)
+  }, [cursor, seek, setPlaying])
+
+  // 键盘快捷键：空格 播放/暂停 · ←/→ 逐帧 · ↑/↓ 变速 · R 重放本步
+  // 输入控件/按钮聚焦时不劫持（按钮的原生键盘激活优先）
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      const tag = target?.tagName
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        tag === 'BUTTON' ||
+        target?.isContentEditable
+      ) {
+        return
+      }
+      if (e.key === ' ') {
+        e.preventDefault()
+        handleToggle()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        handlePrev()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        handleNext()
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        const idx = SPEED_OPTIONS.indexOf(speed as (typeof SPEED_OPTIONS)[number])
+        const base = idx < 0 ? 1 : idx
+        const nextIdx = Math.max(0, Math.min(SPEED_OPTIONS.length - 1, base + (e.key === 'ArrowUp' ? 1 : -1)))
+        setSpeed(SPEED_OPTIONS[nextIdx] ?? 1)
+      } else if (e.key === 'r' || e.key === 'R') {
+        handleReplay()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [handleToggle, handlePrev, handleNext, handleReplay, speed, setSpeed])
 
   const lineCount = algoCase.result.displayCode.split('\n').length
 
@@ -238,7 +283,11 @@ function PlayerInner({ algoCase, frames, testIdx, passedCount, allPassed, onChan
               onNext={handleNext}
               onSeek={handleSeek}
               onSpeedChange={setSpeed}
+              onReplay={handleReplay}
             />
+            <p className="mt-1.5 hidden text-center font-mono text-[10px] text-sub/50 lg:block">
+              空格 播放/暂停 · ← → 逐帧 · ↑ ↓ 变速 · R 重放本步
+            </p>
           </div>
         </section>
       </div>

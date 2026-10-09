@@ -3,7 +3,7 @@
  */
 import { useCallback, useState } from 'react'
 import type { AlgorithmCase } from './types'
-import type { Sample } from './samples'
+import type { CatalogEntry } from './samples/catalog'
 import { executeInstrumentResult } from './engine/runner'
 import { generateInstrumented, type GenerateInput } from './llm/client'
 import { useProgress } from './hooks/useProgress'
@@ -17,31 +17,41 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const { learned, last, markLearned, markOpened } = useProgress()
 
-  /** 打开内置样题：走沙箱执行链路 */
-  const openSample = useCallback(async (sample: Sample) => {
-    markOpened(sample.id)
-    setLoading(true)
-    setError(null)
-    try {
-      const { run, framesByTest } = await executeInstrumentResult(sample.result)
-      if (!run.ok) {
-        setError(run.error ?? '沙箱执行失败')
-        return
+  /** 打开内置样题：按需加载题库内容 chunk → 沙箱执行 → 进入播放页 */
+  const openSample = useCallback(
+    async (entry: CatalogEntry) => {
+      markOpened(entry.id)
+      setLoading(true)
+      setError(null)
+      try {
+        // 首页只消费轻量 CATALOG；完整样题（含插桩代码）动态加载
+        const { findSample } = await import('./samples')
+        const sample = findSample(entry.id)
+        if (!sample) {
+          setError(`样题不存在：${entry.id}`)
+          return
+        }
+        const { run, framesByTest } = await executeInstrumentResult(sample.result)
+        if (!run.ok) {
+          setError(run.error ?? '沙箱执行失败')
+          return
+        }
+        setActiveCase({
+          id: sample.id,
+          title: sample.title,
+          problem: sample.problem,
+          sourceCode: sample.sourceCode,
+          result: sample.result,
+          framesByTest,
+          tests: run.tests,
+          diagnostics: run.diagnostics,
+        })
+      } finally {
+        setLoading(false)
       }
-      setActiveCase({
-        id: sample.id,
-        title: sample.title,
-        problem: sample.problem,
-        sourceCode: sample.sourceCode,
-        result: sample.result,
-        framesByTest,
-        tests: run.tests,
-        diagnostics: run.diagnostics,
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    },
+    [markOpened],
+  )
 
   /** 自定义生成：LLM 插桩 → 沙箱执行 → 进入播放页 */
   const handleGenerate = useCallback(async (input: GenerateInput) => {

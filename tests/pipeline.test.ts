@@ -15,6 +15,7 @@ function requireZero(): { sanitizeView: typeof sanitizeView; emptyDiagnostics: t
   return { sanitizeView, emptyDiagnostics }
 }
 import { SAMPLES } from '../src/samples'
+import { CATALOG } from '../src/samples/catalog'
 import { parseModelOutput, pickOutput } from '../cloud-functions/lib/instrument'
 
 describe('内置样题：分类与难度元数据完整', () => {
@@ -26,6 +27,21 @@ describe('内置样题：分类与难度元数据完整', () => {
     for (const sample of SAMPLES) {
       expect(CATEGORIES.has(sample.category), `${sample.id} category=${sample.category}`).toBe(true)
       expect(['简单', '中等', '困难']).toContain(sample.difficulty)
+    }
+  })
+})
+
+describe('CATALOG 与 SAMPLES 元数据一致（首页轻量目录不漂移）', () => {
+  it('id / title / summary / category / difficulty 完全对齐', () => {
+    expect(CATALOG.length).toBe(SAMPLES.length)
+    const byId = new Map(SAMPLES.map((s) => [s.id, s]))
+    for (const entry of CATALOG) {
+      const sample = byId.get(entry.id)
+      expect(sample, `CATALOG 中的 ${entry.id} 不在 SAMPLES`).toBeDefined()
+      expect(entry.title).toBe(sample?.title)
+      expect(entry.summary).toBe(sample?.result.summary)
+      expect(entry.category).toBe(sample?.category)
+      expect(entry.difficulty).toBe(sample?.difficulty)
     }
   })
 })

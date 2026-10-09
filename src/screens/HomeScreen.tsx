@@ -2,7 +2,7 @@
  * 首页：内置样题入口（搜索 + 分类/难度筛选） + 自定义生成表单。
  */
 import { useMemo, useState } from 'react'
-import { SAMPLES, type Sample } from '../samples'
+import { CATALOG, type CatalogEntry } from '../samples/catalog'
 import type { GenerateInput } from '../llm/client'
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
   learned: ReadonlySet<string>
   /** 最近打开的样题 id（「继续上次」入口） */
   lastId: string | null
-  onOpenSample: (sample: Sample) => void
+  onOpenSample: (entry: CatalogEntry) => void
   onGenerate: (input: GenerateInput) => void
 }
 
@@ -86,19 +86,19 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
   const busy = loading || generating
   const canSubmit = code.trim().length > 0 && !busy
 
-  const learnedCount = useMemo(() => SAMPLES.filter((s) => learned.has(s.id)).length, [learned])
+  const learnedCount = useMemo(() => CATALOG.filter((s) => learned.has(s.id)).length, [learned])
   const lastSample = useMemo(
-    () => (lastId ? (SAMPLES.find((s) => s.id === lastId) ?? null) : null),
+    () => (lastId ? (CATALOG.find((s) => s.id === lastId) ?? null) : null),
     [lastId],
   )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return SAMPLES.filter(
+    return CATALOG.filter(
       (s) =>
         (category === '全部' || s.category === category) &&
         (difficulty === '全部' || s.difficulty === difficulty) &&
-        (q === '' || (s.title + ' ' + s.result.summary).toLowerCase().includes(q)),
+        (q === '' || (s.title + ' ' + s.summary).toLowerCase().includes(q)),
     )
   }, [query, category, difficulty])
 
@@ -130,11 +130,11 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
             <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/8">
               <div
                 className="h-full rounded-full bg-ok/70 transition-all duration-500"
-                style={{ width: `${SAMPLES.length > 0 ? (learnedCount / SAMPLES.length) * 100 : 0}%` }}
+                style={{ width: `${CATALOG.length > 0 ? (learnedCount / CATALOG.length) * 100 : 0}%` }}
               />
             </div>
             <span className="shrink-0 font-mono text-[11px] text-sub">
-              已学 <span className="text-ok">{learnedCount}</span> / {SAMPLES.length}
+              已学 <span className="text-ok">{learnedCount}</span> / {CATALOG.length}
             </span>
           </div>
 
@@ -207,7 +207,7 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
                       {sample.difficulty}
                     </span>
                   </div>
-                  <div className="mt-1.5 text-xs leading-relaxed text-sub">{sample.result.summary}</div>
+                  <div className="mt-1.5 text-xs leading-relaxed text-sub">{sample.summary}</div>
                   <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
                     <span className="text-accent">点击播放动画 →</span>
                     <span className="text-sub/70">{sample.category}</span>

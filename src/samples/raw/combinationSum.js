@@ -14,7 +14,9 @@ function combinationSum(candidates, target) {
     values: res.map((r) => r.join('+')),
     title: `已收集的组合（共 ${res.length} 个）`,
   });
+  const __stack = [];
   const backtrack = (start, remain) => {
+    __stack.push(`backtrack(剩 ${remain})`);
     if (remain === 0) {
       res.push([...path]);
       __rec.step({
@@ -22,7 +24,9 @@ function combinationSum(candidates, target) {
         msg: `${path.join(' + ')} = ${target} 正好凑满！收入结果——然后回溯，把最后一个数换掉再试`,
         views: { path: pathSnap(), res: resSnap() },
         vars: { 剩余: '0', 已收集: String(res.length) },
+        stack: [...__stack],
       });
+      __stack.pop();
       return;
     }
     for (let i = start; i < candidates.length; i++) {
@@ -36,16 +40,19 @@ function combinationSum(candidates, target) {
         msg: `选 ${candidates[i]}，还差 ${left}${left === 0 ? '——刚好凑满！' : '。因为每个数可以重复用，下一层还从自己开始选（再往后会越选越大）'}`,
         views: { path: pathSnap(), res: resSnap() },
         vars: { 当前和: String(target - left), 剩余: String(left) },
+        stack: [...__stack],
       });
       backtrack(i, remain - candidates[i]);
       path.pop();
     }
+    __stack.pop();
   };
   __rec.step({
     at: 'const backtrack = (start, remain) => {',
     msg: `候选 [${candidates.join(', ')}]，目标 ${target}。每个数可以重复选——用 remain（还剩多少）当剪枝器：候选比 remain 大就跳过，正好减到 0 就收一个组合`,
     views: { path: pathSnap(), res: resSnap() },
     vars: { 目标: String(target) },
+    stack: [`backtrack(剩 ${target})`],
   });
   backtrack(0, target);
   return res;

@@ -30,7 +30,9 @@ function partition(s) {
     }
     return true;
   };
+  const __stack = [];
   const backtrack = (start) => {
+    __stack.push(`backtrack(从${start}切)`);
     if (start === s.length) {
       res.push([...path]);
       __rec.step({
@@ -38,7 +40,9 @@ function partition(s) {
         msg: `切到了末尾——[${path.join(' | ')}] 每一段都是回文，是一种合法切法`,
         views: { s: sSnap(start, start - 1), path: pathSnap(), res: resSnap() },
         vars: { 已收集: String(res.length) },
+        stack: [...__stack],
       });
+      __stack.pop();
       return;
     }
     for (let end = start; end < s.length; end++) {
@@ -51,16 +55,19 @@ function partition(s) {
         msg: `从位置 ${start} 试到 ${end}：片段 "${s.slice(start, end + 1)}" 是回文 ✓，先切下它，再从 ${end + 1} 继续切后面的部分——切错了回溯再换切点`,
         views: { s: sSnap(start, end), path: pathSnap(), res: resSnap() },
         vars: { 片段: s.slice(start, end + 1) },
+        stack: [...__stack],
       });
       backtrack(end + 1);
       path.pop();
     }
+    __stack.pop();
   };
   __rec.step({
     at: 'const backtrack = (start) => {',
     msg: `把 "${s}" 切成若干段，要求每段都是回文。回溯的切法：从 start 开始枚举切点 end，[start..end] 是回文才切，否则往后试`,
     views: { s: sSnap(0, -1), path: pathSnap(), res: resSnap() },
     vars: {},
+    stack: ['backtrack(从0切)'],
   });
   backtrack(0);
   return res;

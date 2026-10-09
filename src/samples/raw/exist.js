@@ -27,8 +27,11 @@ function exist(board, word) {
     marks: idx >= 0 && idx < word.length ? [{ index: idx, tone: 'active' }] : [],
     title: '目标单词',
   });
+  const __stack = [];
   const dfs = (r, c, idx) => {
+    __stack.push(`dfs(第${idx + 1}位@(${r},${c}))`);
     if (r < 0 || r >= rows || c < 0 || c >= cols || board[r][c] !== word[idx]) {
+      __stack.pop();
       return false;
     }
     if (idx === word.length - 1) {
@@ -37,7 +40,9 @@ function exist(board, word) {
         msg: `最后一个字符 '${word[idx]}' 在 (${r},${c}) 也对上了——整条路径拼出 "${word}"，找到！`,
         views: { grid: gridSnap(r, c), word: wordSnap(idx) },
         vars: { 位置: `(${r},${c})` },
+        stack: [...__stack],
       });
+      __stack.pop();
       return true;
     }
     const tmp = board[r][c];
@@ -48,6 +53,7 @@ function exist(board, word) {
       msg: `匹配第 ${idx + 1} 个字符 '${word[idx]}'：落在 (${r},${c})。先把它改成 #（本路径不能走回头路），再向上下左右四个方向继续匹配下一个字符`,
       views: { grid: gridSnap(r, c), word: wordSnap(idx) },
       vars: { 位置: `(${r},${c})`, 进度: `${idx + 1}/${word.length}` },
+      stack: [...__stack],
     });
     const found =
       dfs(r + 1, c, idx + 1) ||
@@ -56,6 +62,7 @@ function exist(board, word) {
       dfs(r, c - 1, idx + 1);
     board[r][c] = tmp;
     trail.pop();
+    __stack.pop();
     return found;
   };
   __rec.step({
@@ -63,6 +70,7 @@ function exist(board, word) {
     msg: `在棋盘里找 "${word}"：从每个格子出发 DFS——字符对上就往四个方向深入，走不通就回溯还原（# 改回原字母），换个方向再试`,
     views: { grid: gridSnap(undefined, undefined), word: wordSnap(0) },
     vars: {},
+    stack: ['dfs(第1位@起点)'],
   });
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {

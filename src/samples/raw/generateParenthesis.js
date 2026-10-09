@@ -14,7 +14,9 @@ function generateParenthesis(n) {
     values: [...res],
     title: `已收集的合法组合（共 ${res.length} 个）`,
   });
+  const __stack = [];
   const backtrack = (open, close) => {
+    __stack.push(`backtrack(左${open}/右${close})`);
     if (path.length === n * 2) {
       res.push(path);
       __rec.step({
@@ -22,7 +24,9 @@ function generateParenthesis(n) {
         msg: `"${path}" 全 ${n * 2} 位放完——因为每一步都保证了"左括号数 ≥ 右括号数"，所以只要放满长度，必然是合法的`,
         views: { path: pathSnap(), res: resSnap() },
         vars: { 已收集: String(res.length) },
+        stack: [...__stack],
       });
+      __stack.pop();
       return;
     }
     if (open < n) {
@@ -35,12 +39,14 @@ function generateParenthesis(n) {
       backtrack(open, close + 1);
       path = path.slice(0, -1);
     }
+    __stack.pop();
   };
   __rec.step({
     at: 'const backtrack = (open, close) => {',
     msg: `${n} 对括号的合法组合 = 边放边守两条规则：① 左括号最多用 ${n} 个；② 右括号数不能超过左括号数（否则出现没法配对的 ")"）。开局先画好这两条红线，回溯时只在红线上选`,
     views: { path: pathSnap(), res: resSnap() },
     vars: { 剩余左: String(n), 剩余右: String(n) },
+    stack: ['backtrack(左0/右0)'],
   });
   backtrack(0, 0);
   return res;

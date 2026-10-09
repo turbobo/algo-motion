@@ -40,7 +40,9 @@ function letterCombinations(digits) {
     });
     return [];
   }
+  const __stack = [];
   const backtrack = (idx) => {
+    __stack.push(`backtrack(第 ${idx} 位)`);
     if (idx === digits.length) {
       res.push(path);
       __rec.step({
@@ -48,7 +50,9 @@ function letterCombinations(digits) {
         msg: `每一位都选完了——组合 "${path}" 收入结果。回到上一层，把最后一位换成下一个字母（回溯撤销）`,
         views: { digits: digitsSnap(idx - 1), path: pathSnap('刚凑满的组合'), res: resSnap() },
         vars: { 已收集: String(res.length) },
+        stack: [...__stack],
       });
+      __stack.pop();
       return;
     }
     for (const ch of map[digits[idx]]) {
@@ -56,12 +60,14 @@ function letterCombinations(digits) {
       backtrack(idx + 1);
       path = path.slice(0, -1);
     }
+    __stack.pop();
   };
   __rec.step({
     at: 'const backtrack = (idx) => {',
     msg: `数字 "${digits}" 的字母组合 = 每位数字在自己的字母表里挑一个，全排一遍。第 ${digits.length} 位都选定就是一个组合——一共 ${digits.split('').map((d) => map[d].length).join(' × ')} 种`,
     views: { digits: digitsSnap(0), path: pathSnap(), res: resSnap() },
     vars: {},
+    stack: ['backtrack(第 0 位)'],
   });
   backtrack(0);
   return res;

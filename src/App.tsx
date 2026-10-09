@@ -3,6 +3,7 @@
  */
 import { useCallback, useState } from 'react'
 import type { AlgorithmCase } from './types'
+import { CATALOG } from './samples/catalog'
 import { RELATED_SAMPLES } from './samples/related'
 import { executeInstrumentResult } from './engine/runner'
 import { generateInstrumented, type GenerateInput } from './llm/client'
@@ -45,6 +46,7 @@ export default function App() {
           framesByTest,
           tests: run.tests,
           diagnostics: run.diagnostics,
+          complexity: CATALOG.find((e) => e.id === sample.id)?.complexity,
         })
       } finally {
         setLoading(false)

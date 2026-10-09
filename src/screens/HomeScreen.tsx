@@ -212,7 +212,7 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
                   <div className="mt-3 flex items-center justify-between font-mono text-[11px]">
                     <span className="text-accent">点击播放动画 →</span>
                     <span className="text-sub/70">
-                      {sample.category}
+                      {sample.category} · {sample.complexity}
                       {RELATED_SAMPLES[sample.id] ? <span className="text-accent"> · 双解法</span> : null}
                     </span>
                   </div>

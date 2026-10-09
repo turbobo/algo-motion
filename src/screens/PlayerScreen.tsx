@@ -208,6 +208,14 @@ function PlayerInner({
             ⇄ 对照解法
           </button>
         ) : null}
+        {algoCase.complexity ? (
+          <span
+            className="shrink-0 rounded-full border border-white/10 px-2.5 py-1 font-mono text-[11px] text-sub"
+            title="时间复杂度 · 空间复杂度（标准最优解口径）"
+          >
+            {algoCase.complexity}
+          </span>
+        ) : null}
         <span
           className={`shrink-0 rounded-full border px-2.5 py-1 font-mono text-[11px] ${
             allPassed ? 'border-ok/40 bg-ok/10 text-ok' : 'border-warn/40 bg-warn/10 text-warn'

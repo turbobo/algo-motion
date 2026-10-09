@@ -204,4 +204,6 @@ export interface AlgorithmCase {
   tests: TestOutcome[]
   /** 沙箱帧清洗诊断（有异常时才提示用户） */
   diagnostics?: FrameDiagnostics
+  /** 「时间 · 空间」复杂度标注（内置样题提供） */
+  complexity?: string
 }

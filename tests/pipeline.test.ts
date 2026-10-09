@@ -16,6 +16,7 @@ function requireZero(): { sanitizeView: typeof sanitizeView; emptyDiagnostics: t
 }
 import { SAMPLES } from '../src/samples'
 import { CATALOG } from '../src/samples/catalog'
+import { COMPLEXITY } from '../src/samples/complexity'
 import { parseModelOutput, pickOutput } from '../cloud-functions/lib/instrument'
 
 describe('内置样题：分类与难度元数据完整', () => {
@@ -42,6 +43,16 @@ describe('CATALOG 与 SAMPLES 元数据一致（首页轻量目录不漂移）',
       expect(entry.summary).toBe(sample?.result.summary)
       expect(entry.category).toBe(sample?.category)
       expect(entry.difficulty).toBe(sample?.difficulty)
+    }
+  })
+
+  it('复杂度标注完整且与 CATALOG 对齐', () => {
+    for (const sample of SAMPLES) {
+      expect(COMPLEXITY[sample.id], `缺少 ${sample.id} 的复杂度标注`).toBeDefined()
+    }
+    for (const entry of CATALOG) {
+      expect(entry.complexity).toBe(COMPLEXITY[entry.id])
+      expect(entry.complexity).not.toBe('未标注')
     }
   })
 })

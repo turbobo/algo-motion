@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react'
 import { CATALOG, type CatalogEntry } from '../samples/catalog'
 import { RELATED_SAMPLES } from '../samples/related'
+import { isSolveProblemId } from '../flows/shared/solve-catalog'
 import type { GenerateInput } from '../llm/client'
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
   lastId: string | null
   onOpenSample: (entry: CatalogEntry) => void
   onGenerate: (input: GenerateInput) => void
+  onStartSolve: (problemId: string) => void
 }
 
 const LANGUAGES = [
@@ -76,7 +78,16 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   )
 }
 
-export function HomeScreen({ loading, generating, error, learned, lastId, onOpenSample, onGenerate }: Props) {
+export function HomeScreen({
+  loading,
+  generating,
+  error,
+  learned,
+  lastId,
+  onOpenSample,
+  onGenerate,
+  onStartSolve,
+}: Props) {
   const [problem, setProblem] = useState('')
   const [code, setCode] = useState('')
   const [language, setLanguage] = useState('javascript')
@@ -103,6 +114,8 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
     )
   }, [query, category, difficulty])
 
+  const solveEntries = useMemo(() => CATALOG.filter((entry) => isSolveProblemId(entry.id)), [])
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center px-6 py-10">
@@ -115,6 +128,49 @@ export function HomeScreen({ loading, generating, error, learned, lastId, onOpen
             解法在真实沙箱里执行，每一步状态被拍成快照帧——播放、单步、拖拽进度条，
             亲眼看算法执行到底发生了什么。
           </p>
+        </div>
+
+        {/* 刷题模式：首批精修题，进入解题工作台 */}
+        <div className="mt-8">
+          <div className="mb-2 flex items-baseline justify-between gap-3">
+            <span className="font-mono text-xs tracking-wide text-sub">刷题模式</span>
+            <span className="font-mono text-[11px] text-sub">
+              {solveEntries.length} 道可做题 · 草稿自动保存
+            </span>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {solveEntries.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex flex-col rounded-2xl border border-accent/25 bg-surface p-4 transition-colors hover:border-accent/50"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-sm font-medium">{entry.title}</div>
+                  <span
+                    className={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] ${
+                      DIFF_STYLE[entry.difficulty] ?? ''
+                    }`}
+                  >
+                    {entry.difficulty}
+                  </span>
+                </div>
+                <div className="mt-1.5 flex-1 text-xs leading-relaxed text-sub">{entry.summary}</div>
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <span className="font-mono text-[10px] text-sub">
+                    {entry.category} · {entry.complexity}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => onStartSolve(entry.id)}
+                    className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
+                  >
+                    去做题
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* 内置样题 */}

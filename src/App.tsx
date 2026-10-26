@@ -1,7 +1,7 @@
 /**
  * AlgoMotion 应用入口：首页 ↔ 播放页。
  */
-import { useCallback, useState } from 'react'
+import { Suspense, lazy, useCallback, useState } from 'react'
 import type { AlgorithmCase } from './types'
 import { CATALOG } from './samples/catalog'
 import { RELATED_SAMPLES } from './samples/related'
@@ -11,8 +11,15 @@ import { useProgress } from './hooks/useProgress'
 import { HomeScreen } from './screens/HomeScreen'
 import { PlayerScreen } from './screens/PlayerScreen'
 
+const SolveWorkspaceRoute = lazy(() =>
+  import('./flows/solve-workspace/solve-workspace').then((module) => ({
+    default: module.SolveWorkspaceRoute,
+  })),
+)
+
 export default function App() {
   const [activeCase, setActiveCase] = useState<AlgorithmCase | null>(null)
+  const [solveProblemId, setSolveProblemId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -53,6 +60,25 @@ export default function App() {
       }
     },
     [markOpened],
+  )
+
+  /** 题库 → 解题工作台 */
+  const startSolve = useCallback((problemId: string) => {
+    setError(null)
+    setSolveProblemId(problemId)
+  }, [])
+
+  const exitSolve = useCallback(() => {
+    setSolveProblemId(null)
+  }, [])
+
+  /** 工作台「看动画」：退出解题视图，复用现有样题播放链路 */
+  const openAnimationFromSolve = useCallback(
+    (sampleId: string) => {
+      setSolveProblemId(null)
+      void openSample({ id: sampleId })
+    },
+    [openSample],
   )
 
   /** 自定义生成：LLM 插桩 → 沙箱执行 → 进入播放页 */
@@ -110,6 +136,21 @@ export default function App() {
           relatedId={RELATED_SAMPLES[activeCase.id]}
           onOpenRelated={handleOpenRelated}
         />
+      ) : solveProblemId ? (
+        <Suspense
+          fallback={
+            <div className="flex h-full items-center justify-center bg-bg text-sm text-sub">
+              正在载入解题工作台…
+            </div>
+          }
+        >
+          <SolveWorkspaceRoute
+            problemId={solveProblemId}
+            onExit={exitSolve}
+            onOpenAnimation={openAnimationFromSolve}
+            onNextProblem={setSolveProblemId}
+          />
+        </Suspense>
       ) : (
         <HomeScreen
           loading={loading}
@@ -119,6 +160,7 @@ export default function App() {
           lastId={last}
           onOpenSample={openSample}
           onGenerate={handleGenerate}
+          onStartSolve={startSolve}
         />
       )}
     </div>

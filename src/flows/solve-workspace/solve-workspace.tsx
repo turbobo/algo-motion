@@ -1406,7 +1406,7 @@ function CasesPanel({
                 type="button"
                 onClick={saveCustomCase}
                 disabled={!input.trim()}
-                className="rounded-lg bg-accent px-3 py-1.5 text-[11px] font-medium text-black transition-all hover:brightness-110 disabled:opacity-40"
+                className="rounded-lg bg-accent px-3 py-1.5 text-[11px] font-medium text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 保存用例
               </button>

@@ -163,7 +163,7 @@ export function HomeScreen({
                     type="button"
                     disabled={busy}
                     onClick={() => onStartSolve(entry.id)}
-                    className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
+                    className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     去做题
                   </button>

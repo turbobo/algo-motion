@@ -13,10 +13,14 @@ import type {
   VerdictMeta,
 } from './types'
 
-export const LANGUAGE_OPTIONS: ReadonlyArray<{ value: SolveLanguage; label: string }> = [
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'python', label: 'Python' },
-  { value: 'java', label: 'Java' },
+export const LANGUAGE_OPTIONS: ReadonlyArray<{
+  value: SolveLanguage
+  label: string
+  shortLabel: string
+}> = [
+  { value: 'javascript', label: 'JavaScript', shortLabel: 'JS' },
+  { value: 'python', label: 'Python', shortLabel: 'Python' },
+  { value: 'java', label: 'Java', shortLabel: 'Java' },
 ]
 
 export const VERDICT_META: Record<Verdict, VerdictMeta> = {

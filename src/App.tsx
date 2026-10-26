@@ -1,15 +1,41 @@
 /**
  * AlgoMotion 应用入口：首页 ↔ 播放页。
  */
-import { Suspense, lazy, useCallback, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import type { AlgorithmCase } from './types'
 import { CATALOG } from './samples/catalog'
 import { RELATED_SAMPLES } from './samples/related'
 import { executeInstrumentResult } from './engine/runner'
 import { generateInstrumented, type GenerateInput } from './llm/client'
 import { useProgress } from './hooks/useProgress'
+import { isSolveProblemId } from './flows/shared/solve-catalog'
 import { HomeScreen } from './screens/HomeScreen'
 import { PlayerScreen } from './screens/PlayerScreen'
+
+const SOLVE_HASH_PREFIX = '#/solve/'
+const LAST_SOLVE_KEY = 'algomotion:last-solve'
+
+function readSolveIdFromHash(): string | null {
+  const match = window.location.hash.match(/^#\/solve\/([\w-]+)$/)
+  return match?.[1] ?? null
+}
+
+function readLastSolveId(): string | null {
+  try {
+    const id = localStorage.getItem(LAST_SOLVE_KEY)
+    return id && isSolveProblemId(id) ? id : null
+  } catch {
+    return null
+  }
+}
+
+function writeLastSolveId(id: string) {
+  try {
+    localStorage.setItem(LAST_SOLVE_KEY, id)
+  } catch {
+    /* 存储不可用：静默降级 */
+  }
+}
 
 const SolveWorkspaceRoute = lazy(() =>
   import('./flows/solve-workspace/solve-workspace').then((module) => ({
@@ -19,11 +45,41 @@ const SolveWorkspaceRoute = lazy(() =>
 
 export default function App() {
   const [activeCase, setActiveCase] = useState<AlgorithmCase | null>(null)
-  const [solveProblemId, setSolveProblemId] = useState<string | null>(null)
+  const [solveProblemId, setSolveProblemId] = useState<string | null>(readSolveIdFromHash)
+  const [lastSolveId, setLastSolveId] = useState<string | null>(readLastSolveId)
+  const [returnSolveId, setReturnSolveId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { learned, last, markLearned, markOpened } = useProgress()
+
+  // 浏览器前进/后退、地址栏改 hash、深链：URL 中有 #/solve/:id 就打开工作台并记入「上次做题」
+  useEffect(() => {
+    const syncFromHash = () => {
+      const id = readSolveIdFromHash()
+      setSolveProblemId(id)
+      setReturnSolveId(null)
+      if (id && isSolveProblemId(id)) {
+        setLastSolveId(id)
+        writeLastSolveId(id)
+      }
+    }
+    window.addEventListener('popstate', syncFromHash)
+    window.addEventListener('hashchange', syncFromHash)
+    return () => {
+      window.removeEventListener('popstate', syncFromHash)
+      window.removeEventListener('hashchange', syncFromHash)
+    }
+  }, [])
+
+  // 直接打开深链时，把它记为「上次做题」，退出后首页可继续
+  useEffect(() => {
+    const initial = readSolveIdFromHash()
+    if (initial && isSolveProblemId(initial)) {
+      setLastSolveId(initial)
+      writeLastSolveId(initial)
+    }
+  }, [])
 
   /** 打开内置样题：按需加载题库内容 chunk → 沙箱执行 → 进入播放页 */
   const openSample = useCallback(
@@ -62,24 +118,62 @@ export default function App() {
     [markOpened],
   )
 
-  /** 题库 → 解题工作台 */
+  /** 题库 → 解题工作台（同步 URL + 记录上次做题） */
   const startSolve = useCallback((problemId: string) => {
     setError(null)
+    setReturnSolveId(null)
     setSolveProblemId(problemId)
+    setLastSolveId(problemId)
+    writeLastSolveId(problemId)
+    const nextHash = `${SOLVE_HASH_PREFIX}${problemId}`
+    if (window.location.hash !== nextHash) {
+      window.history.pushState(null, '', nextHash)
+    }
   }, [])
 
   const exitSolve = useCallback(() => {
     setSolveProblemId(null)
+    if (readSolveIdFromHash()) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+    }
   }, [])
 
-  /** 工作台「看动画」：退出解题视图，复用现有样题播放链路 */
+  const nextSolve = useCallback((problemId: string) => {
+    setReturnSolveId(null)
+    setSolveProblemId(problemId)
+    setLastSolveId(problemId)
+    writeLastSolveId(problemId)
+    const nextHash = `${SOLVE_HASH_PREFIX}${problemId}`
+    if (window.location.hash !== nextHash) {
+      window.history.pushState(null, '', nextHash)
+    }
+  }, [])
+
+  /** 工作台「看动画」：退出解题视图，复用现有样题播放链路；播放页返回时恢复工作台 */
   const openAnimationFromSolve = useCallback(
     (sampleId: string) => {
+      if (solveProblemId) setReturnSolveId(solveProblemId)
       setSolveProblemId(null)
+      if (readSolveIdFromHash()) {
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+      }
       void openSample({ id: sampleId })
     },
-    [openSample],
+    [openSample, solveProblemId],
   )
+
+  /** 播放页返回：从解题工作台进入时回到工作台，否则回首页 */
+  const handlePlayerBack = useCallback(() => {
+    setActiveCase(null)
+    if (returnSolveId) {
+      setSolveProblemId(returnSolveId)
+      setReturnSolveId(null)
+      const nextHash = `${SOLVE_HASH_PREFIX}${returnSolveId}`
+      if (window.location.hash !== nextHash) {
+        window.history.pushState(null, '', nextHash)
+      }
+    }
+  }, [returnSolveId])
 
   /** 自定义生成：LLM 插桩 → 沙箱执行 → 进入播放页 */
   const handleGenerate = useCallback(async (input: GenerateInput) => {
@@ -131,7 +225,8 @@ export default function App() {
       {activeCase ? (
         <PlayerScreen
           algoCase={activeCase}
-          onBack={() => setActiveCase(null)}
+          onBack={handlePlayerBack}
+          backLabel={returnSolveId ? '返回解题' : '换一题'}
           onLearned={handleLearned}
           relatedId={RELATED_SAMPLES[activeCase.id]}
           onOpenRelated={handleOpenRelated}
@@ -148,7 +243,7 @@ export default function App() {
             problemId={solveProblemId}
             onExit={exitSolve}
             onOpenAnimation={openAnimationFromSolve}
-            onNextProblem={setSolveProblemId}
+            onNextProblem={nextSolve}
           />
         </Suspense>
       ) : (
@@ -158,6 +253,7 @@ export default function App() {
           error={error}
           learned={learned}
           lastId={last}
+          lastSolveId={lastSolveId}
           onOpenSample={openSample}
           onGenerate={handleGenerate}
           onStartSolve={startSolve}

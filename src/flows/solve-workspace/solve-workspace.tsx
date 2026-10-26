@@ -8,7 +8,7 @@
  * → SCREEN 4 判题中 → SCREEN 5 通过 / SCREEN 6 未通过
  *
  * 三种终态：
- * ✅ Success: Accepted + 下一题 / 看动画
+ * ✅ Success: Accepted + 下一道题 / 看动画讲解
  * ❌ Error:   WA / TLE / CE / RE 留在工作台，带失败用例与错误信息
  * ↩ Abandon:  草稿按「题目 + 语言」存 localStorage，下次恢复
  */
@@ -19,6 +19,7 @@ import type {
   RefObject,
   UIEvent as ReactUIEvent,
 } from 'react'
+import { DifficultyBadge } from '../shared/DifficultyBadge'
 import {
   LANGUAGE_OPTIONS,
   MOCK_SUBMISSION_RECORDS,
@@ -29,6 +30,7 @@ import {
   formatRelativeTime,
   nextSolveProblem,
 } from '../shared/mock-data'
+import { VERDICT_TONE_STYLE } from '../shared/solve-ui'
 import type {
   DraftRecord,
   RunResult,
@@ -58,18 +60,6 @@ const MOBILE_PANES: ReadonlyArray<{ id: MobilePane; label: string }> = [
   { id: 'code', label: '代码' },
   { id: 'judge', label: '判题' },
 ]
-
-const DIFFICULTY_STYLE: Record<SolveProblem['difficulty'], string> = {
-  简单: 'border-ok/40 bg-ok/10 text-ok',
-  中等: 'border-warn/40 bg-warn/10 text-warn',
-  困难: 'border-danger/40 bg-danger/10 text-danger',
-}
-
-const TONE_STYLE: Record<'ok' | 'warn' | 'danger', string> = {
-  ok: 'border-ok/40 bg-ok/10 text-ok',
-  warn: 'border-warn/40 bg-warn/10 text-warn',
-  danger: 'border-danger/40 bg-danger/10 text-danger',
-}
 
 const STAGE_TITLE: Record<FlowStage, string> = {
   initial: '测试用例',
@@ -158,6 +148,60 @@ function simulateRun(
   }
 }
 
+/** 弹层焦点陷阱：打开聚焦首个控件、Tab 循环、Escape 关闭、关闭归还焦点 */
+function useFocusTrap<T extends HTMLElement>(active: boolean, onClose: () => void) {
+  const containerRef = useRef<T>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    if (!active) return
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const getFocusable = (): HTMLElement[] => {
+      const node = containerRef.current
+      if (!node) return []
+      return Array.from(
+        node.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true')
+    }
+
+    getFocusable()[0]?.focus()
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onCloseRef.current()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = getFocusable()
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (!first || !last) return
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => {
+      window.removeEventListener('keydown', handler)
+      previous?.focus()
+    }
+  }, [active])
+
+  return containerRef
+}
+
 export interface SolveWorkspaceProps {
   problem: SolveProblem
   onExit: () => void
@@ -224,8 +268,12 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
   const [toast, setToast] = useState<string | null>(null)
   const [forcedVerdict, setForcedVerdict] = useState<Verdict | null>(null)
 
+  const drawerRef = useFocusTrap<HTMLElement>(problemDrawerOpen, () =>
+    setProblemDrawerOpen(false),
+  )
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const hasEditedRef = useRef(false)
+  const latestDraftRef = useRef<DraftRecord | null>(null)
   const timersRef = useRef<number[]>([])
   const toastTimerRef = useRef<number | null>(null)
 
@@ -260,6 +308,16 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
     if (saveDraft(record)) setDraftSavedAt(record.updatedAt)
   }, [problem.id, language, code])
 
+  // 记住最新草稿，供输入停顿 / 组件卸载（浏览器后退）时落盘
+  useEffect(() => {
+    latestDraftRef.current = {
+      problemId: problem.id,
+      language,
+      code,
+      updatedAt: new Date().toISOString(),
+    }
+  }, [code, language, problem.id])
+
   // 输入停顿 600ms 后自动保存草稿
   useEffect(() => {
     if (!hasEditedRef.current) return
@@ -274,6 +332,13 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
     }, 600)
     return () => window.clearTimeout(timer)
   }, [code, language, problem.id])
+
+  // 浏览器后退 / 关闭页面时也保存一次，避免最后一个 600ms 的修改丢失
+  useEffect(() => {
+    return () => {
+      if (hasEditedRef.current && latestDraftRef.current) saveDraft(latestDraftRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (restoredDraft) showToast('已恢复上次草稿')
@@ -339,6 +404,7 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
       setRunResult(simulateRun(problem, language, code, customCase))
       setIsRunning(false)
       setStage('run-result')
+      setMobilePane('judge')
     }, 650)
   }
 
@@ -362,10 +428,13 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
           submittedAt: nextSubmission.submittedAt,
           runtimeMs: nextSubmission.runtimeMs,
           code,
+          ...(nextSubmission.failedCase ? { failedCase: nextSubmission.failedCase } : {}),
+          ...(nextSubmission.errorMessage ? { errorMessage: nextSubmission.errorMessage } : {}),
         },
         ...records,
       ])
       setStage(verdict === 'accepted' ? 'accepted' : 'rejected')
+      setMobilePane('judge')
     }, 1600)
   }
 
@@ -525,6 +594,15 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
             mobilePane === 'code' ? 'flex' : 'hidden'
           } min-h-0 min-w-0 flex-1 flex-col md:flex`}
         >
+          {stage === 'coding' && submission && submission.verdict !== 'accepted' ? (
+            <FailureBanner
+              submission={submission}
+              onView={() => {
+                setStage('rejected')
+                setMobilePane('judge')
+              }}
+            />
+          ) : null}
           <CodeEditor {...editorProps} />
         </main>
 
@@ -537,14 +615,18 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
         </aside>
       </div>
 
-      <nav className="flex shrink-0 border-t border-white/10 bg-surface md:hidden" aria-label="工作台分栏">
+      <nav
+        className="flex shrink-0 border-t border-white/10 bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        aria-label="工作台分栏"
+      >
         {MOBILE_PANES.map((pane) => (
           <button
             key={pane.id}
             type="button"
             onClick={() => setMobilePane(pane.id)}
+            disabled={stage === 'judging'}
             aria-pressed={mobilePane === pane.id}
-            className={`flex-1 border-t-2 py-2.5 text-xs transition-colors ${
+            className={`flex-1 border-t-2 py-2.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
               mobilePane === pane.id
                 ? 'border-accent font-medium text-accent'
                 : 'border-transparent text-sub'
@@ -563,9 +645,15 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
             onClick={() => setProblemDrawerOpen(false)}
             className="absolute inset-0 bg-black/60"
           />
-          <aside className="relative z-10 flex h-full w-[360px] max-w-[85%] animate-fadeIn flex-col border-r border-white/10 bg-surface shadow-2xl">
+          <aside
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="题面"
+            className="relative z-10 flex h-full w-[360px] max-w-[85%] animate-fadeIn flex-col border-r border-white/10 bg-surface shadow-2xl"
+          >
             <div className="flex h-10 shrink-0 items-center justify-between border-b border-white/10 px-3">
-              <span className="font-mono text-[11px] text-sub">题目</span>
+              <span className="font-mono text-[11px] text-sub">题面</span>
               <button
                 type="button"
                 onClick={() => setProblemDrawerOpen(false)}
@@ -652,12 +740,8 @@ function TopBar({
         <div className="flex items-center gap-2">
           <span className="shrink-0 font-mono text-[11px] text-sub">{problem.number}.</span>
           <h1 className="truncate text-sm font-medium">{problem.title}</h1>
-          <span
-            className={`hidden shrink-0 rounded-full border px-1.5 py-0.5 font-mono text-[10px] sm:inline ${
-              DIFFICULTY_STYLE[problem.difficulty]
-            }`}
-          >
-            {problem.difficulty}
+          <span className="hidden shrink-0 sm:inline-flex">
+            <DifficultyBadge difficulty={problem.difficulty} />
           </span>
         </div>
         <div className="mt-0.5 hidden items-center gap-2 font-mono text-[10px] text-sub sm:flex">
@@ -669,7 +753,7 @@ function TopBar({
             <span
               className={`h-1.5 w-1.5 rounded-full ${draftSavedAt ? 'bg-ok/70' : 'bg-sub/40'}`}
             />
-            {draftSavedAt ? '草稿已保存' : '自动保存'}
+            {draftSavedAt ? '草稿已保存' : '自动保存中'}
           </span>
         </div>
       </div>
@@ -691,7 +775,7 @@ function TopBar({
       >
         {LANGUAGE_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {option.shortLabel}
           </option>
         ))}
       </select>
@@ -700,7 +784,7 @@ function TopBar({
         type="button"
         onClick={onRun}
         disabled={isRunning || isJudging}
-        className="shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+        className="solve-topbar-run shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isRunning ? '运行中…' : '运行'}
       </button>
@@ -810,7 +894,8 @@ function DescriptionTab({
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 font-mono text-[10px] text-sub">
+      <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-sub">
+        <DifficultyBadge difficulty={problem.difficulty} />
         <span>{problem.category}</span>
         <span aria-hidden>·</span>
         <span>通过率 {problem.acceptanceRate}%</span>
@@ -946,14 +1031,14 @@ function SubmissionsTab({
       <div className="rounded-xl border border-dashed border-white/15 bg-surface/40 p-5 text-center">
         <p className="text-xs text-sub">还没有提交记录</p>
         <p className="mt-1 text-[11px] leading-relaxed text-sub">
-          Run 只跑示例用例，写完后再用右上角「提交」跑隐藏用例。
+          运行只跑示例用例，写完后再用右上角「提交」跑隐藏用例。
         </p>
         <button
           type="button"
           onClick={onStartCoding}
           className="mt-3 rounded-lg border border-accent/30 bg-accent/10 px-3 py-1.5 text-[11px] text-accent transition-colors hover:bg-accent/15"
         >
-          去写代码
+          开始编码
         </button>
       </div>
     )
@@ -964,13 +1049,13 @@ function SubmissionsTab({
       {records.map((record) => (
         <details
           key={record.id}
-          className="rounded-xl border border-white/10 bg-surface open:border-white/20"
+          className="group rounded-xl border border-white/10 bg-surface open:border-white/20"
         >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
             <span className="flex min-w-0 items-center gap-2">
               <VerdictBadge verdict={record.verdict} />
               {record.id === currentSubmissionId ? (
-                <span className="rounded-full bg-accent/15 px-1.5 py-0.5 font-mono text-[9px] text-accent">
+                <span className="rounded-full bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] text-accent">
                   本次
                 </span>
               ) : null}
@@ -978,15 +1063,73 @@ function SubmissionsTab({
                 {languageLabel(record.language)}
               </span>
             </span>
-            <span className="shrink-0 font-mono text-[10px] text-sub">
-              {formatRelativeTime(record.submittedAt)} · {record.runtimeMs} ms
+            <span className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] text-sub">
+              <span>
+                {formatRelativeTime(record.submittedAt)} · {record.runtimeMs} ms
+              </span>
+              <span aria-hidden className="text-sub transition-transform group-open:rotate-90">
+                ▸
+              </span>
             </span>
           </summary>
+          {record.failedCase ? (
+            <div className="border-t border-white/5 px-3 py-2 font-mono text-[10px] leading-relaxed text-sub">
+              <div>
+                {record.failedCase.label} · 期望{' '}
+                <span className="text-ink">{record.failedCase.expected}</span> · 实际{' '}
+                <span className="text-danger">{record.failedCase.actual}</span>
+              </div>
+              <div className="mt-1">输入：{record.failedCase.input}</div>
+            </div>
+          ) : null}
+          {record.errorMessage ? (
+            <pre className="border-t border-white/5 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-danger">
+              {record.errorMessage}
+            </pre>
+          ) : null}
           <pre className="max-h-44 overflow-auto border-t border-white/5 p-3 font-mono text-[11px] leading-relaxed text-sub">
             {record.code}
           </pre>
         </details>
       ))}
+    </div>
+  )
+}
+
+/** 编辑态保留上次失败现场，避免「继续修改」后只能凭记忆改代码 */
+function FailureBanner({
+  submission,
+  onView,
+}: {
+  submission: SubmissionResult
+  onView: () => void
+}) {
+  const meta = VERDICT_META[submission.verdict]
+  return (
+    <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-danger/30 bg-danger/10 px-3 py-2 text-[11px]">
+      <span className="font-mono text-danger">
+        {meta.code} {meta.label}
+      </span>
+      {submission.failedCase ? (
+        <>
+          <span className="text-sub">{submission.failedCase.label}</span>
+          <span className="font-mono text-sub">
+            期望 <span className="text-ink">{submission.failedCase.expected}</span>
+          </span>
+          <span className="font-mono text-sub">
+            实际 <span className="text-danger">{submission.failedCase.actual}</span>
+          </span>
+        </>
+      ) : submission.errorMessage ? (
+        <span className="min-w-0 truncate font-mono text-danger">{submission.errorMessage}</span>
+      ) : null}
+      <button
+        type="button"
+        onClick={onView}
+        className="ml-auto shrink-0 rounded border border-danger/40 px-2 py-0.5 text-[10px] text-danger transition-colors hover:bg-danger/15"
+      >
+        查看完整结果
+      </button>
     </div>
   )
 }
@@ -1029,7 +1172,13 @@ function CodeEditor({
   }
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Escape') {
+      event.currentTarget.blur()
+      return
+    }
     if (event.key !== 'Tab') return
+    // Shift+Tab 保留浏览器默认行为，让键盘用户能离开编辑器（避免键盘陷阱）
+    if (event.shiftKey) return
     event.preventDefault()
     const element = event.currentTarget
     const start = element.selectionStart
@@ -1047,7 +1196,7 @@ function CodeEditor({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-bg">
+    <div className="flex min-h-0 flex-1 flex-col bg-bg">
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/10 px-3 font-mono text-[10px] text-sub">
         <div className="flex items-center gap-2">
           <span className="text-ink">{languageLabel(language)}</span>
@@ -1055,9 +1204,10 @@ function CodeEditor({
           <span>{lines.length} 行</span>
         </div>
         <div className="flex items-center gap-2">
+          <span className="hidden items-center gap-1 lg:flex">Tab 缩进 · Shift+Tab 退出</span>
           <span className="flex items-center gap-1">
             <span className={`h-1.5 w-1.5 rounded-full ${draftSavedAt ? 'bg-ok/70' : 'bg-sub/40'}`} />
-            {draftSavedAt ? '已保存' : '自动保存'}
+            {draftSavedAt ? '草稿已保存' : '自动保存中'}
           </span>
           <button
             type="button"
@@ -1087,7 +1237,7 @@ function CodeEditor({
         <div
           ref={gutterRef}
           aria-hidden
-          className="w-11 shrink-0 overflow-hidden border-r border-white/5 bg-surface/30 py-3 text-right font-mono text-[11px] leading-[22px] text-sub/60"
+          className="w-11 shrink-0 overflow-hidden border-r border-white/5 bg-surface/30 py-3 text-right font-mono text-[11px] leading-[22px] text-sub/80"
         >
           {lines.map((_line, index) => (
             <div key={index} className={index + 1 === cursorLine ? 'text-accent' : undefined}>
@@ -1107,6 +1257,7 @@ function CodeEditor({
           wrap="off"
           readOnly={locked}
           aria-label="代码编辑器"
+          title="Tab 缩进 · Shift+Tab 退出编辑器 · Esc 失焦"
           className="min-h-0 flex-1 resize-none overflow-auto whitespace-pre bg-transparent px-3 py-3 font-mono text-[12.5px] leading-[22px] text-ink outline-none read-only:opacity-70"
         />
       </div>
@@ -1138,7 +1289,15 @@ function JudgePane(props: JudgePaneProps) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/10 px-3 font-mono text-[10px] text-sub">
-        <span>{STAGE_TITLE[stage]}</span>
+        <div className="flex items-center gap-2">
+          <span>{STAGE_TITLE[stage]}</span>
+          <span
+            title="原型模式：判题结果为前端模拟，不执行真实代码"
+            className="rounded-full border border-warn/30 bg-warn/10 px-1.5 py-0.5 text-[10px] text-warn"
+          >
+            原型模拟
+          </span>
+        </div>
         {stage === 'run-result' && runResult ? (
           <span className={runResult.passed === runResult.total ? 'text-ok' : 'text-danger'}>
             通过 {runResult.passed}/{runResult.total}
@@ -1225,7 +1384,7 @@ function renderJudgeContent(props: JudgePaneProps) {
      SCREEN 5 of 6: 判题通过
      ------------------------------------------------
      ENTRY:  SCREEN 4 判题通过
-     EXIT:   「下一题」→ 新 flow 实例；顶部「题库」→ 退出
+     EXIT:   「下一道题」→ 新 flow 实例；顶部「题库」→ 退出
      BRANCH: 「看动画」→ 现有播放页；「提交记录」→ 左栏
      ================================================ */
   if (props.stage === 'accepted') {
@@ -1300,12 +1459,13 @@ function CasesPanel({
 
   const saveCustomCase = () => {
     const trimmed = input.trim()
-    if (!trimmed) return
+    const trimmedExpected = expected.trim()
+    if (!trimmed || !trimmedExpected) return
     onCustomCaseChange({
       id: 'custom-case',
       label: '自定义',
       input: trimmed,
-      expected: expected.trim() || '—',
+      expected: trimmedExpected,
       custom: true,
     })
     onSelectTestCase('custom-case')
@@ -1353,11 +1513,11 @@ function CasesPanel({
               <span className="font-mono text-[10px] text-sub">{activeCase.label}</span>
               {activeCase.custom ? (
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] text-accent">自定义</span>
+                  <span className="font-mono text-[10px] text-accent">自定义</span>
                   <button
                     type="button"
                     onClick={removeCustomCase}
-                    className="font-mono text-[9px] text-danger transition-colors hover:underline"
+                    className="font-mono text-[10px] text-danger transition-colors hover:underline"
                   >
                     删除
                   </button>
@@ -1384,6 +1544,7 @@ function CasesPanel({
               value={input}
               onChange={(event) => setInput(event.target.value)}
               rows={2}
+              aria-label="自定义用例输入"
               placeholder="输入，如 nums = [1,2], target = 3"
               className={`${FIELD_CLS} mt-2`}
             />
@@ -1391,7 +1552,8 @@ function CasesPanel({
               value={expected}
               onChange={(event) => setExpected(event.target.value)}
               rows={1}
-              placeholder="期望输出（可选）"
+              aria-label="自定义用例期望输出"
+              placeholder="期望输出（必填）"
               className={`${FIELD_CLS} mt-2`}
             />
             <div className="mt-2 flex justify-end gap-2">
@@ -1405,7 +1567,7 @@ function CasesPanel({
               <button
                 type="button"
                 onClick={saveCustomCase}
-                disabled={!input.trim()}
+                disabled={!input.trim() || !expected.trim()}
                 className="rounded-lg bg-accent px-3 py-1.5 text-[11px] font-medium text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 保存用例
@@ -1415,7 +1577,7 @@ function CasesPanel({
         ) : null}
 
         <p className="font-mono text-[10px] leading-relaxed text-sub">
-          Run 只跑示例与自定义用例；Submit 会跑 {problem.hiddenCaseCount} 个隐藏用例。
+          原型模拟判题：运行只跑示例/自定义用例，提交使用预设结论，不会执行真实代码。
         </p>
       </div>
 
@@ -1428,7 +1590,7 @@ function CasesPanel({
         >
           {isRunning ? '运行中…' : '运行示例'}
         </button>
-        <p className="text-center font-mono text-[9px] text-sub">提交请用右上角「提交」</p>
+        <p className="text-center font-mono text-[10px] text-sub">提交请用右上角「提交」</p>
       </div>
     </div>
   )
@@ -1526,13 +1688,13 @@ function JudgingPanel({ totalCases }: { totalCases: number }) {
         <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
           <div className="h-full w-2/3 animate-pulse rounded-full bg-accent/80" />
         </div>
-        <div className="mt-2 flex justify-between font-mono text-[9px] text-sub">
+        <div className="mt-2 flex justify-between font-mono text-[10px] text-sub">
           <span>编译</span>
           <span>运行用例</span>
           <span>汇总</span>
         </div>
       </div>
-      <p className="font-mono text-[9px] text-sub">请勿关闭页面</p>
+      <p className="font-mono text-[10px] text-sub">请勿关闭页面</p>
     </div>
   )
 }
@@ -1579,6 +1741,7 @@ function AcceptedPanel({
 
         <div className="rounded-xl border border-white/10 bg-surface p-3 text-[11px] leading-relaxed text-sub">
           你的解法已经记录到提交历史。想弄懂每一步为什么这样走，可以看同题的逐帧动画。
+          原型模拟判题的结果不代表真实执行。
         </div>
       </div>
 
@@ -1588,7 +1751,7 @@ function AcceptedPanel({
           onClick={onNextProblem}
           className="w-full rounded-lg bg-accent px-3 py-2.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]"
         >
-          下一题 →
+          下一道题 →
         </button>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -1632,7 +1795,7 @@ function StatCard({
           style={{ width: `${Math.min(100, Math.max(0, percentile))}%` }}
         />
       </div>
-      <div className="mt-1 font-mono text-[9px] tabular-nums text-sub">击败 {percentile}%</div>
+      <div className="mt-1 font-mono text-[10px] tabular-nums text-sub">击败 {percentile}%</div>
     </div>
   )
 }
@@ -1655,7 +1818,7 @@ function RejectedPanel({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-        <div className={`rounded-2xl border p-4 ${TONE_STYLE[meta.tone]}`}>
+        <div className={`rounded-2xl border p-4 ${VERDICT_TONE_STYLE[meta.tone]}`}>
           <div className="flex items-center gap-2">
             <VerdictBadge verdict={submission.verdict} size="lg" />
             <span className="text-sm font-medium">{meta.label}</span>
@@ -1679,7 +1842,7 @@ function RejectedPanel({
           <div className="rounded-xl border border-white/10 bg-surface p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] text-sub">{submission.failedCase.label}</span>
-              <span className="font-mono text-[9px] text-danger">未通过</span>
+              <span className="font-mono text-[10px] text-danger">未通过</span>
             </div>
             <div className="mt-2 space-y-1.5 font-mono text-[11px] leading-relaxed">
               <div>
@@ -1700,6 +1863,7 @@ function RejectedPanel({
 
         <p className="text-[11px] leading-relaxed text-sub">
           失败现场已保留，编辑器里的代码不会丢。建议先看失败用例，再回到代码定位差异。
+          原型模拟判题的结果不代表真实执行。
         </p>
       </div>
 
@@ -1724,7 +1888,7 @@ function RejectedPanel({
             onClick={onOpenAnimation}
             className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
           >
-            看动画
+            看动画讲解
           </button>
         </div>
       </div>
@@ -1738,8 +1902,8 @@ function VerdictBadge({ verdict, size = 'sm' }: { verdict: Verdict; size?: 'sm' 
     <span
       title={meta.label}
       className={`inline-flex shrink-0 items-center rounded-full border font-mono ${
-        TONE_STYLE[meta.tone]
-      } ${size === 'lg' ? 'px-3 py-1 text-xs' : 'px-1.5 py-0.5 text-[9px]'}`}
+        VERDICT_TONE_STYLE[meta.tone]
+      } ${size === 'lg' ? 'px-3 py-1 text-xs' : 'px-1.5 py-0.5 text-[10px]'}`}
     >
       {meta.code}
     </span>
@@ -1759,18 +1923,13 @@ function ConfirmDialog({
   onCancel: () => void
   onConfirm: () => void
 }) {
-  useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onCancel()
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onCancel])
+  const dialogRef = useFocusTrap<HTMLDivElement>(true, onCancel)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 animate-fadeIn bg-black/60" onClick={onCancel} aria-hidden />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="solve-confirm-title"
@@ -1782,7 +1941,6 @@ function ConfirmDialog({
         <p className="mt-2 text-xs leading-relaxed text-sub">{description}</p>
         <div className="mt-4 flex justify-end gap-2">
           <button
-            autoFocus
             type="button"
             onClick={onCancel}
             className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
@@ -1827,8 +1985,8 @@ function DebugRail({
   return (
     <div className="fixed bottom-16 left-2 z-50 rounded-xl border border-white/10 bg-surface/95 p-2 shadow-xl backdrop-blur md:bottom-3 md:left-3">
       <div className="mb-1 flex items-center justify-between gap-3">
-        <span className="font-mono text-[9px] tracking-wide text-sub">设计预览</span>
-        <span className="font-mono text-[9px] text-accent">DEV</span>
+        <span className="font-mono text-[10px] tracking-wide text-sub">设计预览</span>
+        <span className="font-mono text-[10px] text-accent">DEV</span>
       </div>
       <div className="grid grid-cols-3 gap-1">
         {DEBUG_STEPS.map((step) => (
@@ -1836,7 +1994,7 @@ function DebugRail({
             key={step.id}
             type="button"
             onClick={() => onJump(step.id)}
-            className={`rounded border px-1.5 py-1 font-mono text-[9px] transition-colors ${
+            className={`rounded border px-1.5 py-1 font-mono text-[10px] transition-colors ${
               stage === step.id
                 ? 'border-accent/60 bg-accent/15 text-accent'
                 : 'border-white/10 text-sub hover:border-white/25 hover:text-ink'
@@ -1846,14 +2004,14 @@ function DebugRail({
           </button>
         ))}
       </div>
-      <label className="mt-1.5 flex items-center justify-between gap-2 font-mono text-[9px] text-sub">
+      <label className="mt-1.5 flex items-center justify-between gap-2 font-mono text-[10px] text-sub">
         判题
         <select
           value={forcedVerdict ?? 'auto'}
           onChange={(event) =>
             onForcedVerdictChange(event.target.value === 'auto' ? null : (event.target.value as Verdict))
           }
-          className="rounded border border-white/10 bg-bg/60 px-1 py-0.5 text-[9px] text-sub focus:outline-none"
+          className="rounded border border-white/10 bg-bg/60 px-1 py-0.5 text-[10px] text-sub focus:outline-none"
         >
           <option value="auto">自动</option>
           {VERDICT_ORDER.map((verdict) => (

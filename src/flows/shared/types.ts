@@ -88,6 +88,10 @@ export interface SubmissionRecord {
   submittedAt: string
   runtimeMs: number
   code: string
+  /** 失败现场（WA / TLE 时保留，便于历史回看） */
+  failedCase?: FailedCaseSnapshot
+  /** 错误信息（CE / TLE / RE 时保留） */
+  errorMessage?: string
 }
 
 /** 一道可做题的完整定义 */

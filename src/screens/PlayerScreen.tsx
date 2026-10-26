@@ -21,6 +21,8 @@ import { diffViews } from '../components/renderers/frameDiff'
 interface Props {
   algoCase: AlgorithmCase
   onBack: () => void
+  /** 返回按钮文案（从解题工作台进入时为「返回解题」） */
+  backLabel?: string
   /** 播放到最后一帧时回调（首页据此记「已学」） */
   onLearned?: () => void
   /** 同题对照解法的样题 id（无则不显示切换按钮） */
@@ -42,7 +44,14 @@ function pickDefaultTest(algoCase: AlgorithmCase): number {
   return anyFrames >= 0 ? anyFrames : 0
 }
 
-export function PlayerScreen({ algoCase, onBack, onLearned, relatedId, onOpenRelated }: Props) {
+export function PlayerScreen({
+  algoCase,
+  onBack,
+  backLabel = '换一题',
+  onLearned,
+  relatedId,
+  onOpenRelated,
+}: Props) {
   const [testIdx, setTestIdx] = useState(() => pickDefaultTest(algoCase))
   const frames = algoCase.framesByTest[testIdx] ?? []
   const passedCount = algoCase.tests.filter((t) => t.passed).length
@@ -58,6 +67,7 @@ export function PlayerScreen({ algoCase, onBack, onLearned, relatedId, onOpenRel
       allPassed={allPassed}
       onChangeTest={setTestIdx}
       onBack={onBack}
+      backLabel={backLabel}
       onLearned={onLearned}
       relatedId={relatedId}
       onOpenRelated={onOpenRelated}
@@ -73,6 +83,7 @@ interface InnerProps {
   allPassed: boolean
   onChangeTest: (i: number) => void
   onBack: () => void
+  backLabel: string
   onLearned?: () => void
   relatedId?: string
   onOpenRelated?: (id: string) => void
@@ -86,6 +97,7 @@ function PlayerInner({
   allPassed,
   onChangeTest,
   onBack,
+  backLabel,
   onLearned,
   relatedId,
   onOpenRelated,
@@ -195,7 +207,7 @@ function PlayerInner({
           onClick={onBack}
           className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
         >
-          ← 换一题
+          ← {backLabel}
         </button>
         <h1 className="min-w-0 flex-1 truncate text-sm font-medium">{algoCase.title}</h1>
         {relatedId ? (

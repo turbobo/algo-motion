@@ -36,3 +36,10 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 320px 级窄屏：解题工作台隐藏顶栏「运行」，把宽度留给题名（运行仍可在判题 Tab 使用） */
+@media (max-width: 359px) {
+  .solve-topbar-run {
+    display: none;
+  }
+}

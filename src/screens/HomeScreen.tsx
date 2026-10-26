@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react'
 import { CATALOG, type CatalogEntry } from '../samples/catalog'
 import { RELATED_SAMPLES } from '../samples/related'
+import { DifficultyBadge } from '../flows/shared/DifficultyBadge'
 import { isSolveProblemId } from '../flows/shared/solve-catalog'
 import type { GenerateInput } from '../llm/client'
 
@@ -15,6 +16,8 @@ interface Props {
   learned: ReadonlySet<string>
   /** 最近打开的样题 id（「继续上次」入口） */
   lastId: string | null
+  /** 最近做过的题 id（「继续上次做题」入口） */
+  lastSolveId: string | null
   onOpenSample: (entry: CatalogEntry) => void
   onGenerate: (input: GenerateInput) => void
   onStartSolve: (problemId: string) => void
@@ -55,13 +58,6 @@ const CATEGORIES = [
 
 const DIFFICULTIES = ['全部', '简单', '中等', '困难']
 
-/** 难度徽章配色（复用主题语义色 ok/warn/danger） */
-const DIFF_STYLE: Record<string, string> = {
-  简单: 'border-ok/40 bg-ok/10 text-ok',
-  中等: 'border-warn/40 bg-warn/10 text-warn',
-  困难: 'border-danger/40 bg-danger/10 text-danger',
-}
-
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
   return (
     <button
@@ -84,6 +80,7 @@ export function HomeScreen({
   error,
   learned,
   lastId,
+  lastSolveId,
   onOpenSample,
   onGenerate,
   onStartSolve,
@@ -115,6 +112,13 @@ export function HomeScreen({
   }, [query, category, difficulty])
 
   const solveEntries = useMemo(() => CATALOG.filter((entry) => isSolveProblemId(entry.id)), [])
+  const lastSolveEntry = useMemo(
+    () =>
+      lastSolveId && isSolveProblemId(lastSolveId)
+        ? (CATALOG.find((entry) => entry.id === lastSolveId) ?? null)
+        : null,
+    [lastSolveId],
+  )
 
   return (
     <div className="h-full overflow-y-auto">
@@ -128,6 +132,9 @@ export function HomeScreen({
             解法在真实沙箱里执行，每一步状态被拍成快照帧——播放、单步、拖拽进度条，
             亲眼看算法执行到底发生了什么。
           </p>
+          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-sub">
+            也可以先在「刷题模式」自己做一遍，卡住后再回来看动画复盘。
+          </p>
         </div>
 
         {/* 刷题模式：首批精修题，进入解题工作台 */}
@@ -135,9 +142,28 @@ export function HomeScreen({
           <div className="mb-2 flex items-baseline justify-between gap-3">
             <span className="font-mono text-xs tracking-wide text-sub">刷题模式</span>
             <span className="font-mono text-[11px] text-sub">
-              {solveEntries.length} 道可做题 · 草稿自动保存
+              {solveEntries.length} 道可做题 · 原型模拟判题 · 草稿自动保存
             </span>
           </div>
+          <p className="mb-3 text-[11px] leading-relaxed text-sub">
+            先自己做，卡住再看下方「动画题库」复盘；判题为原型模拟，不会执行真实代码。
+          </p>
+
+          {lastSolveEntry ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onStartSolve(lastSolveEntry.id)}
+              className="mb-3 flex w-full items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent/10 px-3.5 py-2.5 text-left transition-colors hover:border-accent/50 hover:bg-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span className="font-mono text-[11px] text-sub">继续上次做题</span>
+              <span className="flex items-center gap-2 text-sm">
+                <span>{lastSolveEntry.title}</span>
+                <span className="font-mono text-xs text-accent">→</span>
+              </span>
+            </button>
+          ) : null}
+
           <div className="grid gap-3 md:grid-cols-3">
             {solveEntries.map((entry) => (
               <div
@@ -146,13 +172,7 @@ export function HomeScreen({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="text-sm font-medium">{entry.title}</div>
-                  <span
-                    className={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] ${
-                      DIFF_STYLE[entry.difficulty] ?? ''
-                    }`}
-                  >
-                    {entry.difficulty}
-                  </span>
+                  <DifficultyBadge difficulty={entry.difficulty} />
                 </div>
                 <div className="mt-1.5 flex-1 text-xs leading-relaxed text-sub">{entry.summary}</div>
                 <div className="mt-3 flex items-center justify-between gap-2">
@@ -173,10 +193,10 @@ export function HomeScreen({
           </div>
         </div>
 
-        {/* 内置样题 */}
+        {/* 动画题库 */}
         <div className="mt-8">
           <div className="mb-2 flex items-baseline justify-between gap-3">
-            <span className="font-mono text-xs tracking-wide text-sub">内置体验</span>
+            <span className="font-mono text-xs tracking-wide text-sub">动画题库</span>
             <span className="font-mono text-[11px] text-sub">
               Hot 100 · 共 {filtered.length} 道
             </span>
@@ -265,11 +285,7 @@ export function HomeScreen({
                       ) : null}
                       {sample.title}
                     </div>
-                    <span
-                      className={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[10px] ${DIFF_STYLE[sample.difficulty] ?? ''}`}
-                    >
-                      {sample.difficulty}
-                    </span>
+                    <DifficultyBadge difficulty={sample.difficulty} />
                   </div>
                   <div className="mt-1.5 text-xs leading-relaxed text-sub">{sample.summary}</div>
                   <div className="mt-3 flex items-center justify-between font-mono text-[11px]">

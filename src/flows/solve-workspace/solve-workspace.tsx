@@ -74,6 +74,12 @@ const FIELD_CLS =
   'w-full resize-none rounded-lg border border-white/10 bg-bg/60 px-2.5 py-2 font-mono text-[11px] ' +
   'leading-relaxed text-ink placeholder:text-sub transition-colors focus:border-accent/50 focus:outline-none'
 
+const BTN_SECONDARY =
+  'rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink'
+
+const BTN_PRIMARY =
+  'rounded-lg bg-accent px-3 py-2.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]'
+
 const DRAFT_PREFIX = 'algomotion:solve-draft:'
 
 function draftKey(problemId: string, language: SolveLanguage): string {
@@ -1586,7 +1592,7 @@ function CasesPanel({
           type="button"
           onClick={onRun}
           disabled={isRunning}
-          className="w-full rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+          className={`w-full ${BTN_SECONDARY} disabled:cursor-not-allowed disabled:opacity-40`}
         >
           {isRunning ? '运行中…' : '运行示例'}
         </button>
@@ -1656,14 +1662,14 @@ function RunResultPanel({
         <button
           type="button"
           onClick={onBackToEdit}
-          className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
+          className={`flex-1 ${BTN_SECONDARY}`}
         >
           继续修改
         </button>
         <button
           type="button"
           onClick={onSubmit}
-          className="flex-1 rounded-lg bg-accent px-3 py-2 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.98]"
+          className={`flex-1 ${BTN_PRIMARY}`}
         >
           提交判题
         </button>
@@ -1749,7 +1755,7 @@ function AcceptedPanel({
         <button
           type="button"
           onClick={onNextProblem}
-          className="w-full rounded-lg bg-accent px-3 py-2.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]"
+          className={`w-full ${BTN_PRIMARY}`}
         >
           下一道题 →
         </button>
@@ -1764,7 +1770,7 @@ function AcceptedPanel({
           <button
             type="button"
             onClick={onViewSubmissions}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
+            className={BTN_SECONDARY}
           >
             提交记录
           </button>
@@ -1871,7 +1877,7 @@ function RejectedPanel({
         <button
           type="button"
           onClick={onBackToEdit}
-          className="w-full rounded-lg bg-accent px-3 py-2.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]"
+          className={`w-full ${BTN_PRIMARY}`}
         >
           继续修改
         </button>
@@ -1879,7 +1885,7 @@ function RejectedPanel({
           <button
             type="button"
             onClick={onViewSubmissions}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
+            className={BTN_SECONDARY}
           >
             提交记录
           </button>
@@ -1943,7 +1949,7 @@ function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
+            className={BTN_SECONDARY}
           >
             取消
           </button>

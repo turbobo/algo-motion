@@ -75,10 +75,10 @@ const FIELD_CLS =
   'leading-relaxed text-ink placeholder:text-sub transition-colors focus:border-accent/50 focus:outline-none'
 
 const BTN_SECONDARY =
-  'rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink'
+  'rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-all hover:border-white/25 hover:text-ink active:scale-[0.99]'
 
 const BTN_PRIMARY =
-  'rounded-lg bg-accent px-3 py-2.5 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]'
+  'rounded-lg bg-accent px-3 py-2 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]'
 
 const DRAFT_PREFIX = 'algomotion:solve-draft:'
 
@@ -583,7 +583,7 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-bg text-ink">
+    <div className="solve-workspace flex h-full flex-col overflow-hidden bg-bg text-ink">
       <TopBar {...topBarProps} />
 
       <div className="flex min-h-0 flex-1">
@@ -703,6 +703,22 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
   )
 }
 
+/** <360px 用 JS/Python/Java 短标签；桌面恢复完整语言名 */
+function useCompactLanguageLabel(): boolean {
+  const [compact, setCompact] = useState(() =>
+    window.matchMedia('(max-width: 359px)').matches,
+  )
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 359px)')
+    const onChange = () => setCompact(query.matches)
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [])
+
+  return compact
+}
+
 interface TopBarProps {
   problem: SolveProblem
   language: SolveLanguage
@@ -730,6 +746,8 @@ function TopBar({
   onRun,
   onSubmit,
 }: TopBarProps) {
+  const compactLanguageLabel = useCompactLanguageLabel()
+
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/10 bg-surface px-2.5 md:gap-3 md:px-4">
       <button
@@ -781,7 +799,7 @@ function TopBar({
       >
         {LANGUAGE_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.shortLabel}
+            {compactLanguageLabel ? option.shortLabel : option.label}
           </option>
         ))}
       </select>
@@ -790,7 +808,7 @@ function TopBar({
         type="button"
         onClick={onRun}
         disabled={isRunning || isJudging}
-        className="solve-topbar-run shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+        className="solve-topbar-run shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-sub transition-all hover:border-white/25 hover:text-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isRunning ? '运行中…' : '运行'}
       </button>
@@ -1083,13 +1101,13 @@ function SubmissionsTab({
               <div>
                 {record.failedCase.label} · 期望{' '}
                 <span className="text-ink">{record.failedCase.expected}</span> · 实际{' '}
-                <span className="text-danger">{record.failedCase.actual}</span>
+                <span className="text-danger-text">{record.failedCase.actual}</span>
               </div>
               <div className="mt-1">输入：{record.failedCase.input}</div>
             </div>
           ) : null}
           {record.errorMessage ? (
-            <pre className="border-t border-white/5 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-danger">
+            <pre className="border-t border-white/5 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-danger-text">
               {record.errorMessage}
             </pre>
           ) : null}
@@ -1113,7 +1131,7 @@ function FailureBanner({
   const meta = VERDICT_META[submission.verdict]
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-danger/30 bg-danger/10 px-3 py-2 text-[11px]">
-      <span className="font-mono text-danger">
+      <span className="font-mono text-danger-text">
         {meta.code} {meta.label}
       </span>
       {submission.failedCase ? (
@@ -1123,16 +1141,16 @@ function FailureBanner({
             期望 <span className="text-ink">{submission.failedCase.expected}</span>
           </span>
           <span className="font-mono text-sub">
-            实际 <span className="text-danger">{submission.failedCase.actual}</span>
+            实际 <span className="text-danger-text">{submission.failedCase.actual}</span>
           </span>
         </>
       ) : submission.errorMessage ? (
-        <span className="min-w-0 truncate font-mono text-danger">{submission.errorMessage}</span>
+        <span className="min-w-0 truncate font-mono text-danger-text">{submission.errorMessage}</span>
       ) : null}
       <button
         type="button"
         onClick={onView}
-        className="ml-auto shrink-0 rounded border border-danger/40 px-2 py-0.5 text-[10px] text-danger transition-colors hover:bg-danger/15"
+        className="ml-auto shrink-0 rounded border border-danger/40 px-2 py-0.5 text-[10px] text-danger-text transition-colors hover:bg-danger/15"
       >
         查看完整结果
       </button>
@@ -1243,7 +1261,7 @@ function CodeEditor({
         <div
           ref={gutterRef}
           aria-hidden
-          className="w-11 shrink-0 overflow-hidden border-r border-white/5 bg-surface/30 py-3 text-right font-mono text-[11px] leading-[22px] text-sub/80"
+          className="w-11 shrink-0 overflow-hidden border-r border-white/5 bg-surface/30 py-3 text-right font-mono text-[11px] leading-[22px] text-sub"
         >
           {lines.map((_line, index) => (
             <div key={index} className={index + 1 === cursorLine ? 'text-accent' : undefined}>
@@ -1305,14 +1323,14 @@ function JudgePane(props: JudgePaneProps) {
           </span>
         </div>
         {stage === 'run-result' && runResult ? (
-          <span className={runResult.passed === runResult.total ? 'text-ok' : 'text-danger'}>
+          <span className={runResult.passed === runResult.total ? 'text-ok' : 'text-danger-text'}>
             通过 {runResult.passed}/{runResult.total}
           </span>
         ) : null}
         {stage === 'judging' ? <span className="text-warn">判题中…</span> : null}
         {stage === 'accepted' ? <span className="text-ok">AC</span> : null}
         {stage === 'rejected' && submission ? (
-          <span className="text-danger">{VERDICT_META[submission.verdict].code}</span>
+          <span className="text-danger-text">{VERDICT_META[submission.verdict].code}</span>
         ) : null}
       </div>
 
@@ -1523,7 +1541,7 @@ function CasesPanel({
                   <button
                     type="button"
                     onClick={removeCustomCase}
-                    className="font-mono text-[10px] text-danger transition-colors hover:underline"
+                    className="font-mono text-[10px] text-danger-text transition-colors hover:underline"
                   >
                     删除
                   </button>
@@ -1621,7 +1639,7 @@ function RunResultPanel({
             allPassed ? 'border-ok/30 bg-ok/10' : 'border-danger/30 bg-danger/10'
           }`}
         >
-          <div className={`text-sm font-medium ${allPassed ? 'text-ok' : 'text-danger'}`}>
+          <div className={`text-sm font-medium ${allPassed ? 'text-ok' : 'text-danger-text'}`}>
             {allPassed ? '示例全部通过' : '还有用例未通过'}
           </div>
           <div className="mt-1 font-mono text-[10px] text-sub">
@@ -1640,7 +1658,7 @@ function RunResultPanel({
               <span className="text-xs">
                 {item.passed ? '✓' : '✕'} {item.label}
               </span>
-              <span className={`font-mono text-[10px] ${item.passed ? 'text-ok' : 'text-danger'}`}>
+              <span className={`font-mono text-[10px] ${item.passed ? 'text-ok' : 'text-danger-text'}`}>
                 {item.passed ? '通过' : '失败'}
               </span>
             </div>
@@ -1651,7 +1669,7 @@ function RunResultPanel({
               </div>
               <div>
                 <span className="text-sub">实际 </span>
-                <span className={item.passed ? 'text-ok' : 'text-danger'}>{item.actual}</span>
+                <span className={item.passed ? 'text-ok' : 'text-danger-text'}>{item.actual}</span>
               </div>
             </div>
           </div>
@@ -1763,7 +1781,7 @@ function AcceptedPanel({
           <button
             type="button"
             onClick={onOpenAnimation}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
+            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-all hover:border-accent/40 hover:text-accent active:scale-[0.99]"
           >
             看动画讲解
           </button>
@@ -1837,8 +1855,8 @@ function RejectedPanel({
 
         {submission.errorMessage ? (
           <div className="rounded-xl border border-danger/30 bg-danger/5 p-3">
-            <div className="font-mono text-[10px] text-danger">错误信息</div>
-            <pre className="mt-1.5 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-danger/90">
+            <div className="font-mono text-[10px] text-danger-text">错误信息</div>
+            <pre className="mt-1.5 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-danger-text">
               {submission.errorMessage}
             </pre>
           </div>
@@ -1848,7 +1866,7 @@ function RejectedPanel({
           <div className="rounded-xl border border-white/10 bg-surface p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] text-sub">{submission.failedCase.label}</span>
-              <span className="font-mono text-[10px] text-danger">未通过</span>
+              <span className="font-mono text-[10px] text-danger-text">未通过</span>
             </div>
             <div className="mt-2 space-y-1.5 font-mono text-[11px] leading-relaxed">
               <div>
@@ -1861,7 +1879,7 @@ function RejectedPanel({
               </div>
               <div>
                 <span className="text-sub">实际 </span>
-                <span className="text-danger">{submission.failedCase.actual}</span>
+                <span className="text-danger-text">{submission.failedCase.actual}</span>
               </div>
             </div>
           </div>
@@ -1892,7 +1910,7 @@ function RejectedPanel({
           <button
             type="button"
             onClick={onOpenAnimation}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
+            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-all hover:border-accent/40 hover:text-accent active:scale-[0.99]"
           >
             看动画讲解
           </button>
@@ -1956,7 +1974,7 @@ function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-lg bg-danger px-3 py-2 text-xs font-medium text-white transition-all hover:brightness-110"
+            className="rounded-lg bg-danger px-3 py-2 text-xs font-medium text-bg transition-all hover:brightness-110"
           >
             {confirmLabel}
           </button>

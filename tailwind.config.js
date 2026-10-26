@@ -13,6 +13,7 @@ export default {
         ok: '#4ade80',
         warn: '#fbbf24',
         danger: '#ef4444',
+        'danger-text': '#f87171',
       },
       fontFamily: {
         sans: ['"Noto Sans SC"', 'system-ui', '-apple-system', 'sans-serif'],

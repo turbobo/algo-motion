@@ -19,6 +19,8 @@ import { VarsPanel } from '../components/player/VarsPanel'
 import { diffViews } from '../components/renderers/frameDiff'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { CATALOG } from '../samples/catalog'
+import { SolutionCompare } from '../components/compare/SolutionCompare'
+import { executeInstrumentResult } from '../engine/runner'
 
 interface Props {
   algoCase: AlgorithmCase
@@ -102,7 +104,6 @@ function PlayerInner({
   backLabel,
   onLearned,
   relatedId,
-  onOpenRelated,
 }: InnerProps) {
   const { cursor, playing, speed, setSpeed, next, prev, seek, toggle, setPlaying } = usePlayer(frames.length)
   const frame = frames[cursor] ?? null
@@ -156,8 +157,8 @@ function PlayerInner({
   const [mobilePane, setMobilePane] = useState<'stage' | 'code'>('stage')
   const shareable = !algoCase.id.startsWith('gen-')
   const [copied, setCopied] = useState(false)
-  const [showCompare, setShowCompare] = useState(false)
-  const [relatedInfo, setRelatedInfo] = useState<{ title: string; complexity?: string; idea?: string; good?: string } | null>(null)
+  const [compareCase, setCompareCase] = useState<AlgorithmCase | null>(null)
+  const [compareLoading, setCompareLoading] = useState(false)
   const [answered, setAnswered] = useState<Record<number, boolean>>({})
   const [wrongIdx, setWrongIdx] = useState<number | null>(null)
   const activePredict = lesson?.predicts?.find((p) => p.atFrame === cursor)
@@ -221,25 +222,32 @@ function PlayerInner({
     }
   }, [algoCase.id])
 
-  // 对照弹窗：按需加载对照解法的策略/复杂度
-  useEffect(() => {
-    if (!showCompare || !relatedId) return
-    let alive = true
-    void import('../samples').then(({ findSample }) => {
+  // 对照解法：加载 + 沙箱执行，进入同屏双播放
+  const startCompare = useCallback(async () => {
+    if (!relatedId || compareLoading) return
+    setCompareLoading(true)
+    try {
+      const { findSample } = await import('../samples')
       const s = findSample(relatedId)
-      if (!s || !alive) return
-      const meta = CATALOG.find((e) => e.id === relatedId)
-      setRelatedInfo({
+      if (!s) return
+      const { run, framesByTest } = await executeInstrumentResult(s.result)
+      if (!run.ok) return
+      setCompareCase({
+        id: s.id,
         title: s.title,
-        complexity: meta?.complexity,
-        idea: s.lesson?.idea,
-        good: s.lesson?.contrast?.good,
+        problem: s.problem,
+        sourceCode: s.sourceCode,
+        result: s.result,
+        framesByTest,
+        tests: run.tests,
+        diagnostics: run.diagnostics,
+        complexity: CATALOG.find((e) => e.id === s.id)?.complexity,
+        lesson: s.lesson,
       })
-    })
-    return () => {
-      alive = false
+    } finally {
+      setCompareLoading(false)
     }
-  }, [showCompare, relatedId])
+  }, [relatedId, compareLoading])
 
   // 键盘快捷键：空格 播放/暂停 · ←/→ 逐帧 · ↑/↓ 变速 · R 重放本步
   // 输入控件/按钮聚焦时不劫持（按钮的原生键盘激活优先）
@@ -281,6 +289,10 @@ function PlayerInner({
 
   const lineCount = algoCase.result.displayCode.split('\n').length
 
+  if (compareCase) {
+    return <SolutionCompare a={algoCase} b={compareCase} onExit={() => setCompareCase(null)} />
+  }
+
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center gap-3 border-b border-line px-4 py-2.5">
@@ -295,11 +307,12 @@ function PlayerInner({
         {relatedId ? (
           <button
             type="button"
-            onClick={() => setShowCompare(true)}
-            className="shrink-0 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
-            title="对照两种解法的策略与复杂度"
+            onClick={startCompare}
+            disabled={compareLoading}
+            className="shrink-0 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
+            title="同屏双播放对照两种解法"
           >
-            ⇄ 对照解法
+            {compareLoading ? '载入对照…' : '⇄ 对照解法'}
           </button>
         ) : null}
         {shareable ? (
@@ -563,69 +576,6 @@ function PlayerInner({
         </section>
       </div>
 
-      {showCompare && relatedId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="解法对照">
-          <div className="w-full max-w-2xl rounded-2xl border border-line bg-surface p-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold">解法对照</h2>
-              <button
-                type="button"
-                onClick={() => setShowCompare(false)}
-                aria-label="关闭"
-                className="rounded p-1 text-sub transition-colors hover:text-ink"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-accent/30 bg-accent/5 p-3">
-                <div className="font-mono text-[10px] text-accent">当前解法</div>
-                <div className="mt-1 text-sm font-medium">{algoCase.title}</div>
-                {algoCase.complexity ? (
-                  <div className="mt-0.5 font-mono text-[11px] text-sub">{algoCase.complexity}</div>
-                ) : null}
-                {lesson?.idea ? <p className="mt-2 text-[12px] leading-relaxed text-ink/85">{lesson.idea}</p> : null}
-                {lesson?.contrast?.good ? <p className="mt-1 text-[11px] text-ok">{lesson.contrast.good}</p> : null}
-              </div>
-              <div className="rounded-xl border border-line bg-bg/40 p-3">
-                <div className="font-mono text-[10px] text-sub">对照解法</div>
-                {relatedInfo ? (
-                  <>
-                    <div className="mt-1 text-sm font-medium">{relatedInfo.title}</div>
-                    {relatedInfo.complexity ? (
-                      <div className="mt-0.5 font-mono text-[11px] text-sub">{relatedInfo.complexity}</div>
-                    ) : null}
-                    {relatedInfo.idea ? <p className="mt-2 text-[12px] leading-relaxed text-ink/85">{relatedInfo.idea}</p> : null}
-                    {relatedInfo.good ? <p className="mt-1 text-[11px] text-ok">{relatedInfo.good}</p> : null}
-                  </>
-                ) : (
-                  <div className="mt-2 text-[12px] text-sub">载入中…</div>
-                )}
-              </div>
-            </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-sub">对比两种策略的时间 / 空间开销，选更贴题的那一种。</p>
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowCompare(false)}
-                className="rounded-lg border border-line px-3 py-2 text-xs text-sub transition-colors hover:text-ink"
-              >
-                关闭
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCompare(false)
-                  onOpenRelated?.(relatedId)
-                }}
-                className="rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-black transition-all hover:brightness-110"
-              >
-                播放对照解法
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }

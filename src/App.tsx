@@ -8,6 +8,7 @@ import { RELATED_SAMPLES } from './samples/related'
 import { executeInstrumentResult } from './engine/runner'
 import { generateInstrumented, type GenerateInput } from './llm/client'
 import { useProgress } from './hooks/useProgress'
+import { useTheme } from './hooks/useTheme'
 import { isSolveProblemId } from './flows/shared/solve-catalog'
 import { HomeScreen } from './screens/HomeScreen'
 import { PlayerScreen } from './screens/PlayerScreen'
@@ -44,6 +45,7 @@ const SolveWorkspaceRoute = lazy(() =>
 )
 
 export default function App() {
+  useTheme()
   const [activeCase, setActiveCase] = useState<AlgorithmCase | null>(null)
   const [solveProblemId, setSolveProblemId] = useState<string | null>(readSolveIdFromHash)
   const [lastSolveId, setLastSolveId] = useState<string | null>(readLastSolveId)
@@ -110,6 +112,7 @@ export default function App() {
           tests: run.tests,
           diagnostics: run.diagnostics,
           complexity: CATALOG.find((e) => e.id === sample.id)?.complexity,
+          lesson: sample.lesson,
         })
       } finally {
         setLoading(false)

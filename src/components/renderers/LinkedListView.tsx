@@ -7,7 +7,7 @@
  * - 指针胶囊渲染在节点上方；节点 id 角标用于对照讲解文案
  */
 import type { LinkedListView as LinkedListViewModel } from '../../types'
-import { TONE_STYLES, ViewTitle } from './tones'
+import { TONE_STYLES, ViewTitle, flashClass } from './tones'
 
 const NODE_W = 56
 const NODE_H = 56
@@ -67,7 +67,7 @@ export function LinkedListView({ view, flash, frameKey }: Props) {
     <div>
       {view.title ? <ViewTitle text={view.title} /> : null}
       {nodes.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/10 px-3 py-2 font-mono text-xs text-sub">
+        <div className="rounded-lg border border-dashed border-line px-3 py-2 font-mono text-xs text-sub">
           （空链表）
         </div>
       ) : (
@@ -76,7 +76,7 @@ export function LinkedListView({ view, flash, frameKey }: Props) {
             <svg className="absolute inset-0" width={width} height={SVG_H} aria-hidden="true">
               <defs>
                 <marker id="linkedlist-head" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-                  <path d="M0,0 L7,3.5 L0,7 z" fill="rgba(139,149,165,0.9)" />
+                  <path d="M0,0 L7,3.5 L0,7 z" fill="rgb(var(--c-sub) / 0.9)" />
                 </marker>
               </defs>
               {next.map(([fromId, toId]) => {
@@ -90,12 +90,12 @@ export function LinkedListView({ view, flash, frameKey }: Props) {
                     <path
                       d={geom.d}
                       fill="none"
-                      stroke="rgba(139,149,165,0.85)"
+                      stroke="rgb(var(--c-sub) / 0.85)"
                       strokeWidth={1.5}
                       markerEnd="url(#linkedlist-head)"
                     />
                     {geom.nullX !== undefined ? (
-                      <text x={geom.nullX} y={CY + 4} fill="#8b95a5" fontSize={12} fontFamily="monospace">
+                      <text x={geom.nullX} y={CY + 4} fill="rgb(var(--c-sub))" fontSize={12} fontFamily="monospace">
                         ∅
                       </text>
                     ) : null}
@@ -132,16 +132,16 @@ export function LinkedListView({ view, flash, frameKey }: Props) {
               return (
                 <div
                   key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                  className={`absolute flex items-center justify-center rounded-xl border font-mono text-base transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
+                  className={`absolute flex items-center justify-center rounded-xl border font-mono text-base transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
                   style={{
                     left: PAD + i * STEP,
                     top: CY - HALF,
                     width: NODE_W,
                     height: NODE_H,
-                    borderColor: style?.border ?? 'rgba(255,255,255,0.14)',
-                    background: style?.bg ?? 'rgba(255,255,255,0.04)',
+                    borderColor: style?.border ?? 'var(--line)',
+                    background: style?.bg ?? 'var(--fill)',
                     boxShadow: style ? `0 0 14px ${style.glow}` : 'none',
-                    color: style?.color ?? '#e6e6e6',
+                    color: style?.color ?? 'rgb(var(--c-ink))',
                   }}
                 >
                   {node.value}

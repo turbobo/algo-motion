@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== LeetCode 实测配色 · 深色（默认）===== */
+:root {
+  --c-bg: 26 26 26;
+  --c-surface: 40 40 40;
+  --c-surface-2: 51 51 51;
+  --c-ink: 245 245 245;
+  --c-sub: 168 168 168;
+  --c-accent: 255 161 22;
+  --c-ok: 44 187 93;
+  --c-warn: 255 183 0;
+  --c-danger: 239 71 67;
+  --c-danger-text: 255 120 117;
+  --c-easy: 28 186 186;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --line-strong: rgba(255, 255, 255, 0.25);
+  --fill: rgba(255, 255, 255, 0.05);
+  --fill-2: rgba(255, 255, 255, 0.1);
+  --fill-3: rgba(255, 255, 255, 0.2);
+  --faint: rgba(255, 255, 255, 0.25);
+  color-scheme: dark;
+}
+
+/* ===== LeetCode 实测配色 · 浅色 ===== */
+[data-theme='light'] {
+  --c-bg: 255 255 255;
+  --c-surface: 250 250 250;
+  --c-surface-2: 245 245 245;
+  --c-ink: 38 38 38;
+  --c-sub: 115 115 115;
+  --c-accent: 255 161 22;
+  --c-ok: 45 181 93;
+  --c-warn: 255 183 0;
+  --c-danger: 246 55 55;
+  --c-danger-text: 207 19 34;
+  --c-easy: 28 186 186;
+  --line: rgba(0, 0, 0, 0.1);
+  --line-soft: rgba(0, 0, 0, 0.06);
+  --line-strong: rgba(0, 0, 0, 0.25);
+  --fill: rgba(0, 0, 0, 0.04);
+  --fill-2: rgba(0, 0, 0, 0.06);
+  --fill-3: rgba(0, 0, 0, 0.12);
+  --faint: rgba(0, 0, 0, 0.3);
+  color-scheme: light;
+}
+
 html,
 body,
 #root {
@@ -10,8 +56,8 @@ body,
 
 body {
   margin: 0;
-  background: #0f1419;
-  color: #e6e6e6;
+  background: rgb(var(--c-bg));
+  color: rgb(var(--c-ink));
   font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -21,7 +67,7 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--fill-3);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-track {

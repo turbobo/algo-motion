@@ -5,7 +5,7 @@
  * - 单元格标注走语义色调
  */
 import type { MatrixView as MatrixViewModel } from '../../types'
-import { TONE_STYLES, ViewTitle } from './tones'
+import { TONE_STYLES, ViewTitle, flashClass } from './tones'
 
 /** 单元格与表头尺寸 */
 const CELL_W = 40
@@ -42,7 +42,7 @@ export function MatrixView({ view, flash, frameKey }: Props) {
                   style={{
                     width: CELL_W,
                     height: HEAD_H,
-                    color: ci === view.activeCol ? '#f59e0b' : '#8b95a5',
+                    color: ci === view.activeCol ? 'rgb(var(--c-accent))' : 'rgb(var(--c-sub))',
                   }}
                 >
                   {label}
@@ -57,7 +57,7 @@ export function MatrixView({ view, flash, frameKey }: Props) {
               {hasRowHead ? (
                 <div
                   className="flex items-center justify-center font-mono text-xs transition-colors duration-200"
-                  style={{ width: HEAD_W, color: ri === view.activeRow ? '#f59e0b' : '#8b95a5' }}
+                  style={{ width: HEAD_W, color: ri === view.activeRow ? 'rgb(var(--c-accent))' : 'rgb(var(--c-sub))' }}
                 >
                   {view.rowLabels?.[ri] ?? ''}
                 </div>
@@ -70,17 +70,17 @@ export function MatrixView({ view, flash, frameKey }: Props) {
                 return (
                   <div
                     key={isFlash ? `f${frameKey ?? 0}-${ci}` : String(ci)}
-                    className={`flex items-center justify-center border font-mono text-xs transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
+                    className={`flex items-center justify-center border font-mono text-xs transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
                     style={{
                       width: CELL_W,
                       height: CELL_H,
-                      borderColor: style?.border ?? 'rgba(255,255,255,0.08)',
-                      background: style?.bg ?? (inCross ? 'rgba(245,158,11,0.06)' : 'rgba(255,255,255,0.02)'),
+                      borderColor: style?.border ?? 'var(--line)',
+                      background: style?.bg ?? (inCross ? 'rgb(var(--c-accent) / 0.06)' : 'var(--fill)'),
                       boxShadow: style ? `0 0 12px ${style.glow}` : 'none',
-                      color: style?.color ?? (value === null ? 'rgba(255,255,255,0.2)' : '#e6e6e6'),
+                      color: style?.color ?? (value === null ? 'var(--faint)' : 'rgb(var(--c-ink))'),
                     }}
                   >
-                    <span key={String(value)} className="animate-popIn">
+                    <span key={String(value)} className="animate-settleIn">
                       {value === null ? '·' : value}
                     </span>
                   </div>

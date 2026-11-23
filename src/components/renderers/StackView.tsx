@@ -3,7 +3,7 @@
  * 新元素压栈时 popIn；marks 按原数组索引（栈底 = 0）着色。
  */
 import type { StackView as StackViewModel } from '../../types'
-import { TONE_STYLES, ViewTitle } from './tones'
+import { TONE_STYLES, ViewTitle, flashClass } from './tones'
 
 interface Props {
   view: StackViewModel
@@ -23,7 +23,7 @@ export function StackView({ view, flash, frameKey }: Props) {
       {view.items.length === 0 ? (
         <div className="flex flex-col items-center gap-1">
           <span className="font-mono text-[10px] text-sub">（空栈）</span>
-          <div className="h-0.5 w-24 rounded-full bg-white/20" />
+          <div className="h-0.5 w-24 rounded-full bg-fill-3" />
         </div>
       ) : (
         <div className="flex flex-col items-center gap-1">
@@ -37,12 +37,12 @@ export function StackView({ view, flash, frameKey }: Props) {
             return (
               <div
                 key={`${idx}-${String(item)}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                className={`flex h-7 w-16 ${isFlash ? 'animate-flash' : 'animate-popIn'} items-center justify-center rounded border font-mono text-xs transition-all duration-300`}
+                className={`flex h-7 w-16 ${isFlash ? flashClass(tone) : 'animate-settleIn'} items-center justify-center rounded border font-mono text-xs transition-all duration-300`}
                 style={{
-                  borderColor: style?.border ?? 'rgba(255,255,255,0.14)',
-                  background: style?.bg ?? 'rgba(255,255,255,0.04)',
+                  borderColor: style?.border ?? 'var(--line)',
+                  background: style?.bg ?? 'var(--fill)',
                   boxShadow: style ? `0 0 12px ${style.glow}` : 'none',
-                  color: style?.color ?? '#e6e6e6',
+                  color: style?.color ?? 'rgb(var(--c-ink))',
                 }}
                 title={idx === topIndex ? '栈顶' : undefined}
               >
@@ -50,7 +50,7 @@ export function StackView({ view, flash, frameKey }: Props) {
               </div>
             )
           })}
-          <div className="h-0.5 w-24 rounded-full bg-white/20" />
+          <div className="h-0.5 w-24 rounded-full bg-fill-3" />
           <span className="font-mono text-[10px] text-sub">栈底</span>
         </div>
       )}

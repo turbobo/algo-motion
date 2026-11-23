@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoMotion · LeetCode 主题高度还原</title>
+<style>
+/* ===== LeetCode 真实抓取配色 ===== */
+body.dark{
+  --bg:#1a1a1a;--layer1:#282828;--layer2:#333333;--layer3:#383838;
+  --text1:#f5f5f5;--text2:#a8a8a8;--text3:#777777;
+  --border:#383838;--border-soft:rgba(255,255,255,.1);
+  --brand:#ffa116;--brand-bg:rgba(255,161,22,.12);--brand-border:rgba(255,161,22,.6);--brand-glow:rgba(255,161,22,.35);
+  --easy:#1cbaba;--medium:#ffb700;--hard:#ef4743;
+  --ok:#2cbb5d;--ok-bg:rgba(44,187,93,.14);--ok-glow:rgba(44,187,93,.4);
+  --info:#64d2ff;
+  --code-kw:#ff7b72;--code-fn:#d2a8ff;--code-num:#79c0ff;--code-str:#a5d6ff;
+}
+body.light{
+  --bg:#ffffff;--layer1:#fafafa;--layer2:#f5f5f5;--layer3:#ebebeb;
+  --text1:#262626;--text2:#737373;--text3:#b3b3b3;
+  --border:#e5e5e5;--border-soft:rgba(0,0,0,.08);
+  --brand:#ffa116;--brand-bg:rgba(255,161,22,.12);--brand-border:rgba(255,161,22,.65);--brand-glow:rgba(255,161,22,.25);
+  --easy:#1cbaba;--medium:#ffb700;--hard:#f63737;
+  --ok:#2db55d;--ok-bg:rgba(45,181,93,.12);--ok-glow:rgba(45,181,93,.3);
+  --info:#1890ff;
+  --code-kw:#cf222e;--code-fn:#8250df;--code-num:#0550ae;--code-str:#0a3069;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text1);font-family:'Noto Sans SC',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.frame{max-width:1200px;margin:0 auto;padding:20px}
+.topline{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.topline .t{font-size:12px;color:var(--text2)}
+.topline .t strong{color:var(--brand)}
+.theme-switch{margin-left:auto;display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.theme-switch button{padding:6px 14px;font-size:12px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit}
+.theme-switch button.on{background:var(--brand);color:#1a1a1a;font-weight:600}
+
+/* player */
+.player{display:flex;flex-direction:column;height:700px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg)}
+.p-head{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--layer1);flex-shrink:0}
+.p-head .back{font-size:12px;color:var(--text2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);cursor:pointer}
+.p-head h1{font-size:14px;font-weight:600;flex:1}
+.diff{font-size:11px;font-weight:600;padding:3px 10px;border-radius:14px}
+.diff.easy{color:var(--easy);background:color-mix(in srgb,var(--easy) 12%,transparent)}
+.diff.medium{color:var(--medium);background:color-mix(in srgb,var(--medium) 12%,transparent)}
+.diff.hard{color:var(--hard);background:color-mix(in srgb,var(--hard) 12%,transparent)}
+.badge{font-size:11px;padding:3px 10px;border-radius:14px;border:1px solid var(--border);color:var(--text2)}
+.badge.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:var(--ok-bg)}
+.p-body{display:flex;flex:1;min-height:0;gap:12px;padding:12px}
+.code-side{width:40%;max-width:540px;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:10px;background:var(--layer1);overflow:hidden;flex-shrink:0}
+.code-head{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2);flex-shrink:0}
+.code-body{flex:1;overflow:auto;padding:8px 0}
+.cl{display:flex;padding:2px 12px;font-size:12.5px;line-height:24px}
+.cl.active{background:var(--brand-bg);box-shadow:inset 2px 0 0 var(--brand)}
+.cl .ln{width:28px;text-align:right;padding-right:12px;color:var(--text3);flex-shrink:0}
+.cl.active .ln{color:var(--brand)}
+.cl .lc{white-space:pre;color:var(--text2)}
+.cl.active .lc{color:var(--text1)}
+.kw{color:var(--code-kw)}.fn{color:var(--code-fn)}.num{color:var(--code-num)}
+.flist{border-top:1px solid var(--border);max-height:130px;overflow:auto;flex-shrink:0}
+.fi{padding:6px 12px;font-size:11px;color:var(--text2);border-left:2px solid transparent;line-height:1.5}
+.fi.cur{border-left-color:var(--brand);background:var(--brand-bg);color:var(--text1)}
+.fi .n{color:var(--brand);margin-right:6px}
+.stage-side{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.stage{flex:1;border:1px solid var(--border);border-radius:10px;background:var(--layer1);padding:16px;overflow:auto}
+.vt{font-size:11px;color:var(--text2);margin-bottom:12px}
+.arow{display:inline-flex;gap:8px;padding-top:28px}
+.ccol{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pslot{height:20px;display:flex;align-items:flex-end;justify-content:center}
+.ptr{font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid var(--brand-border);background:var(--brand-bg);color:var(--brand);line-height:16px}
+.cell{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);background:var(--layer2);font-size:14px;position:relative;color:var(--text1)}
+.cell.active{border-color:var(--brand-border);background:var(--brand-bg);box-shadow:0 0 12px var(--brand-glow);color:var(--brand)}
+.cell.ok{border-color:color-mix(in srgb,var(--ok) 70%,transparent);background:var(--ok-bg);box-shadow:0 0 12px var(--ok-glow);color:var(--ok)}
+.cell.muted{color:var(--text3);background:var(--layer2)}
+.cell .ck{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:var(--ok);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.cidx{font-size:10px;color:var(--text3)}
+.hsec{margin-top:20px}
+.hrow{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--layer2);font-size:12px;margin-bottom:6px}
+.hrow.hit{border-color:color-mix(in srgb,var(--ok) 70%,transparent);background:var(--ok-bg);box-shadow:0 0 10px var(--ok-glow)}
+.hrow .hk{color:var(--brand)}.hrow.hit .hk{color:var(--ok)}
+.hrow .ar{color:var(--text3)}.hrow .hv{color:var(--text1)}.hrow.hit .hv{color:var(--ok)}
+.explain{padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--layer1);flex-shrink:0}
+.explain .row{display:flex;gap:10px}
+.explain .dot{width:6px;height:6px;border-radius:50%;background:var(--brand);margin-top:7px;flex-shrink:0}
+.explain p{font-size:13px;line-height:1.7;color:var(--text1)}
+.explain p em{font-style:normal;color:var(--brand)}
+.vars{margin-top:8px;display:flex;gap:12px;padding-top:8px;border-top:1px solid var(--border);font-size:12px}
+.vars .vk{color:var(--text2)}.vars .vv{color:var(--text1)}.vars .vv.f{color:var(--brand)}
+.tabs{display:flex;gap:8px;flex-shrink:0}
+.tab{font-size:11px;padding:4px 12px;border-radius:14px;border:1px solid var(--border);color:var(--text2)}
+.tab.on{border-color:var(--brand-border);background:var(--brand-bg);color:var(--brand)}
+.playbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:var(--layer1);flex-shrink:0}
+.pb{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--border);color:var(--text2);flex-shrink:0}
+.pb svg{width:18px;height:18px}
+.pb.play{border-color:var(--brand-border);background:var(--brand-bg);color:var(--brand)}
+.range{flex:1;height:6px;border-radius:3px;background:var(--layer3);position:relative}
+.fill{height:100%;border-radius:3px;background:var(--brand);width:100%}
+.thumb{position:absolute;top:50%;left:100%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px var(--brand-glow)}
+.ind{font-size:12px;color:var(--text2);min-width:44px;text-align:center}
+.spd{font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);color:var(--text2)}
+
+/* palette table */
+.sec{margin-top:26px}
+.sec h2{font-size:14px;font-weight:600;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:8px 10px;border:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:var(--layer1);color:var(--text2);font-weight:600}
+td .sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;border:1px solid var(--border-soft)}
+td .old{color:var(--text3);text-decoration:line-through}
+td .new{color:var(--brand);font-weight:600}
+.note{margin-top:14px;padding:14px 16px;border-radius:10px;background:var(--brand-bg);border:1px solid var(--brand-border);font-size:12px;line-height:1.7;color:var(--text2)}
+.note strong{color:var(--brand)}
+</style>
+</head>
+<body class="dark">
+<div class="frame">
+  <div class="topline">
+    <span class="t"><strong>LeetCode 主题 · 高度还原</strong> · 播放页 1:1 · 配色抓自 leetcode.cn 实测</span>
+    <div class="theme-switch">
+      <button id="btnDark" class="on" onclick="setTheme('dark')">深色</button>
+      <button id="btnLight" onclick="setTheme('light')">浅色</button>
+    </div>
+  </div>
+
+  <div class="player">
+    <div class="p-head">
+      <span class="back">← 换一题</span>
+      <h1>1. 两数之和</h1>
+      <span class="diff easy">简单</span>
+      <span class="badge mono">O(n) · O(n)</span>
+      <span class="badge ok mono">用例校验 3/3</span>
+    </div>
+    <div class="p-body">
+      <div class="code-side">
+        <div class="code-head mono"><span>twoSum(…) · 11 行</span><span>当前第 5 行</span></div>
+        <div class="code-body mono">
+          <div class="cl"><span class="ln">1</span><span class="lc"><span class="kw">function</span> <span class="fn">twoSum</span>(nums, target) {</span></div>
+          <div class="cl"><span class="ln">2</span><span class="lc">  <span class="kw">const</span> seen = <span class="kw">new</span> <span class="fn">Map</span>();</span></div>
+          <div class="cl"><span class="ln">3</span><span class="lc">  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {</span></div>
+          <div class="cl"><span class="ln">4</span><span class="lc">    <span class="kw">const</span> need = target - nums[i];</span></div>
+          <div class="cl active"><span class="ln">5</span><span class="lc">    <span class="kw">if</span> (seen.<span class="fn">has</span>(need)) {</span></div>
+          <div class="cl"><span class="ln">6</span><span class="lc">      <span class="kw">return</span> [seen.<span class="fn">get</span>(need), i];</span></div>
+          <div class="cl"><span class="ln">7</span><span class="lc">    }</span></div>
+          <div class="cl"><span class="ln">8</span><span class="lc">    seen.<span class="fn">set</span>(nums[i], i);</span></div>
+          <div class="cl"><span class="ln">9</span><span class="lc">  }</span></div>
+          <div class="cl"><span class="ln">10</span><span class="lc">  <span class="kw">return</span> [];</span></div>
+          <div class="cl"><span class="ln">11</span><span class="lc">}</span></div>
+        </div>
+        <div class="flist">
+          <div class="fi"><span class="n mono">01</span>准备哈希表 seen，target=9</div>
+          <div class="fi"><span class="n mono">04</span>7 不在表里，记下 2→0</div>
+          <div class="fi cur"><span class="n mono">07</span>查表：2 在！答案 [0,1]</div>
+        </div>
+      </div>
+      <div class="stage-side">
+        <div class="stage">
+          <div class="vt mono">nums</div>
+          <div class="arow">
+            <div class="ccol"><div class="pslot"></div><div class="cell ok">2<span class="ck">✓</span></div><div class="cidx mono">0</div></div>
+            <div class="ccol"><div class="pslot"><span class="ptr mono">i</span></div><div class="cell ok">7<span class="ck">✓</span></div><div class="cidx mono">1</div></div>
+            <div class="ccol"><div class="pslot"></div><div class="cell muted">11</div><div class="cidx mono">2</div></div>
+            <div class="ccol"><div class="pslot"></div><div class="cell muted">15</div><div class="cidx mono">3</div></div>
+          </div>
+          <div class="hsec">
+            <div class="vt mono">seen：值 → 下标</div>
+            <div class="hrow hit"><span class="hk mono">2</span><span class="ar">→</span><span class="hv mono">0</span></div>
+          </div>
+        </div>
+        <div class="explain">
+          <div class="row"><span class="dot"></span><p>查哈希表：<em>2</em> 在里面吗？——在！它在下标 0，答案就是 <em>[0, 1]</em></p></div>
+          <div class="vars mono"><span><span class="vk">i</span>=<span class="vv">1</span></span><span><span class="vk">need</span>=<span class="vv f">2</span></span><span><span class="vk">命中</span>=<span class="vv f">[0,1]</span></span></div>
+        </div>
+        <div class="tabs"><span class="tab on mono">✓ 示例1 · 7帧</span><span class="tab mono">✓ 示例2 · 9帧</span><span class="tab mono">✓ 边界 · 7帧</span></div>
+        <div class="playbar">
+          <div class="pb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></div>
+          <div class="pb play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z"/></svg></div>
+          <div class="pb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14L14.5 12z"/></svg></div>
+          <div class="range"><div class="fill"></div><div class="thumb"></div></div>
+          <span class="ind mono">7/7</span><span class="spd mono">1x</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>难度徽章 · LeetCode 官方三色（首页题库用）</h2>
+    <div style="display:flex;gap:10px">
+      <span class="diff easy">简单 · #1cbaba</span>
+      <span class="diff medium">中等 · #ffb700</span>
+      <span class="diff hard">困难 · #ef4743</span>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2>Token 映射 · algo-motion 现状 → LeetCode 实测</h2>
+    <table>
+      <tr><th>Token</th><th>现状</th><th>LeetCode 深色</th><th>LeetCode 浅色</th><th>用途</th></tr>
+      <tr><td>bg</td><td><span class="old">#0f1419</span></td><td><span class="sw" style="background:#1a1a1a"></span><span class="new">#1a1a1a</span></td><td><span class="sw" style="background:#fff"></span>#ffffff</td><td>页面底（去蓝调，中性灰）</td></tr>
+      <tr><td>surface</td><td><span class="old">#1a2332</span></td><td><span class="sw" style="background:#282828"></span><span class="new">#282828</span></td><td><span class="sw" style="background:#fafafa"></span>#fafafa</td><td>卡片/面板</td></tr>
+      <tr><td>surface-2</td><td><span class="old">#222d3d</span></td><td><span class="sw" style="background:#333333"></span><span class="new">#333333</span></td><td><span class="sw" style="background:#f5f5f5"></span>#f5f5f5</td><td> elevated / 格子底</td></tr>
+      <tr><td>ink</td><td><span class="old">#e6e6e6</span></td><td><span class="sw" style="background:#f5f5f5"></span><span class="new">#f5f5f5</span></td><td><span class="sw" style="background:#262626"></span>#262626</td><td>主文本</td></tr>
+      <tr><td>sub</td><td><span class="old">#8b95a5</span></td><td><span class="sw" style="background:#a8a8a8"></span><span class="new">#a8a8a8</span></td><td><span class="sw" style="background:#737373"></span>#737373</td><td>次文本</td></tr>
+      <tr><td>accent</td><td><span class="old">#f59e0b</span></td><td><span class="sw" style="background:#ffa116"></span><span class="new">#ffa116</span></td><td><span class="sw" style="background:#ffa116"></span>#ffa116</td><td>品牌橙：指针/高亮/播放/进度</td></tr>
+      <tr><td>ok</td><td><span class="old">#4ade80</span></td><td><span class="sw" style="background:#2cbb5d"></span><span class="new">#2cbb5d</span></td><td><span class="sw" style="background:#2db55d"></span>#2db55d</td><td>命中/AC 绿</td></tr>
+      <tr><td>warn</td><td><span class="old">#fbbf24</span></td><td><span class="sw" style="background:#ffb700"></span><span class="new">#ffb700</span></td><td><span class="sw" style="background:#ffb700"></span>#ffb700</td><td>中等/注意黄</td></tr>
+      <tr><td>danger</td><td><span class="old">#ef4444</span></td><td><span class="sw" style="background:#ef4743"></span><span class="new">#ef4743</span></td><td><span class="sw" style="background:#f63737"></span>#f63737</td><td>困难/冲突红</td></tr>
+      <tr><td>easy(新增)</td><td>—</td><td><span class="sw" style="background:#1cbaba"></span><span class="new">#1cbaba</span></td><td><span class="sw" style="background:#1cbaba"></span>#1cbaba</td><td>简单难度青绿</td></tr>
+    </table>
+    <div class="note">
+      <strong>还原要点</strong>：① 底色去蓝调——LeetCode 是中性暖灰(#1a1a1a/#282828)，不是 algo-motion 的蓝黑(#0f1419/#1a2332)；② 品牌橙 #ffa116 比现琥珀 #f59e0b 更红更亮；③ 难度三色(青绿/黄/红)直接套用 LeetCode 官方值，首页徽章一眼可辨；④ 提供深/浅双模式，浅色为 LeetCode 默认白底。语义 active=橙、ok=绿、warn=黄、danger=红 与 LeetCode 一致。
+    </div>
+  </div>
+</div>
+<script>
+function setTheme(t){document.body.className=t;document.getElementById('btnDark').classList.toggle('on',t==='dark');document.getElementById('btnLight').classList.toggle('on',t==='light');}
+if(location.hash==='#light')setTheme('light');
+</script>
+</body>
+</html>

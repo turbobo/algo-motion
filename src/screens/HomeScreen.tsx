@@ -7,6 +7,7 @@ import { RELATED_SAMPLES } from '../samples/related'
 import { DifficultyBadge } from '../flows/shared/DifficultyBadge'
 import { isSolveProblemId } from '../flows/shared/solve-catalog'
 import type { GenerateInput } from '../llm/client'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 interface Props {
   loading: boolean
@@ -31,7 +32,7 @@ const LANGUAGES = [
 ]
 
 const INPUT_CLS =
-  'w-full resize-y rounded-xl border border-white/10 bg-bg/60 px-3 py-2 text-sm ' +
+  'w-full resize-y rounded-xl border border-line bg-bg/60 px-3 py-2 text-sm ' +
   'placeholder:text-sub transition-colors focus:border-accent/50 focus:outline-none'
 
 /** Hot 100 十七类（与样题 category 取值一致） */
@@ -66,7 +67,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       className={`shrink-0 rounded-full border px-3 py-1 font-mono text-[11px] transition-colors ${
         active
           ? 'border-accent/60 bg-accent/15 text-accent'
-          : 'border-white/10 text-sub hover:border-white/25 hover:text-ink'
+          : 'border-line text-sub hover:border-line-strong hover:text-ink'
       }`}
     >
       {children}
@@ -122,7 +123,10 @@ export function HomeScreen({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-center px-6 py-10">
+      <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center px-6 py-10">
+        <div className="absolute right-6 top-6">
+          <ThemeToggle />
+        </div>
         <div className="animate-fadeIn">
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
             AlgoMotion
@@ -210,7 +214,7 @@ export function HomeScreen({
               aria-valuenow={learnedCount}
               aria-valuemin={0}
               aria-valuemax={CATALOG.length}
-              className="h-1 flex-1 overflow-hidden rounded-full bg-white/8"
+              className="h-1 flex-1 overflow-hidden rounded-full bg-fill-2"
             >
               <div
                 className="h-full rounded-full bg-ok/70 transition-all duration-500"
@@ -263,7 +267,7 @@ export function HomeScreen({
           </div>
 
           {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-surface p-6 text-center text-sm text-sub">
+            <div className="rounded-2xl border border-line bg-surface p-6 text-center text-sm text-sub">
               没有匹配的题目——换个关键词或筛选条件试试
             </div>
           ) : (
@@ -274,7 +278,7 @@ export function HomeScreen({
                   type="button"
                   disabled={busy}
                   onClick={() => onOpenSample(sample)}
-                  className="group rounded-2xl border border-white/10 bg-surface p-4 text-left transition-all hover:border-accent/40 hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50"
+                  className="group rounded-2xl border border-line bg-surface p-4 text-left transition-all hover:border-accent/40 hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="text-sm font-medium">
@@ -304,7 +308,7 @@ export function HomeScreen({
         {/* 自定义生成 */}
         <div className="mt-8">
           <div className="mb-3 font-mono text-xs tracking-wide text-sub">生成你的动画</div>
-          <div className="rounded-2xl border border-white/10 bg-surface p-4 md:p-5">
+          <div className="rounded-2xl border border-line bg-surface p-4 md:p-5">
             <textarea
               value={problem}
               onChange={(e) => setProblem(e.target.value)}
@@ -325,7 +329,7 @@ export function HomeScreen({
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
                 aria-label="解法语言"
-                className="rounded-lg border border-white/10 bg-bg/60 px-2.5 py-2 text-xs text-sub transition-colors focus:border-accent/50 focus:outline-none"
+                className="rounded-lg border border-line bg-bg/60 px-2.5 py-2 text-xs text-sub transition-colors focus:border-accent/50 focus:outline-none"
               >
                 {LANGUAGES.map((l) => (
                   <option key={l.value} value={l.value}>

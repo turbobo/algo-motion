@@ -3,7 +3,7 @@
  * 新条目 popIn；高亮行切换做 CSS transition。
  */
 import type { HashmapView as HashmapViewModel } from '../../types'
-import { TONE_STYLES, ViewTitle } from './tones'
+import { TONE_STYLES, ViewTitle, flashClass } from './tones'
 
 interface Props {
   view: HashmapViewModel
@@ -22,7 +22,7 @@ export function HashmapView({ view, flash, frameKey }: Props) {
     <div>
       {view.title ? <ViewTitle text={view.title} /> : null}
       {view.entries.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-white/10 px-3 py-2 font-mono text-xs text-sub">
+        <div className="rounded-lg border border-dashed border-line px-3 py-2 font-mono text-xs text-sub">
           （空表）
         </div>
       ) : (
@@ -33,10 +33,10 @@ export function HashmapView({ view, flash, frameKey }: Props) {
             return (
               <div
                 key={`${key}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                className={`flex ${isFlash ? 'animate-flash' : 'animate-popIn'} items-center gap-2 rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-all duration-300`}
+                className={`flex ${isFlash ? flashClass(isHit ? 'ok' : undefined) : 'animate-settleIn'} items-center gap-2 rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-all duration-300`}
                 style={{
-                  borderColor: isHit ? HIT.border : 'rgba(255,255,255,0.1)',
-                  background: isHit ? HIT.bg : 'rgba(255,255,255,0.03)',
+                  borderColor: isHit ? HIT.border : 'var(--line)',
+                  background: isHit ? HIT.bg : 'var(--fill)',
                   boxShadow: isHit ? `0 0 12px ${HIT.glow}` : 'none',
                 }}
               >

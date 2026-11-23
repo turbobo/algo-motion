@@ -13,9 +13,11 @@ interface Props {
   flash?: FrameFlash
   /** 当前帧序号：连续变化的元素借此重新挂载以重播脉冲 */
   frameKey?: number
+  /** 末帧（完成时刻） */
+  complete?: boolean
 }
 
-export function StageView({ frame, flash, frameKey }: Props) {
+export function StageView({ frame, flash, frameKey, complete }: Props) {
   if (!frame) {
     return <div className="flex h-full items-center justify-center text-sm text-sub">暂无帧</div>
   }
@@ -26,8 +28,8 @@ export function StageView({ frame, flash, frameKey }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {views.map(([id, view]) => (
-        <section key={id} className="rounded-2xl border border-white/8 bg-surface p-3 md:p-4">
-          <ViewRenderer view={view} flash={flash?.[id]} frameKey={frameKey} />
+        <section key={id} className="rounded-2xl border border-line bg-surface p-3 md:p-4">
+          <ViewRenderer view={view} flash={flash?.[id]} frameKey={frameKey} complete={complete} />
         </section>
       ))}
     </div>

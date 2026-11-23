@@ -210,6 +210,36 @@ export interface InstrumentResult {
   summary: string
 }
 
+// ===== 教学层（策略先行 / 预测暂停 / 复盘，可选） =====
+
+/** 预测选项 */
+export interface PredictOption {
+  text: string
+  correct: boolean
+}
+
+/** 关键决策点：播到 atFrame 时暂停，先猜再看 */
+export interface PredictPoint {
+  /** 触发暂停的帧下标（0-based） */
+  atFrame: number
+  question: string
+  options: PredictOption[]
+  /** 答对后的解释（为什么） */
+  explain: string
+}
+
+/** 一道题的教学设计 */
+export interface Lesson {
+  /** 核心想法（一句话，隐喻语言） */
+  idea: string
+  /** 暴力 vs 优化对比 */
+  contrast?: { bad: string; good: string }
+  /** 预测暂停点 */
+  predicts?: PredictPoint[]
+  /** 复盘要点 */
+  takeaways?: string[]
+}
+
 /** 一道可播放的算法演示 = 插桩产物 + 执行后的帧序列 */
 export interface AlgorithmCase {
   id: string
@@ -226,4 +256,6 @@ export interface AlgorithmCase {
   diagnostics?: FrameDiagnostics
   /** 「时间 · 空间」复杂度标注（内置样题提供） */
   complexity?: string
+  /** 教学设计（策略卡 / 预测暂停 / 复盘，内置样题可选提供） */
+  lesson?: Lesson
 }

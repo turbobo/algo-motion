@@ -5,7 +5,7 @@
  * - 节点色调走语义 marks（ok/warn/active 等）
  */
 import type { GraphView as GraphViewModel } from '../../types'
-import { TONE_STYLES, ViewTitle } from './tones'
+import { TONE_STYLES, ViewTitle, flashClass } from './tones'
 
 const NODE_R = 19
 const PAD = 44
@@ -39,7 +39,7 @@ export function GraphView({ view, flash, frameKey }: Props) {
           <svg className="absolute inset-0" width={size} height={size} aria-hidden="true">
             <defs>
               <marker id="graph-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-                <path d="M0,0 L7,3 L0,6 z" fill="rgba(139,149,165,0.85)" />
+                <path d="M0,0 L7,3 L0,6 z" fill="rgb(var(--c-sub) / 0.85)" />
               </marker>
             </defs>
             {view.edges.map(([from, to], i) => {
@@ -58,7 +58,7 @@ export function GraphView({ view, flash, frameKey }: Props) {
                   y1={a.y + uy * (NODE_R + 3)}
                   x2={b.x - ux * (NODE_R + 9)}
                   y2={b.y - uy * (NODE_R + 9)}
-                  stroke="rgba(139,149,165,0.7)"
+                  stroke="rgb(var(--c-sub) / 0.7)"
                   strokeWidth={1.5}
                   markerEnd="url(#graph-arrow)"
                 />
@@ -75,16 +75,16 @@ export function GraphView({ view, flash, frameKey }: Props) {
             return (
               <div
                 key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                className={`absolute flex items-center justify-center rounded-full border font-mono text-xs transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
+                className={`absolute flex items-center justify-center rounded-full border font-mono text-xs transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
                 style={{
                   left: p.x - NODE_R,
                   top: p.y - NODE_R,
                   width: NODE_R * 2,
                   height: NODE_R * 2,
-                  borderColor: style?.border ?? 'rgba(255,255,255,0.16)',
-                  background: style?.bg ?? 'rgba(255,255,255,0.04)',
+                  borderColor: style?.border ?? 'var(--line)',
+                  background: style?.bg ?? 'var(--fill)',
                   boxShadow: style ? `0 0 12px ${style.glow}` : 'none',
-                  color: style?.color ?? '#e6e6e6',
+                  color: style?.color ?? 'rgb(var(--c-ink))',
                 }}
               >
                 {node.label}

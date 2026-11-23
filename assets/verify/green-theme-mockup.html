@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoMotion · 绿色主题示意图</title>
+<style>
+:root{
+  --bg:#0f1419;--surface:#1a2332;--surface2:#222d3d;
+  --ink:#e6e6e6;--sub:#8b95a5;
+  --accent:#34d399;--accent-bg:rgba(52,211,153,.14);--accent-border:rgba(52,211,153,.75);--accent-glow:rgba(52,211,153,.35);
+  --ok:#4ade80;--warn:#fbbf24;--danger:#ef4444;--danger-text:#f87171;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans SC',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.mockup-frame{max-width:1200px;margin:0 auto;padding:20px}
+.mockup-label{font-size:11px;color:var(--sub);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.mockup-label .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.mockup-label strong{color:var(--accent);font-weight:600}
+
+/* ===== Player Screen 1:1 ===== */
+.player{display:flex;flex-direction:column;height:720px;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:var(--bg)}
+
+/* header */
+.p-header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.p-header .back{font-size:12px;color:var(--sub);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.p-header h1{font-size:14px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-header .badge{font-size:11px;padding:3px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.1);color:var(--sub);flex-shrink:0}
+.p-header .badge.ok{border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.1);color:var(--ok)}
+.p-header .badge.accent{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.1);color:var(--accent)}
+
+/* body */
+.p-body{display:flex;flex:1;min-height:0;gap:12px;padding:12px}
+
+/* code panel */
+.code-side{width:40%;max-width:540px;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:var(--surface);overflow:hidden;flex-shrink:0}
+.code-head{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--sub);flex-shrink:0}
+.code-body{flex:1;overflow:auto;padding:8px 0}
+.code-line{display:flex;padding:2px 12px;font-size:12.5px;line-height:24px;transition:background .2s}
+.code-line.active{background:rgba(52,211,153,.1);box-shadow:inset 2px 0 0 var(--accent)}
+.code-line .ln{width:28px;text-align:right;padding-right:12px;color:rgba(255,255,255,.2);flex-shrink:0;user-select:none}
+.code-line.active .ln{color:var(--accent)}
+.code-line .lc{white-space:pre;color:rgba(230,230,230,.65)}
+.code-line.active .lc{color:var(--ink)}
+.code-line .kw{color:#c084fc}
+.code-line .fn{color:#60a5fa}
+.code-line .str{color:#fbbf24}
+.code-line .num{color:#f87171}
+.code-line .cmt{color:rgba(139,149,165,.5)}
+
+/* frame list */
+.frame-list{border-top:1px solid rgba(255,255,255,.08);max-height:140px;overflow:auto;flex-shrink:0}
+.frame-item{padding:6px 12px;font-size:11px;color:var(--sub);cursor:pointer;border-left:2px solid transparent;line-height:1.5}
+.frame-item.current{border-left-color:var(--accent);background:rgba(52,211,153,.06);color:var(--ink)}
+.frame-item .fi{color:var(--accent);margin-right:6px}
+
+/* stage side */
+.stage-side{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+.stage-box{flex:1;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(15,20,25,.6);padding:16px;overflow:auto;position:relative}
+
+/* array view */
+.view-title{font-size:11px;color:var(--sub);margin-bottom:12px}
+.array-row{display:inline-flex;gap:8px;padding-top:28px;position:relative}
+.cell-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.ptr-slot{height:20px;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+.ptr{font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid rgba(52,211,153,.5);background:rgba(52,211,153,.15);color:var(--accent);line-height:16px}
+.cell{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);font-size:14px;transition:all .3s;position:relative}
+.cell.active{border-color:var(--accent-border);background:var(--accent-bg);box-shadow:0 0 14px var(--accent-glow);color:var(--accent)}
+.cell.ok{border-color:rgba(74,222,128,.8);background:rgba(74,222,128,.14);box-shadow:0 0 14px rgba(74,222,128,.45);color:var(--ok)}
+.cell.muted{border-color:rgba(255,255,255,.1);background:rgba(139,149,165,.08);color:var(--sub)}
+.cell .check{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:var(--ok);color:#000;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.cell-idx{font-size:10px;color:var(--sub)}
+
+/* hashmap view */
+.hash-section{margin-top:20px}
+.hash-rows{display:flex;flex-direction:column;gap:6px}
+.hash-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);font-size:12px}
+.hash-row.hit{border-color:rgba(74,222,128,.8);background:rgba(74,222,128,.14);box-shadow:0 0 12px rgba(74,222,128,.45)}
+.hash-row .hk{color:var(--accent)}
+.hash-row.hit .hk{color:var(--ok)}
+.hash-row .arrow{color:var(--sub)}
+.hash-row .hv{color:var(--ink)}
+.hash-row.hit .hv{color:var(--ok)}
+
+/* explain bar */
+.explain{padding:12px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:var(--surface);flex-shrink:0}
+.explain .row{display:flex;gap:10px;align-items:flex-start}
+.explain .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:7px;flex-shrink:0}
+.explain p{font-size:13px;line-height:1.7;color:rgba(230,230,230,.9)}
+.explain p em{font-style:normal;color:var(--accent)}
+.vars{margin-top:8px;display:flex;flex-wrap:wrap;gap:12px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);font-size:12px}
+.vars .vk{color:var(--sub)}
+.vars .vv{color:rgba(230,230,230,.9)}
+.vars .vv.flash{color:var(--accent)}
+
+/* test tabs */
+.test-tabs{display:flex;gap:8px;flex-shrink:0}
+.test-tab{font-size:11px;padding:4px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.1);color:var(--sub);cursor:pointer}
+.test-tab.active{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.15);color:var(--accent)}
+
+/* playback bar */
+.playbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:var(--surface);flex-shrink:0}
+.pb-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid rgba(255,255,255,.1);color:rgba(230,230,230,.8);cursor:pointer;flex-shrink:0}
+.pb-btn svg{width:18px;height:18px}
+.pb-btn.play{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.15);color:var(--accent)}
+.pb-range{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.1);position:relative;cursor:pointer}
+.pb-fill{height:100%;border-radius:3px;background:var(--accent);width:60%}
+.pb-thumb{position:absolute;top:50%;left:60%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.pb-ind{font-size:12px;color:var(--sub);min-width:48px;text-align:center}
+.pb-speed{font-size:12px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.1);color:var(--sub);cursor:pointer}
+.pb-hint{text-align:center;font-size:10px;color:var(--sub);margin-top:6px}
+
+/* ===== Palette section ===== */
+.palette-section{margin-top:28px}
+.palette-section h2{font-size:14px;font-weight:600;margin-bottom:14px}
+.palette-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.swatch{border-radius:12px;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.swatch .color{height:56px;display:flex;align-items:flex-end;padding:8px}
+.swatch .color span{font-size:10px;color:rgba(0,0,0,.6);font-weight:600}
+.swatch .info{padding:8px 10px;background:var(--surface)}
+.swatch .name{font-size:11px;font-weight:600}
+.swatch .hex{font-size:10px;color:var(--sub);margin-top:2px}
+.swatch .role{font-size:10px;color:var(--sub);margin-top:4px;line-height:1.4}
+.swatch.changed{border-color:rgba(52,211,153,.3)}
+.swatch.changed .name{color:var(--accent)}
+
+.compare-row{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+.compare-item{flex:1;min-width:200px;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:var(--surface)}
+.compare-item .cl{font-size:11px;color:var(--sub);margin-bottom:8px}
+.compare-item .cv{display:flex;align-items:center;gap:8px}
+.compare-item .cv .chip{width:32px;height:32px;border-radius:8px}
+.compare-item .cv .ct{font-size:12px}
+.compare-item .cv .ct .old{color:var(--sub);text-decoration:line-through}
+.compare-item .cv .ct .new{color:var(--accent);font-weight:600}
+
+.note{margin-top:16px;padding:14px 16px;border-radius:12px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2);font-size:12px;line-height:1.7;color:var(--sub)}
+.note strong{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="mockup-frame">
+  <div class="mockup-label"><span class="dot"></span><strong>绿色主题 · 播放页 1:1 示意图</strong> · 两数之和 · 命中帧（i=1, need=2, 哈希表命中）</div>
+
+  <!-- ===== Player Screen ===== -->
+  <div class="player">
+    <div class="p-header">
+      <span class="back">← 换一题</span>
+      <h1>1. 两数之和</h1>
+      <span class="badge mono">O(n) · O(n)</span>
+      <span class="badge ok mono">用例校验 3/3</span>
+    </div>
+
+    <div class="p-body">
+      <!-- Code Panel -->
+      <div class="code-side">
+        <div class="code-head mono"><span>twoSum(…) · 11 行</span><span>当前第 5 行</span></div>
+        <div class="code-body mono">
+          <div class="code-line"><span class="ln">1</span><span class="lc"><span class="kw">function</span> <span class="fn">twoSum</span>(nums, target) {</span></div>
+          <div class="code-line"><span class="ln">2</span><span class="lc">  <span class="kw">const</span> seen = <span class="kw">new</span> <span class="fn">Map</span>();</span></div>
+          <div class="code-line"><span class="ln">3</span><span class="lc">  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; nums.length; i++) {</span></div>
+          <div class="code-line"><span class="ln">4</span><span class="lc">    <span class="kw">const</span> need = target - nums[i];</span></div>
+          <div class="code-line active"><span class="ln">5</span><span class="lc">    <span class="kw">if</span> (seen.<span class="fn">has</span>(need)) {</span></div>
+          <div class="code-line"><span class="ln">6</span><span class="lc">      <span class="kw">return</span> [seen.<span class="fn">get</span>(need), i];</span></div>
+          <div class="code-line"><span class="ln">7</span><span class="lc">    }</span></div>
+          <div class="code-line"><span class="ln">8</span><span class="lc">    seen.<span class="fn">set</span>(nums[i], i);</span></div>
+          <div class="code-line"><span class="ln">9</span><span class="lc">  }</span></div>
+          <div class="code-line"><span class="ln">10</span><span class="lc">  <span class="kw">return</span> [];</span></div>
+          <div class="code-line"><span class="ln">11</span><span class="lc">}</span></div>
+        </div>
+        <div class="frame-list">
+          <div class="frame-item"><span class="fi mono">01</span>准备哈希表 seen，目标 target=9</div>
+          <div class="frame-item"><span class="fi mono">02</span>轮到第 0 个元素：nums[0]=2</div>
+          <div class="frame-item"><span class="fi mono">03</span>need = 9−2 = 7</div>
+          <div class="frame-item"><span class="fi mono">04</span>7 不在表里，记下 2→0</div>
+          <div class="frame-item"><span class="fi mono">05</span>轮到第 1 个元素：nums[1]=7</div>
+          <div class="frame-item"><span class="fi mono">06</span>need = 9−7 = 2</div>
+          <div class="frame-item current"><span class="fi mono">07</span>查表：2 在！答案 [0,1]</div>
+        </div>
+      </div>
+
+      <!-- Stage -->
+      <div class="stage-side">
+        <div class="stage-box">
+          <div class="view-title mono">nums</div>
+          <div class="array-row">
+            <div class="cell-col">
+              <div class="ptr-slot"></div>
+              <div class="cell ok">2<span class="check">✓</span></div>
+              <div class="cell-idx mono">0</div>
+            </div>
+            <div class="cell-col">
+              <div class="ptr-slot"><span class="ptr mono">i</span></div>
+              <div class="cell ok">7<span class="check">✓</span></div>
+              <div class="cell-idx mono">1</div>
+            </div>
+            <div class="cell-col">
+              <div class="ptr-slot"></div>
+              <div class="cell muted">11</div>
+              <div class="cell-idx mono">2</div>
+            </div>
+            <div class="cell-col">
+              <div class="ptr-slot"></div>
+              <div class="cell muted">15</div>
+              <div class="cell-idx mono">3</div>
+            </div>
+          </div>
+
+          <div class="hash-section">
+            <div class="view-title mono">seen：值 → 下标</div>
+            <div class="hash-rows">
+              <div class="hash-row hit"><span class="hk mono">2</span><span class="arrow">→</span><span class="hv mono">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="explain">
+          <div class="row">
+            <span class="dot"></span>
+            <p>查哈希表：<em>2</em> 在里面吗？——在！它在下标 0 的位置，答案就是 <em>[0, 1]</em></p>
+          </div>
+          <div class="vars mono">
+            <span><span class="vk">i</span>=<span class="vv">1</span></span>
+            <span><span class="vk">need</span>=<span class="vv flash">2</span></span>
+            <span><span class="vk">命中</span>=<span class="vv flash">[0,1]</span></span>
+          </div>
+        </div>
+
+        <div class="test-tabs">
+          <span class="test-tab active mono">✓ 示例1 · 7帧</span>
+          <span class="test-tab mono">✓ 示例2 · 9帧</span>
+          <span class="test-tab mono">✓ 边界[3,3] · 7帧</span>
+        </div>
+
+        <div>
+          <div class="playbar">
+            <div class="pb-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg></div>
+            <div class="pb-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></div>
+            <div class="pb-btn play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z"/></svg></div>
+            <div class="pb-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14L14.5 12z"/></svg></div>
+            <div class="pb-range"><div class="pb-fill"></div><div class="pb-thumb"></div></div>
+            <span class="pb-ind mono">7/7</span>
+            <span class="pb-speed mono">1x</span>
+          </div>
+          <div class="pb-hint mono">空格 播放/暂停 · ← → 逐帧 · ↑ ↓ 变速 · R 重放本步</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Palette ===== -->
+  <div class="palette-section">
+    <h2>色彩 Token 变更</h2>
+    <div class="palette-grid">
+      <div class="swatch changed">
+        <div class="color" style="background:#34d399"><span class="mono">#34d399</span></div>
+        <div class="info"><div class="name">accent ✦ 改</div><div class="hex mono">原 #f59e0b → #34d399</div><div class="role">主强调：指针/高亮/播放键/进度/焦点环</div></div>
+      </div>
+      <div class="swatch">
+        <div class="color" style="background:#4ade80"><span class="mono">#4ade80</span></div>
+        <div class="info"><div class="name">ok · 不变</div><div class="hex mono">#4ade80</div><div class="role">命中/完成语义色（比 accent 更亮更黄）</div></div>
+      </div>
+      <div class="swatch">
+        <div class="color" style="background:#fbbf24"><span class="mono">#fbbf24</span></div>
+        <div class="info"><div class="name">warn · 不变</div><div class="hex mono">#fbbf24</div><div class="role">注意/未命中</div></div>
+      </div>
+      <div class="swatch">
+        <div class="color" style="background:#ef4444"><span class="mono">#ef4444</span></div>
+        <div class="info"><div class="name">danger · 不变</div><div class="hex mono">#ef4444</div><div class="role">冲突/错误</div></div>
+      </div>
+      <div class="swatch">
+        <div class="color" style="background:#0f1419;border-bottom:1px solid rgba(255,255,255,.08)"><span class="mono" style="color:rgba(255,255,255,.4)">#0f1419</span></div>
+        <div class="info"><div class="name">bg · 不变</div><div class="hex mono">#0f1419</div><div class="role">深色底</div></div>
+      </div>
+      <div class="swatch">
+        <div class="color" style="background:#1a2332"><span class="mono" style="color:rgba(255,255,255,.4)">#1a2332</span></div>
+        <div class="info"><div class="name">surface · 不变</div><div class="hex mono">#1a2332</div><div class="role">容器面</div></div>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <div class="compare-item">
+        <div class="cl">active 色调（当前动作）</div>
+        <div class="cv"><div class="chip" style="background:rgba(52,211,153,.14);border:2px solid rgba(52,211,153,.75);box-shadow:0 0 12px rgba(52,211,153,.35)"></div><div class="ct"><span class="old">琥珀 #f59e0b</span> → <span class="new">翡翠 #34d399</span></div></div>
+      </div>
+      <div class="compare-item">
+        <div class="cl">ok 色调（命中完成）</div>
+        <div class="cv"><div class="chip" style="background:rgba(74,222,128,.14);border:2px solid rgba(74,222,128,.8);box-shadow:0 0 12px rgba(74,222,128,.45)"></div><div class="ct"><span class="new">#4ade80 不变</span> · 靠 ✓ 角标区分</div></div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>active 与 ok 的区分策略</strong>：accent 改为翡翠绿 #34d399 后，active（当前动作）与 ok（命中）同属绿色系。区分靠三层：① 色相微差——accent 偏蓝绿(160°)，ok 偏黄绿(140°)；② ok 带 ✓ 角标，active 不带；③ ok 的 glow 更亮更扩散。深色底上两者可辨，不混淆。
+    </div>
+  </div>
+</div>
+</body>
+</html>

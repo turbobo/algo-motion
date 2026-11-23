@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoMotion · 更易懂的演示方案</title>
+<style>
+:root{--bg:#0f1419;--surface:#1a2332;--surface2:#222d3d;--ink:#e6e6e6;--sub:#8b95a5;--accent:#f59e0b;--ok:#4ade80;--warn:#fbbf24;--danger:#ef4444;--glide:cubic-bezier(.22,1,.36,1);--settle:cubic-bezier(.34,1.56,.64,1);--bloom:cubic-bezier(.16,1,.3,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans SC',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
+.app{max-width:760px;margin:0 auto;padding:24px 20px 80px;min-height:100%}
+
+/* phase transitions */
+.phase{display:none;animation:phaseIn .45s var(--glide)}
+.phase.active{display:block}
+@keyframes phaseIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== Phase 1: Strategy Card ===== */
+.strategy-hero{text-align:center;padding:20px 0 28px}
+.strategy-hero .badge{display:inline-block;font-size:11px;color:var(--accent);border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);padding:3px 12px;border-radius:20px;margin-bottom:16px}
+.strategy-hero h1{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.strategy-hero h1 em{font-style:normal;color:var(--accent)}
+.strategy-hero .sub{margin-top:10px;font-size:14px;color:var(--sub);line-height:1.7}
+
+.idea-card{background:var(--surface);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:24px;margin-bottom:16px}
+.idea-card .idea-label{font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.06em;margin-bottom:10px}
+.idea-card .idea-text{font-size:17px;line-height:1.7;font-weight:500}
+.idea-card .idea-text em{font-style:normal;color:var(--accent);font-weight:600}
+
+/* metaphor diagram */
+.metaphor{display:flex;align-items:center;justify-content:center;gap:0;padding:28px 0;flex-wrap:wrap}
+.meta-node{display:flex;flex-direction:column;align-items:center;gap:8px}
+.meta-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;border:1px solid rgba(255,255,255,.1)}
+.meta-icon.scan{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4)}
+.meta-icon.shelf{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.35)}
+.meta-icon.match{background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.5)}
+.meta-label{font-size:12px;color:var(--sub)}
+.meta-arrow{font-size:20px;color:var(--sub);padding:0 14px;margin-bottom:20px}
+
+.contrast{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.contrast-card{padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,.08)}
+.contrast-card.bad{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2)}
+.contrast-card.good{background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.25)}
+.contrast-card .ct{font-size:12px;font-weight:600;margin-bottom:6px}
+.contrast-card.bad .ct{color:var(--danger)}
+.contrast-card.good .ct{color:var(--ok)}
+.contrast-card .cd{font-size:12px;color:var(--sub);line-height:1.6}
+.contrast-card .cx{font-size:20px;font-weight:700;margin-top:8px}
+.contrast-card.bad .cx{color:var(--danger)}
+.contrast-card.good .cx{color:var(--ok)}
+
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;border:none;background:var(--accent);color:#000;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+.cta:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.cta:active{transform:scale(.98)}
+.cta svg{width:18px;height:18px}
+
+/* ===== Phase 2: Demo ===== */
+.demo-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.demo-header .back{font-size:12px;color:var(--sub);cursor:pointer;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:none;font-family:inherit;transition:all .2s}
+.demo-header .back:hover{color:var(--ink);border-color:rgba(255,255,255,.25)}
+.demo-header h2{font-size:15px;font-weight:600;flex:1}
+.demo-header .complexity{font-size:11px;color:var(--sub);border:1px solid rgba(255,255,255,.1);padding:3px 10px;border-radius:16px}
+
+/* phase progress */
+.phase-track{display:flex;gap:4px;margin-bottom:20px}
+.phase-step{flex:1;text-align:center}
+.phase-step .bar{height:3px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .4s}
+.phase-step.done .bar{background:var(--ok)}
+.phase-step.current .bar{background:var(--accent)}
+.phase-step .lbl{font-size:10px;color:var(--sub);margin-top:5px}
+.phase-step.current .lbl{color:var(--accent)}
+.phase-step.done .lbl{color:var(--ok)}
+
+/* stage */
+.stage{background:var(--surface);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:24px;position:relative;min-height:340px}
+
+/* conveyor belt (array) */
+.belt-label{font-size:11px;color:var(--sub);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.belt-label .tag{font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(245,158,11,.12);color:var(--accent)}
+.belt{display:flex;gap:10px;justify-content:center;padding:16px 0;position:relative}
+.belt-item{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.belt-num{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);transition:all .4s var(--glide);position:relative}
+.belt-num.active{border-color:var(--accent);background:rgba(245,158,11,.14);box-shadow:0 0 20px rgba(245,158,11,.3);color:var(--accent);transform:scale(1.08)}
+.belt-num.ok{border-color:var(--ok);background:rgba(74,222,128,.14);box-shadow:0 0 24px rgba(74,222,128,.4);color:var(--ok)}
+.belt-num.muted{opacity:.35}
+.belt-num.found{animation:foundBloom .7s var(--bloom)}
+@keyframes foundBloom{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}40%{box-shadow:0 0 0 14px rgba(74,222,128,.12);transform:scale(1.1)}100%{box-shadow:0 0 0 20px rgba(74,222,128,0);transform:scale(1)}}
+.belt-idx{font-size:10px;color:var(--sub)}
+.belt-ptr{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:10px;padding:2px 8px;border-radius:5px;background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.5);color:var(--accent);white-space:nowrap;transition:all .4s var(--glide)}
+
+/* need bubble */
+.need-bubble{position:absolute;top:-48px;left:50%;transform:translateX(-50%);font-size:11px;padding:4px 10px;border-radius:8px;background:var(--surface2);border:1px solid rgba(245,158,11,.3);color:var(--accent);white-space:nowrap;animation:bubbleIn .3s var(--settle)}
+.need-bubble::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:var(--surface2);border-right:1px solid rgba(245,158,11,.3);border-bottom:1px solid rgba(245,158,11,.3);rotate:45deg}
+@keyframes bubbleIn{from{opacity:0;transform:translateX(-50%) translateY(6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* memory shelf */
+.shelf-section{margin-top:28px}
+.shelf-label{font-size:11px;color:var(--sub);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.shelf-label .tag{font-size:10px;padding:1px 7px;border-radius:4px;background:rgba(74,222,128,.1);color:var(--ok)}
+.shelf{display:flex;gap:10px;min-height:56px;align-items:center;justify-content:center;padding:12px;border-radius:14px;border:1px dashed rgba(255,255,255,.12);background:rgba(255,255,255,.02);flex-wrap:wrap}
+.shelf-empty{font-size:12px;color:var(--sub)}
+.shelf-item{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);font-size:14px;animation:shelfIn .35s var(--settle);transition:all .3s}
+.shelf-item .sv{font-weight:600;color:var(--accent)}
+.shelf-item .si{font-size:11px;color:var(--sub)}
+.shelf-item.hit{border-color:var(--ok);background:rgba(74,222,128,.14);box-shadow:0 0 16px rgba(74,222,128,.35)}
+.shelf-item.hit .sv{color:var(--ok)}
+@keyframes shelfIn{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* match arc */
+.match-arc{position:absolute;pointer-events:none;z-index:5}
+.match-arc path{stroke:var(--ok);stroke-width:2;fill:none;stroke-dasharray:200;stroke-dashoffset:200;animation:drawArc .6s var(--glide) forwards}
+@keyframes drawArc{to{stroke-dashoffset:0}}
+
+/* explanation */
+.explain-bar{margin-top:16px;padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);display:flex;gap:10px;align-items:flex-start;min-height:60px}
+.explain-bar .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0}
+.explain-bar .dot.ok{background:var(--ok)}
+.explain-bar p{font-size:14px;line-height:1.7;color:rgba(230,230,230,.92)}
+.explain-bar p em{font-style:normal;color:var(--accent);font-weight:500}
+.explain-bar p strong{color:var(--ok);font-weight:600}
+.explain-bar p{animation:explainIn .35s var(--glide)}
+@keyframes explainIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* prediction card */
+.predict-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,20,25,.7);backdrop-filter:blur(4px);border-radius:20px;animation:overlayIn .3s ease-out}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.predict-card{width:calc(100% - 32px);margin:16px;background:var(--surface2);border:1px solid rgba(245,158,11,.3);border-radius:18px;padding:20px;animation:cardUp .4s var(--settle)}
+@keyframes cardUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.predict-card .pq{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.predict-card .pq .emoji{font-size:18px}
+.predict-card .ps{font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.6}
+.predict-options{display:flex;flex-direction:column;gap:8px}
+.predict-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);cursor:pointer;font-size:13px;text-align:left;transition:all .2s;font-family:inherit;color:var(--ink);width:100%}
+.predict-opt:hover{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06)}
+.predict-opt .key{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--sub);flex-shrink:0}
+.predict-opt.correct{border-color:var(--ok);background:rgba(74,222,128,.12);color:var(--ok)}
+.predict-opt.correct .key{border-color:var(--ok);color:var(--ok);background:rgba(74,222,128,.15)}
+.predict-opt.wrong{border-color:var(--danger);background:rgba(239,68,68,.08);animation:shake .4s ease-out}
+.predict-opt.wrong .key{border-color:var(--danger);color:var(--danger)}
+.predict-opt.dim{opacity:.35;pointer-events:none}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-2px)}80%{transform:translateX(2px)}}
+.predict-feedback{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.6;animation:explainIn .3s var(--glide)}
+.predict-feedback.good{background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:var(--ok)}
+.predict-feedback.bad{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--danger)}
+.predict-continue{margin-top:12px;width:100%;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#000;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.predict-continue:hover{filter:brightness(1.1)}
+
+/* code toggle */
+.code-toggle{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:11px;color:var(--sub);cursor:pointer;user-select:none}
+.code-toggle:hover{color:var(--ink)}
+.code-toggle .chev{transition:transform .2s}
+.code-toggle.open .chev{transform:rotate(90deg)}
+.code-panel{margin-top:8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);overflow:hidden;max-height:0;transition:max-height .35s var(--glide)}
+.code-panel.open{max-height:300px}
+.code-panel pre{padding:14px;font-size:12px;line-height:1.7;overflow-x:auto}
+.code-panel .cl{display:flex;padding:0 4px;border-radius:4px;transition:background .2s}
+.code-panel .cl.active{background:rgba(245,158,11,.1);box-shadow:inset 2px 0 0 var(--accent)}
+.code-panel .ln{width:24px;color:rgba(255,255,255,.2);text-align:right;padding-right:10px;flex-shrink:0;user-select:none}
+.code-panel .cl.active .ln{color:var(--accent)}
+.code-panel .lc{white-space:pre;color:rgba(230,230,230,.7)}
+.code-panel .cl.active .lc{color:var(--ink)}
+
+/* demo nav */
+.demo-nav{display:flex;align-items:center;gap:10px;margin-top:16px}
+.demo-nav .btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:none;color:var(--ink);font-size:13px;cursor:pointer;transition:all .2s;font-family:inherit}
+.demo-nav .btn:hover{border-color:rgba(255,255,255,.25)}
+.demo-nav .btn:disabled{opacity:.3;cursor:not-allowed}
+.demo-nav .btn.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.demo-nav .btn.primary:hover{filter:brightness(1.1)}
+.demo-nav .spacer{flex:1}
+.demo-nav .step-ind{font-size:12px;color:var(--sub)}
+
+/* ===== Phase 3: Recap ===== */
+.recap-hero{text-align:center;padding:16px 0 24px}
+.recap-hero .check{width:56px;height:56px;border-radius:50%;background:rgba(74,222,128,.15);border:2px solid var(--ok);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--ok);margin:0 auto 16px;animation:foundBloom .7s var(--bloom)}
+.recap-hero h2{font-size:20px;font-weight:700}
+.recap-hero p{font-size:13px;color:var(--sub);margin-top:6px}
+.takeaway{background:var(--surface);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start}
+.takeaway .tn{width:28px;height:28px;border-radius:8px;background:rgba(245,158,11,.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.takeaway .tt{font-size:13px;line-height:1.7}
+.takeaway .tt strong{color:var(--accent)}
+.invariant{margin-top:16px;padding:16px 18px;border-radius:14px;background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2)}
+.invariant .il{font-size:11px;color:var(--ok);font-weight:600;margin-bottom:6px}
+.invariant .it{font-size:13px;line-height:1.7;color:rgba(230,230,230,.9)}
+.recap-actions{display:flex;gap:10px;margin-top:20px}
+.recap-actions .btn{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:none;color:var(--ink);font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s}
+.recap-actions .btn:hover{border-color:rgba(255,255,255,.25)}
+.recap-actions .btn.primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+
+/* compare banner */
+.compare-banner{margin-top:24px;padding:14px 18px;border-radius:14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);font-size:12px;line-height:1.7;color:var(--sub)}
+.compare-banner strong{color:var(--accent)}
+.compare-banner .row{display:flex;gap:8px;margin-top:6px}
+.compare-banner .old{color:var(--sub);text-decoration:line-through;opacity:.6}
+.compare-banner .new{color:var(--ink)}
+
+@media(max-width:500px){
+  .contrast{grid-template-columns:1fr}
+  .metaphor{gap:0}
+  .meta-arrow{padding:0 8px;font-size:16px}
+  .meta-icon{width:52px;height:52px;font-size:22px}
+  .belt-num{width:44px;height:44px;font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===== PHASE 1: STRATEGY ===== -->
+<div class="phase active" id="phase1">
+  <div class="strategy-hero">
+    <span class="badge mono">LeetCode 1 · 简单 · 哈希</span>
+    <h1>两数之和：<em>边扫边记</em></h1>
+    <p class="sub">在数组里找两个数，加起来等于目标值。<br>关键不是「怎么找」，而是「怎么记住找过的」。</p>
+  </div>
+
+  <div class="idea-card">
+    <div class="idea-label mono">核心想法</div>
+    <div class="idea-text">每看到一个数，就问：<em>「之前有没有见过我的搭档？」</em><br>见过 → 直接配对；没见过 → 把自己记住，等别人来配。</div>
+  </div>
+
+  <div class="metaphor">
+    <div class="meta-node"><div class="meta-icon scan">👀</div><div class="meta-label">扫一个数</div></div>
+    <div class="meta-arrow">→</div>
+    <div class="meta-node"><div class="meta-icon shelf">🗄️</div><div class="meta-label">查记忆架</div></div>
+    <div class="meta-arrow">→</div>
+    <div class="meta-node"><div class="meta-icon match">🤝</div><div class="meta-label">配对 / 记住</div></div>
+  </div>
+
+  <div class="contrast">
+    <div class="contrast-card bad">
+      <div class="ct">暴力法</div>
+      <div class="cd">每个数都和后面所有数配对试试</div>
+      <div class="cx mono">O(n²)</div>
+    </div>
+    <div class="contrast-card good">
+      <div class="ct">记忆架法</div>
+      <div class="cd">扫一遍，边扫边查「搭档在不在架子上」</div>
+      <div class="cx mono">O(n)</div>
+    </div>
+  </div>
+
+  <button class="cta" onclick="goPhase(2)">
+    开始演示
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15L19.5 12z"/></svg>
+  </button>
+
+  <div class="compare-banner">
+    <strong>与当前方案的区别</strong>
+    <div class="row"><span class="old">当前：直接进代码逐帧播放，讲解是执行日志</span></div>
+    <div class="row"><span class="new">改进：先懂策略 → 关键节点先猜再看 → 代码按需展开</span></div>
+  </div>
+</div>
+
+<!-- ===== PHASE 2: DEMO ===== -->
+<div class="phase" id="phase2">
+  <div class="demo-header">
+    <button class="back" onclick="goPhase(1)">← 策略</button>
+    <h2>两数之和</h2>
+    <span class="complexity mono">O(n) · O(n)</span>
+  </div>
+
+  <div class="phase-track" id="phaseTrack"></div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="code-toggle" id="codeToggle" onclick="toggleCode()">
+    <span class="chev">▸</span> 看代码（按需展开）
+  </div>
+  <div class="code-panel" id="codePanel"><pre id="codeContent"></pre></div>
+
+  <div class="demo-nav">
+    <button class="btn" id="btnPrev" onclick="demoPrev()">← 上一步</button>
+    <span class="step-ind mono" id="stepInd"></span>
+    <div class="spacer"></div>
+    <button class="btn primary" id="btnNext" onclick="demoNext()">下一步 →</button>
+  </div>
+</div>
+
+<!-- ===== PHASE 3: RECAP ===== -->
+<div class="phase" id="phase3">
+  <div class="recap-hero">
+    <div class="check">✓</div>
+    <h2>你刚看懂了什么？</h2>
+    <p>nums = [2, 7, 11, 15]，target = 9 → 答案 [0, 1]</p>
+  </div>
+
+  <div class="takeaway"><div class="tn">1</div><div class="tt"><strong>策略</strong>：边扫边记。每个数只访问一次，查「搭档」靠记忆架 O(1) 查找，总共 O(n)。</div></div>
+  <div class="takeaway"><div class="tn">2</div><div class="tt"><strong>关键一步</strong>：i=1 看到 7 时，need=2，记忆架上正好有 2→0 —— 这就是「之前记住的」发挥了作用。</div></div>
+  <div class="takeaway"><div class="tn">3</div><div class="tt"><strong>为什么先存后查不行？</strong>如果先存 7 再查，会查到自己（7≠2 所以这题没事，但 [3,3] target=6 就会误配）。先查后存保证配对的是「之前的」数。</div></div>
+
+  <div class="invariant">
+    <div class="il mono">核心不变量</div>
+    <div class="it">记忆架始终记录「已扫过的数 → 下标」。每个新数只和「之前的」数配对，不会和自己配。</div>
+  </div>
+
+  <div class="recap-actions">
+    <button class="btn" onclick="goPhase(1)">← 回策略卡</button>
+    <button class="btn primary" onclick="restartDemo()">再看一遍</button>
+  </div>
+
+  <div class="compare-banner">
+    <strong>为什么这样更易懂？</strong>
+    <div class="row"><span class="new">① 策略先行：先懂「为什么」再看「怎么做」，不是直接扎进代码</span></div>
+    <div class="row"><span class="new">② 预测暂停：关键节点先猜再看，主动思考 > 被动观看</span></div>
+    <div class="row"><span class="new">③ 渐进揭示：默认只看舞台+讲解，代码/变量按需展开，降低认知负荷</span></div>
+    <div class="row"><span class="new">④ 隐喻语言：「搭档」「记忆架」替代「哈希表」「下标」，先建直觉再学术语</span></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const NUMS=[2,7,11,15],TARGET=9;
+const CODE=[
+'function twoSum(nums, target) {',
+'  const seen = new Map();',
+'  for (let i = 0; i < nums.length; i++) {',
+'    const need = target - nums[i];',
+'    if (seen.has(need)) {',
+'      return [seen.get(need), i];',
+'    }',
+'    seen.set(nums[i], i);',
+'  }',
+'  return [];',
+'}',
+];
+
+// demo steps: each has view state + explanation + optional prediction
+const STEPS=[
+  {phase:'准备',line:2,
+   nums:NUMS.map(v=>({v})),ptr:null,need:null,shelf:[],
+   explain:'准备一个<em>记忆架</em>（哈希表），用来记住「见过的数和它的位置」。目标：找两个数加起来等于 <em>9</em>。',
+   dot:'accent'},
+  {phase:'扫描',line:3,
+   nums:NUMS.map((v,i)=>({v,tone:i===0?'active':null})),ptr:{i:0},need:null,shelf:[],
+   explain:'轮到第 0 个数：<em>2</em>。它的搭档是谁？9 − 2 = <em>7</em>。',
+   dot:'accent'},
+  {phase:'扫描',line:4,
+   nums:NUMS.map((v,i)=>({v,tone:i===0?'active':null})),ptr:{i:0},need:7,shelf:[],
+   explain:'记忆架是空的，没有 7。怎么办？',
+   dot:'accent',
+   predict:{q:'记忆架空的，下一步该怎么做？',sub:'看到 2，搭档是 7，架子上什么都没有。',
+     opts:[{t:'把 2 记住，继续往后扫',correct:true},{t:'直接返回答案',correct:false},{t:'跳过 2，看下一个',correct:false}],
+     good:'对了！先把 2 放上架子（2→0），后面的数如果搭档是 2，就能直接配对。',
+     bad:'再想想：现在还没找到配对，不能返回。跳过就永远找不到 2 的搭档了。'}},
+  {phase:'扫描',line:8,
+   nums:NUMS.map((v,i)=>({v,tone:i===0?'muted':i===1?'active':null})),ptr:{i:1},need:null,shelf:[{v:2,i:0}],
+   explain:'2 已上架。轮到第 1 个数：<em>7</em>。搭档是 9 − 7 = <em>2</em>。',
+   dot:'accent'},
+  {phase:'命中',line:5,
+   nums:NUMS.map((v,i)=>({v,tone:i===0?'active':i===1?'active':null})),ptr:{i:1},need:2,shelf:[{v:2,i:0}],
+   explain:'记忆架上有 <em>2</em>！它在位置 0。',
+   dot:'accent',
+   predict:{q:'架子上有搭档 2，下一步？',sub:'7 的搭档是 2，记忆架上正好有 2→0。',
+     opts:[{t:'命中！返回 [0, 1]',correct:true},{t:'继续往后扫',correct:false},{t:'把 7 也记住',correct:false}],
+     good:'对了！2 + 7 = 9，位置 [0, 1]。一次遍历就找到了，不用两两配对。',
+     bad:'已经找到搭档了，不需要继续。记住 7 是多余的一步——答案就在眼前。'}},
+  {phase:'返回',line:6,
+   nums:NUMS.map((v,i)=>({v,tone:i<=1?'ok':'muted',found:i<=1})),ptr:{i:1},need:null,shelf:[{v:2,i:0,hit:true}],
+   explain:'<strong>答案 [0, 1]</strong>。nums[0] + nums[1] = 2 + 7 = 9。只扫了 2 个数就命中，记忆架让查找变成 O(1)。',
+   dot:'ok',complete:true},
+];
+
+let step=0,codeOpen=false,predictAnswered=false;
+
+function goPhase(n){
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
+  document.getElementById('phase'+n).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(n===2){step=0;predictAnswered=false;renderDemo();}
+}
+function restartDemo(){goPhase(2);}
+
+function renderPhaseTrack(){
+  const phases=['准备','扫描','命中','返回'];
+  const cur=STEPS[step].phase;
+  const curIdx=phases.indexOf(cur);
+  document.getElementById('phaseTrack').innerHTML=phases.map((p,i)=>{
+    const cls=i<curIdx?'done':i===curIdx?'current':'';
+    return `<div class="phase-step ${cls}"><div class="bar"></div><div class="lbl">${p}</div></div>`;
+  }).join('');
+}
+
+function renderDemo(){
+  const s=STEPS[step];
+  renderPhaseTrack();
+  const stage=document.getElementById('stage');
+
+  // belt
+  const beltHtml=s.nums.map((n,i)=>{
+    const toneCls=n.tone?' '+n.tone:'';
+    const foundCls=n.found?' found':'';
+    const ptr=s.ptr&&s.ptr.i===i?`<div class="belt-ptr">i=${i}</div>`:'';
+    const need=s.need!==null&&s.ptr&&s.ptr.i===i?`<div class="need-bubble mono">搭档 = ${s.need}</div>`:'';
+    return `<div class="belt-item">${ptr}${need}<div class="belt-num${toneCls}${foundCls}">${n.v}</div><div class="belt-idx mono">${i}</div></div>`;
+  }).join('');
+
+  // shelf
+  const shelfHtml=s.shelf.length===0?'<span class="shelf-empty">（空架子）</span>':
+    s.shelf.map(item=>`<div class="shelf-item${item.hit?' hit':''}"><span class="sv mono">${item.v}</span><span class="si mono">→ ${item.i}</span></div>`).join('');
+
+  // match arc for complete step
+  let arcHtml='';
+  if(s.complete){
+    arcHtml=`<svg class="match-arc" width="100%" height="60" style="top:0;left:0"><path d="M 80 50 Q 140 10 200 50" /></svg>`;
+  }
+
+  stage.innerHTML=`
+    <div class="belt-label"><span class="tag mono">传送带</span> nums = [${NUMS.join(', ')}] · target = ${TARGET}</div>
+    <div class="belt" style="position:relative">${beltHtml}${arcHtml}</div>
+    <div class="shelf-section">
+      <div class="shelf-label"><span class="tag mono">记忆架</span> seen：值 → 位置</div>
+      <div class="shelf">${shelfHtml}</div>
+    </div>
+    <div class="explain-bar"><span class="dot ${s.dot==='ok'?'ok':''}"></span><p key="${step}">${s.explain}</p></div>
+    ${s.predict&&!predictAnswered?renderPredict(s.predict):''}
+  `;
+
+  document.getElementById('stepInd').textContent=`${step+1} / ${STEPS.length}`;
+  document.getElementById('btnPrev').disabled=step<=0;
+  const nextBtn=document.getElementById('btnNext');
+  if(s.predict&&!predictAnswered){nextBtn.disabled=true;nextBtn.textContent='先回答 ↑';}
+  else if(step>=STEPS.length-1){nextBtn.textContent='看复盘 →';nextBtn.disabled=false;}
+  else{nextBtn.textContent='下一步 →';nextBtn.disabled=false;}
+
+  renderCode(s.line);
+}
+
+function renderPredict(p){
+  return `<div class="predict-overlay"><div class="predict-card">
+    <div class="pq"><span class="emoji">🤔</span>${p.q}</div>
+    <div class="ps">${p.sub}</div>
+    <div class="predict-options" id="predictOpts">
+      ${p.opts.map((o,i)=>`<button class="predict-opt" onclick="answerPredict(${i})"><span class="key mono">${String.fromCharCode(65+i)}</span>${o.t}</button>`).join('')}
+    </div>
+    <div id="predictFeedback"></div>
+  </div></div>`;
+}
+
+function answerPredict(idx){
+  const s=STEPS[step],p=s.predict,opt=p.opts[idx];
+  const btns=document.querySelectorAll('.predict-opt');
+  if(opt.correct){
+    predictAnswered=true;
+    btns.forEach((b,i)=>{b.classList.add(i===idx?'correct':'dim');b.disabled=true;});
+    document.getElementById('predictFeedback').innerHTML=`<div class="predict-feedback good">✓ ${p.good}</div><button class="predict-continue" onclick="demoNext()">继续 →</button>`;
+    document.getElementById('btnNext').disabled=false;
+    document.getElementById('btnNext').textContent='下一步 →';
+  }else{
+    btns[idx].classList.add('wrong');
+    setTimeout(()=>btns[idx].classList.remove('wrong'),500);
+    document.getElementById('predictFeedback').innerHTML=`<div class="predict-feedback bad">✗ ${p.bad}</div>`;
+  }
+}
+
+function demoNext(){
+  const s=STEPS[step];
+  if(s.predict&&!predictAnswered)return;
+  if(step>=STEPS.length-1){goPhase(3);return;}
+  step++;predictAnswered=false;renderDemo();
+}
+function demoPrev(){if(step>0){step--;predictAnswered=false;renderDemo();}}
+
+function toggleCode(){
+  codeOpen=!codeOpen;
+  document.getElementById('codeToggle').classList.toggle('open',codeOpen);
+  document.getElementById('codePanel').classList.toggle('open',codeOpen);
+}
+function renderCode(activeLine){
+  document.getElementById('codeContent').innerHTML=CODE.map((l,i)=>{
+    const n=i+1,active=n===activeLine;
+    return `<div class="cl${active?' active':''}"><span class="ln">${n}</span><span class="lc">${l.replace(/</g,'&lt;')}</span></div>`;
+  }).join('');
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  const p2=document.getElementById('phase2').classList.contains('active');
+  if(!p2)return;
+  if(e.key==='ArrowRight'){e.preventDefault();demoNext();}
+  else if(e.key==='ArrowLeft'){e.preventDefault();demoPrev();}
+});
+
+renderDemo();
+</script>
+</body>
+</html>

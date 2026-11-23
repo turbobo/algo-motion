@@ -23,7 +23,7 @@ export function FrameList({ frames, cursor, onSeek }: Props) {
   if (frames.length === 0) return null
 
   return (
-    <div className="hidden h-48 shrink-0 flex-col border-t border-white/8 lg:flex">
+    <div className="hidden h-48 shrink-0 flex-col border-t border-line lg:flex">
       <div className="flex shrink-0 items-center justify-between px-3 py-2 font-mono text-[11px] text-sub">
         <span>关键帧</span>
         <span className="text-sub">点击直达</span>
@@ -39,7 +39,7 @@ export function FrameList({ frames, cursor, onSeek }: Props) {
             onClick={() => onSeek(i)}
             aria-current={i === cursor ? 'step' : undefined}
             className={`mb-0.5 flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
-              i === cursor ? 'bg-accent/15' : 'hover:bg-white/5'
+              i === cursor ? 'bg-accent/15' : 'hover:bg-fill'
             }`}
           >
             <span

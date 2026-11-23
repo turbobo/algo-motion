@@ -61,8 +61,8 @@ function IconReplay() {
 }
 
 const BTN =
-  'flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-ink/80 ' +
-  'transition-colors hover:border-white/25 hover:text-ink active:scale-95 disabled:opacity-40'
+  'flex h-9 w-9 items-center justify-center rounded-lg border border-line text-ink/80 ' +
+  'transition-colors hover:border-line-strong hover:text-ink active:scale-95 disabled:opacity-40'
 
 export function PlaybackBar({ cursor, total, playing, speed, onToggle, onPrev, onNext, onSeek, onSpeedChange, onReplay }: Props) {
   const last = Math.max(total - 1, 0)
@@ -72,7 +72,7 @@ export function PlaybackBar({ cursor, total, playing, speed, onToggle, onPrev, o
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-2xl border border-white/8 bg-surface px-3 py-2 md:gap-3">
+    <div className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-3 py-2 md:gap-3">
       <button
         type="button"
         className={BTN}
@@ -105,7 +105,7 @@ export function PlaybackBar({ cursor, total, playing, speed, onToggle, onPrev, o
         value={cursor}
         onChange={(e) => onSeek(Number(e.target.value))}
         aria-label="播放进度"
-        className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/10 accent-accent"
+        className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-fill-2 accent-accent"
       />
 
       <span className="w-14 shrink-0 text-center font-mono text-xs text-sub">

@@ -5,7 +5,7 @@
  * 结构说明：外层负责选择「播放哪个用例的帧」；内层用 key 重挂载，
  * 切换用例时播放状态自然重置。
  */
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AlgorithmCase, Frame, FrameDiagnostics } from '../types'
 import { describeDiagnostics, hasDiagnostics } from '../engine/sanitize'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -17,6 +17,7 @@ import { FrameList } from '../components/player/FrameList'
 import { CallStackPanel } from '../components/player/CallStackPanel'
 import { VarsPanel } from '../components/player/VarsPanel'
 import { diffViews } from '../components/renderers/frameDiff'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 interface Props {
   algoCase: AlgorithmCase
@@ -127,11 +128,51 @@ function PlayerInner({
     }
     return out
   }, [frames, cursor])
+  const isComplete = frames.length > 0 && cursor === frames.length - 1
+
+  // 帧呼吸：前进上飘 / 后退下飘。用 class 重触发而非重挂载，保护指针滑移的持久元素
+  const stageBoxRef = useRef<HTMLDivElement>(null)
+  const prevCursorRef = useRef(cursor)
+  useEffect(() => {
+    const dir = cursor - prevCursorRef.current
+    prevCursorRef.current = cursor
+    const el = stageBoxRef.current
+    if (!el || dir === 0) return
+    el.classList.remove('animate-breath-fwd', 'animate-breath-back')
+    void el.offsetWidth
+    el.classList.add(dir > 0 ? 'animate-breath-fwd' : 'animate-breath-back')
+  }, [cursor])
+
   const diagLines = diagnosticLines(algoCase.diagnostics)
   const diagCount = diagLines.reduce((sum, line) => sum + (Number(line.match(/\d+/)?.[0]) ?? 0), 0)
 
   // 开场不自动播：停在第一帧，等用户点中央播放按钮（任何播放/步进/拖拽也算已开始）
   const [started, setStarted] = useState(false)
+
+  // ===== 教学层：策略先行 / 预测暂停 / 渐进揭示 =====
+  const lesson = algoCase.lesson
+  const [showCode, setShowCode] = useState(!lesson)
+  const [answered, setAnswered] = useState<Record<number, boolean>>({})
+  const [wrongIdx, setWrongIdx] = useState<number | null>(null)
+  const activePredict = lesson?.predicts?.find((p) => p.atFrame === cursor)
+  const pendingPredict = activePredict && !answered[cursor] ? activePredict : null
+
+  // 到达预测点自动暂停，先猜再看
+  useEffect(() => {
+    if (pendingPredict && playing) setPlaying(false)
+  }, [pendingPredict, playing, setPlaying])
+
+  const answerPredict = (idx: number) => {
+    if (!pendingPredict) return
+    if (pendingPredict.options[idx]?.correct) {
+      setAnswered((a) => ({ ...a, [cursor]: true }))
+      setWrongIdx(null)
+      setStarted(true)
+    } else {
+      setWrongIdx(idx)
+    }
+  }
+
   const handleToggle = useCallback(() => {
     setStarted(true)
     toggle()
@@ -141,9 +182,10 @@ function PlayerInner({
     prev()
   }, [prev])
   const handleNext = useCallback(() => {
+    if (pendingPredict) return
     setStarted(true)
     next()
-  }, [next])
+  }, [next, pendingPredict])
   const handleSeek = useCallback(
     (n: number) => {
       setStarted(true)
@@ -201,11 +243,11 @@ function PlayerInner({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-center gap-3 border-b border-white/8 px-4 py-2.5">
+      <header className="flex items-center gap-3 border-b border-line px-4 py-2.5">
         <button
           type="button"
           onClick={onBack}
-          className="shrink-0 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink"
+          className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-xs text-sub transition-colors hover:border-line-strong hover:text-ink"
         >
           ← {backLabel}
         </button>
@@ -222,7 +264,7 @@ function PlayerInner({
         ) : null}
         {algoCase.complexity ? (
           <span
-            className="shrink-0 rounded-full border border-white/10 px-2.5 py-1 font-mono text-[11px] text-sub"
+            className="shrink-0 rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-sub"
             title="时间复杂度 · 空间复杂度（标准最优解口径）"
           >
             {algoCase.complexity}
@@ -245,12 +287,23 @@ function PlayerInner({
             已清洗 {diagCount} 处
           </span>
         ) : null}
+        {lesson ? (
+          <button
+            type="button"
+            onClick={() => setShowCode((v) => !v)}
+            className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 font-mono text-xs text-sub transition-colors hover:border-line-strong hover:text-ink"
+          >
+            {showCode ? '收起代码' : '看代码'}
+          </button>
+        ) : null}
+        <ThemeToggle />
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-3 lg:flex-row">
-        {/* 代码面板 */}
-        <section className="order-2 flex max-h-[30dvh] min-h-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-surface lg:order-1 lg:max-h-none lg:w-[40%] lg:max-w-[540px]">
-          <div className="flex shrink-0 items-center justify-between border-b border-white/8 px-3 py-2 font-mono text-[11px] text-sub">
+        {/* 代码面板（渐进揭示：有教学设计的题默认收起，按需展开） */}
+        {showCode ? (
+        <section className="order-2 flex max-h-[30dvh] min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface lg:order-1 lg:max-h-none lg:w-[40%] lg:max-w-[540px]">
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-3 py-2 font-mono text-[11px] text-sub">
             <span>
               {algoCase.result.fnName}(…) · {lineCount} 行
             </span>
@@ -262,36 +315,111 @@ function PlayerInner({
           {/* 关键帧列表：点击直达任意帧（窄屏隐藏，lg 以上显示） */}
           <FrameList frames={frames} cursor={cursor} onSeek={handleSeek} />
         </section>
+        ) : null}
 
         {/* 舞台列 */}
         <section className="order-1 flex min-h-0 flex-1 flex-col gap-3 lg:order-2">
           <div className="relative min-h-0 flex-1">
-            <div className="h-full overflow-auto rounded-2xl border border-white/8 bg-bg/60 p-3 md:p-4">
+            <div ref={stageBoxRef} className="h-full overflow-auto rounded-2xl border border-line bg-bg/60 p-3 md:p-4">
               {/* 单帧视图出错只影响舞台，翻帧（cursor 变化）自动恢复 */}
               <ErrorBoundary resetKey={cursor} label="舞台">
-                <StageView frame={frame} flash={flash} frameKey={cursor} />
+                <StageView frame={frame} flash={flash} frameKey={cursor} complete={isComplete} />
               </ErrorBoundary>
             </div>
-            {/* 开场播放按钮：未开始前盖住舞台，等用户准备好再开播 */}
+            {/* 开场：有教学设计先展示策略卡（先懂为什么），否则中央播放按钮 */}
             {!started ? (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-bg/60">
-                <button
-                  type="button"
-                  onClick={handleToggle}
-                  aria-label="开始播放"
-                  className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/60 bg-accent/20 text-accent shadow-2xl shadow-black/50 transition-all hover:scale-105 hover:bg-accent/30 active:scale-95"
-                >
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M7 4.5v15L19.5 12z" />
-                  </svg>
-                </button>
-                <span className="font-mono text-xs text-sub">点击播放动画</span>
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 overflow-auto rounded-2xl bg-bg/80 p-4 backdrop-blur-sm">
+                {lesson ? (
+                  <div className="w-full max-w-md animate-fadeIn rounded-2xl border border-line bg-surface p-5">
+                    <div className="font-mono text-[11px] font-semibold tracking-wide text-accent">核心想法</div>
+                    <p className="mt-2 text-[15px] font-medium leading-relaxed text-ink">{lesson.idea}</p>
+                    {lesson.contrast ? (
+                      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <div className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-[11px] leading-relaxed text-danger-text">
+                          {lesson.contrast.bad}
+                        </div>
+                        <div className="rounded-lg border border-ok/30 bg-ok/5 px-3 py-2 text-[11px] leading-relaxed text-ok">
+                          {lesson.contrast.good}
+                        </div>
+                      </div>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={handleToggle}
+                      className="mt-4 w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-black transition-all hover:brightness-110 active:scale-[0.98]"
+                    >
+                      开始演示 →
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleToggle}
+                      aria-label="开始播放"
+                      className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/60 bg-accent/20 text-accent shadow-2xl shadow-black/50 transition-all hover:scale-105 hover:bg-accent/30 active:scale-95"
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M7 4.5v15L19.5 12z" />
+                      </svg>
+                    </button>
+                    <span className="font-mono text-xs text-sub">点击播放动画</span>
+                  </>
+                )}
+              </div>
+            ) : null}
+
+            {/* 预测暂停：关键决策点先猜再看 */}
+            {started && activePredict ? (
+              <div className="absolute inset-0 z-20 flex items-end justify-center rounded-2xl bg-bg/70 backdrop-blur-sm">
+                <div className="m-3 w-full max-w-md animate-fadeIn rounded-2xl border border-accent/30 bg-surface-2 p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                    <span aria-hidden>🤔</span> {activePredict.question}
+                  </div>
+                  {answered[cursor] ? (
+                    <>
+                      <div className="mt-3 rounded-lg border border-ok/30 bg-ok/10 px-3 py-2 text-[12px] leading-relaxed text-ok">
+                        ✓ {activePredict.explain}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="mt-3 w-full rounded-lg bg-accent px-3 py-2 text-[13px] font-semibold text-black transition-all hover:brightness-110"
+                      >
+                        继续 →
+                      </button>
+                    </>
+                  ) : (
+                    <div className="mt-3 flex flex-col gap-2">
+                      {activePredict.options.map((o, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => answerPredict(i)}
+                          className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-[13px] transition-all ${
+                            wrongIdx === i
+                              ? 'animate-flash-danger border-danger/50 bg-danger/10 text-danger-text'
+                              : 'border-line bg-fill text-ink hover:border-accent/40 hover:bg-accent/5'
+                          }`}
+                        >
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-line font-mono text-[11px] text-sub">
+                            {String.fromCharCode(65 + i)}
+                          </span>
+                          {o.text}
+                        </button>
+                      ))}
+                      {wrongIdx !== null ? (
+                        <div className="text-[11px] text-danger-text">再想想——答案就在眼前的状态里。</div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : null}
           </div>
 
           {/* 讲解条 */}
-          <div className="shrink-0 rounded-2xl border border-white/8 bg-surface px-4 py-3">
+          <div className="shrink-0 rounded-2xl border border-line bg-surface px-4 py-3">
             <div className="flex items-start gap-2.5">
               <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
               <p key={cursor} className="min-h-[2.75rem] animate-fadeIn text-[13px] leading-relaxed text-ink/90">
@@ -301,6 +429,21 @@ function PlayerInner({
             <CallStackPanel stack={frame?.stack} />
             <VarsPanel vars={frame?.vars} flash={flashVars} frameKey={cursor} />
           </div>
+
+          {/* 复盘：末帧展示 takeaway（教学层） */}
+          {isComplete && lesson?.takeaways ? (
+            <div className="shrink-0 animate-fadeIn rounded-2xl border border-ok/30 bg-ok/5 px-4 py-3">
+              <div className="font-mono text-[11px] font-semibold text-ok">复盘 · 你刚看懂了什么</div>
+              <ul className="mt-2 space-y-1.5">
+                {lesson.takeaways.map((t, i) => (
+                  <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-ink/90">
+                    <span className="shrink-0 font-mono text-ok">{i + 1}</span>
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           {/* 用例切换 */}
           {algoCase.tests.length > 1 ? (
@@ -313,7 +456,7 @@ function PlayerInner({
                   className={`rounded-full border px-3 py-1 font-mono text-[11px] transition-colors ${
                     i === testIdx
                       ? 'border-accent/50 bg-accent/15 text-accent'
-                      : 'border-white/10 text-sub hover:border-white/25 hover:text-ink'
+                      : 'border-line text-sub hover:border-line-strong hover:text-ink'
                   }`}
                   title={t.error}
                 >

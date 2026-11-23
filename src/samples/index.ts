@@ -2,7 +2,7 @@
  * 样题库：内置两道题的「插桩产物」，与 LLM 生成链路输出格式完全一致。
  * 作用：无 API Key 时也可完整体验「执行 → 帧序列 → 播放」链路。
  */
-import type { InstrumentResult } from '../types'
+import type { InstrumentResult, Lesson } from '../types'
 import twoSumInstrumented from './raw/twoSum.js?raw'
 import reverseListInstrumented from './raw/reverseList.js?raw'
 import maxSubArrayInstrumented from './raw/maxSubArray.js?raw'
@@ -118,6 +118,8 @@ export interface Sample {
   category: string
   /** LeetCode 官方难度 */
   difficulty: Difficulty
+  /** 教学设计（策略卡 / 预测暂停 / 复盘，可选） */
+  lesson?: Lesson
 }
 
 /** 装配前的样题：分类与难度由 SAMPLE_META 统一补齐 */
@@ -2385,6 +2387,37 @@ const RAW_SAMPLES: RawSample[] = [
       instrumentedCode: twoSumInstrumented,
       fnName: 'twoSum',
       summary: '哈希表一次遍历：边扫边查 complement，O(n) 找出答案',
+    },
+    lesson: {
+      idea: '每看到一个数，就问：「之前有没有见过我的搭档？」见过→直接配对；没见过→把自己记住，等别人来配。',
+      contrast: { bad: '暴力法：每个数和后面所有数配对，O(n²)', good: '记忆架法：扫一遍边扫边查，O(n)' },
+      predicts: [
+        {
+          atFrame: 2,
+          question: '看到 2，搭档是 7，记忆架是空的。下一步该怎么做？',
+          options: [
+            { text: '把 2 记住，继续往后扫', correct: true },
+            { text: '直接返回答案', correct: false },
+            { text: '跳过 2，看下一个', correct: false },
+          ],
+          explain: '先把 2 放上架子（2→0），后面的数如果搭档是 2，就能直接配对。',
+        },
+        {
+          atFrame: 5,
+          question: '看到 7，搭档是 2，记忆架上正好有 2→0。下一步？',
+          options: [
+            { text: '命中！返回 [0, 1]', correct: true },
+            { text: '继续往后扫', correct: false },
+            { text: '把 7 也记住', correct: false },
+          ],
+          explain: '2 + 7 = 9，位置 [0, 1]。一次遍历就找到，不用两两配对。',
+        },
+      ],
+      takeaways: [
+        '策略：边扫边记。每个数只访问一次，查搭档靠记忆架 O(1)，总共 O(n)。',
+        '关键一步：i=1 看到 7 时 need=2，架上正好有 2→0——「之前记住的」发挥作用。',
+        '易错点：先查后存，保证配对的是「之前的」数，不会和自己配（[3,3] 也安全）。',
+      ],
     },
   },
   {

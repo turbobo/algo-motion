@@ -13,38 +13,45 @@ export interface ToneStyle {
 
 export const TONE_STYLES: Record<Tone, ToneStyle> = {
   active: {
-    color: '#f59e0b',
-    bg: 'rgba(245, 158, 11, 0.14)',
-    glow: 'rgba(245, 158, 11, 0.35)',
-    border: 'rgba(245, 158, 11, 0.75)',
+    color: 'rgb(var(--c-accent))',
+    bg: 'rgb(var(--c-accent) / 0.14)',
+    glow: 'rgb(var(--c-accent) / 0.35)',
+    border: 'rgb(var(--c-accent) / 0.75)',
   },
   ok: {
-    color: '#4ade80',
-    bg: 'rgba(74, 222, 128, 0.14)',
-    glow: 'rgba(74, 222, 128, 0.45)',
-    border: 'rgba(74, 222, 128, 0.8)',
+    color: 'rgb(var(--c-ok))',
+    bg: 'rgb(var(--c-ok) / 0.14)',
+    glow: 'rgb(var(--c-ok) / 0.45)',
+    border: 'rgb(var(--c-ok) / 0.8)',
   },
   warn: {
-    color: '#fbbf24',
-    bg: 'rgba(251, 191, 36, 0.12)',
-    glow: 'rgba(251, 191, 36, 0.3)',
-    border: 'rgba(251, 191, 36, 0.65)',
+    color: 'rgb(var(--c-warn))',
+    bg: 'rgb(var(--c-warn) / 0.12)',
+    glow: 'rgb(var(--c-warn) / 0.3)',
+    border: 'rgb(var(--c-warn) / 0.65)',
   },
   danger: {
-    color: '#ef4444',
-    bg: 'rgba(239, 68, 68, 0.14)',
-    glow: 'rgba(239, 68, 68, 0.4)',
-    border: 'rgba(239, 68, 68, 0.75)',
+    color: 'rgb(var(--c-danger-text))',
+    bg: 'rgb(var(--c-danger) / 0.14)',
+    glow: 'rgb(var(--c-danger) / 0.4)',
+    border: 'rgb(var(--c-danger) / 0.75)',
   },
   muted: {
-    color: '#8b95a5',
-    bg: 'rgba(139, 149, 165, 0.08)',
+    color: 'rgb(var(--c-sub))',
+    bg: 'rgb(var(--c-sub) / 0.08)',
     glow: 'transparent',
-    border: 'rgba(255, 255, 255, 0.1)',
+    border: 'var(--line)',
   },
 }
 
 /** 视图卡片统一标题 */
 export function ViewTitle({ text }: { text: string }) {
   return <div className="mb-2 font-mono text-[11px] tracking-wide text-sub">{text}</div>
+}
+
+/** 语义脉冲：flash 颜色跟随 tone（ok 绿 / danger 红 / 其余琥珀） */
+export function flashClass(tone: Tone | undefined): string {
+  if (tone === 'ok') return 'animate-flash-ok'
+  if (tone === 'danger') return 'animate-flash-danger'
+  return 'animate-flash-active'
 }

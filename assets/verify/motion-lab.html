@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoMotion · 动效改造实验室</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --surface: #1a2332;
+    --surface-2: #222d3d;
+    --ink: #e6e6e6;
+    --sub: #8b95a5;
+    --accent: #f59e0b;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --danger: #ef4444;
+    --danger-text: #f87171;
+    --glide: cubic-bezier(0.22, 1, 0.36, 1);
+    --settle: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --bloom: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* ===== Layout ===== */
+  .app { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .header h1 .accent { color: var(--accent); }
+  .header p { margin-top: 6px; font-size: 13px; color: var(--sub); line-height: 1.6; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin-bottom: 20px; padding: 12px 16px;
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+  }
+  .mode-toggle { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); }
+  .mode-toggle button {
+    padding: 7px 16px; font-size: 12px; font-weight: 500; cursor: pointer;
+    background: transparent; color: var(--sub); border: none; transition: all 0.2s;
+    font-family: inherit;
+  }
+  .mode-toggle button.active { background: var(--accent); color: #000; }
+  .mode-toggle button:not(.active):hover { color: var(--ink); background: rgba(255,255,255,0.05); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+    background: transparent; color: var(--ink); transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn:hover { border-color: rgba(255,255,255,0.25); }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.1); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn svg { width: 16px; height: 16px; }
+
+  .spacer { flex: 1; }
+  .frame-indicator { font-size: 12px; color: var(--sub); min-width: 56px; text-align: center; }
+
+  .switch { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--sub); cursor: pointer; user-select: none; }
+  .switch input { display: none; }
+  .switch .track { width: 32px; height: 18px; border-radius: 9px; background: rgba(255,255,255,0.12); position: relative; transition: background 0.2s; }
+  .switch .track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--sub); transition: all 0.2s var(--glide); }
+  .switch input:checked + .track { background: rgba(245,158,11,0.4); }
+  .switch input:checked + .track::after { left: 16px; background: var(--accent); }
+
+  /* ===== Stage ===== */
+  .stage-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 860px) { .stage-grid.compare { grid-template-columns: 1fr 1fr; } }
+
+  .stage-card {
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 20px; position: relative; overflow: hidden;
+  }
+  .stage-card .label {
+    position: absolute; top: 12px; right: 16px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 6px;
+  }
+  .stage-card.current .label { background: rgba(139,149,165,0.15); color: var(--sub); }
+  .stage-card.proposed .label { background: rgba(245,158,11,0.15); color: var(--accent); }
+
+  .stage-title { font-size: 11px; color: var(--sub); margin-bottom: 16px; }
+  .stage-title .mono { color: var(--ink); }
+
+  /* ===== Array View ===== */
+  .array-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .array-row { display: inline-flex; gap: 8px; position: relative; padding-top: 28px; }
+  .cell-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+  .cell {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04); font-size: 14px; position: relative;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s, color 0.3s;
+  }
+  .cell .val { display: inline-block; }
+  .cell-idx { font-size: 10px; color: var(--sub); }
+
+  /* tone styles */
+  .cell.t-active { border-color: rgba(245,158,11,0.75); background: rgba(245,158,11,0.14); box-shadow: 0 0 14px rgba(245,158,11,0.35); color: var(--accent); }
+  .cell.t-ok { border-color: rgba(74,222,128,0.8); background: rgba(74,222,128,0.14); box-shadow: 0 0 14px rgba(74,222,128,0.45); color: var(--ok); }
+  .cell.t-danger { border-color: rgba(239,68,68,0.75); background: rgba(239,68,68,0.14); box-shadow: 0 0 14px rgba(239,68,68,0.4); color: var(--danger-text); }
+  .cell.t-muted { border-color: rgba(255,255,255,0.1); background: rgba(139,149,165,0.08); color: var(--sub); }
+
+  /* ===== CURRENT motion ===== */
+  .current .cell .val { animation: popIn 0.25s ease-out; }
+  @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+  .current .cell.flash { animation: flashAmber 0.75s ease-out; }
+  @keyframes flashAmber {
+    0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.65); transform: scale(1.1); }
+    60% { box-shadow: 0 0 0 7px rgba(245,158,11,0); transform: scale(1); }
+    100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); transform: scale(1); }
+  }
+  /* current pointers: in-cell, teleport */
+  .current .pointer-slot { height: 20px; display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
+  .current .ptr {
+    font-size: 10px; padding: 1px 5px; border-radius: 4px;
+    border: 1px solid rgba(245,158,11,0.4); background: rgba(245,158,11,0.15); color: var(--accent);
+    line-height: 16px;
+  }
+
+  /* ===== PROPOSED motion ===== */
+  /* value settle: old up-out, new up-in */
+  .proposed .cell .val { animation: settleIn 0.22s var(--settle); }
+  @keyframes settleIn { 0% { transform: translateY(8px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+  .proposed .cell .val.leaving { animation: settleOut 0.12s ease-in forwards; position: absolute; }
+  @keyframes settleOut { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
+
+  /* semantic flash */
+  .proposed .cell.flash-active { animation: flashActive 0.6s var(--glide); }
+  .proposed .cell.flash-ok { animation: flashOk 0.7s var(--bloom); }
+  .proposed .cell.flash-danger { animation: flashDanger 0.5s ease-out; }
+  @keyframes flashActive {
+    0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.6); transform: scale(1.06); }
+    100% { box-shadow: 0 0 0 8px rgba(245,158,11,0); transform: scale(1); }
+  }
+  @keyframes flashOk {
+    0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.7); transform: scale(1.08); }
+    50% { box-shadow: 0 0 0 10px rgba(74,222,128,0.15); }
+    100% { box-shadow: 0 0 0 14px rgba(74,222,128,0); transform: scale(1); }
+  }
+  @keyframes flashDanger {
+    0%, 100% { transform: translateX(0); box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
+    20% { transform: translateX(-2px); box-shadow: 0 0 0 4px rgba(239,68,68,0.3); }
+    40% { transform: translateX(2px); }
+    60% { transform: translateX(-1px); box-shadow: 0 0 0 7px rgba(239,68,68,0); }
+    80% { transform: translateX(1px); }
+  }
+  /* ok checkmark bloom */
+  .proposed .cell .check {
+    position: absolute; top: -6px; right: -6px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--ok); color: #000;
+    display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;
+    animation: checkBloom 0.6s var(--bloom);
+  }
+  @keyframes checkBloom { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+  /* proposed pointers: absolute layer, glide */
+  .proposed .pointer-slot { height: 20px; } /* reserve space, no in-cell pointers */
+  .proposed .pointer-layer { position: absolute; top: 0; left: 0; height: 20px; pointer-events: none; }
+  .proposed .ptr-glide {
+    position: absolute; top: 0; font-size: 10px; padding: 1px 5px; border-radius: 4px;
+    border: 1px solid rgba(245,158,11,0.5); background: rgba(245,158,11,0.18); color: var(--accent);
+    line-height: 16px; white-space: nowrap;
+    transition: transform 0.4s var(--glide), opacity 0.2s;
+    transform: translateX(0);
+  }
+  .proposed .ptr-ghost {
+    position: absolute; top: 0; font-size: 10px; padding: 1px 5px; border-radius: 4px;
+    border: 1px solid rgba(245,158,11,0.2); background: rgba(245,158,11,0.06); color: rgba(245,158,11,0.4);
+    line-height: 16px; white-space: nowrap; pointer-events: none;
+    animation: ghostFade 0.4s ease-out forwards;
+  }
+  @keyframes ghostFade { 0% { opacity: 0.6; } 100% { opacity: 0; } }
+
+  /* frame breath */
+  .proposed .stage-card.breath-fwd { animation: breathFwd 0.25s var(--glide); }
+  .proposed .stage-card.breath-back { animation: breathBack 0.25s var(--glide); }
+  @keyframes breathFwd { 0% { transform: translateY(1px); opacity: 0.92; } 100% { transform: translateY(0); opacity: 1; } }
+  @keyframes breathBack { 0% { transform: translateY(-1px); opacity: 0.92; } 100% { transform: translateY(0); opacity: 1; } }
+
+  /* completion bloom */
+  .proposed .cell.complete { animation: completeBloom 0.6s var(--bloom); }
+  @keyframes completeBloom {
+    0% { box-shadow: 0 0 0 0 rgba(74,222,128,0.5); transform: scale(1); }
+    40% { box-shadow: 0 0 0 12px rgba(74,222,128,0.12); transform: scale(1.06); }
+    100% { box-shadow: 0 0 0 18px rgba(74,222,128,0); transform: scale(1); }
+  }
+
+  /* ===== Hashmap ===== */
+  .hashmap { margin-top: 20px; }
+  .hashmap-title { font-size: 11px; color: var(--sub); margin-bottom: 8px; }
+  .hash-rows { display: flex; flex-direction: column; gap: 6px; }
+  .hash-row {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+    border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03); font-size: 12px;
+    transition: all 0.3s;
+  }
+  .hash-row.hit { border-color: rgba(74,222,128,0.8); background: rgba(74,222,128,0.14); box-shadow: 0 0 12px rgba(74,222,128,0.45); }
+  .hash-row .hk { color: var(--accent); }
+  .hash-row.hit .hk { color: var(--ok); }
+  .hash-row .hv { color: var(--ink); }
+  .hash-row.hit .hv { color: var(--ok); }
+  .hash-row .arrow { color: var(--sub); }
+  .current .hash-row.new { animation: popIn 0.25s ease-out; }
+  .proposed .hash-row.new { animation: settleIn 0.22s var(--settle); }
+  .proposed .hash-row.hit-flash { animation: flashOk 0.7s var(--bloom); }
+
+  /* ===== Explanation ===== */
+  .explain {
+    margin-top: 16px; padding: 12px 16px; border-radius: 14px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: flex-start; gap: 10px; min-height: 52px;
+  }
+  .explain .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 7px; flex-shrink: 0; }
+  .explain p { font-size: 13px; line-height: 1.6; color: rgba(230,230,230,0.9); }
+  .current .explain p { animation: fadeIn 0.3s ease-out; }
+  .proposed .explain p { animation: fadeIn 0.3s var(--glide); }
+  @keyframes fadeIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+
+  /* vars */
+  .vars { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .var-item { font-size: 12px; }
+  .var-item .vk { color: var(--sub); }
+  .var-item .vv { color: rgba(230,230,230,0.9); }
+  .current .var-item .vv.flash { animation: flashText 0.9s ease-out; }
+  .proposed .var-item .vv.flash { animation: flashTextProp 0.6s var(--glide); }
+  @keyframes flashText { 0% { color: var(--accent); } 100% { color: var(--ink); } }
+  @keyframes flashTextProp { 0% { color: var(--accent); transform: translateY(2px); } 100% { color: var(--ink); transform: translateY(0); } }
+
+  /* ===== Progress bar ===== */
+  .progress-wrap { margin-top: 20px; }
+  .progress-track { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.1); overflow: hidden; position: relative; }
+  .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.3s var(--glide), background 0.4s; }
+  .progress-fill.done { background: var(--ok); }
+  .progress-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--sub); }
+
+  /* ===== Upgrade list ===== */
+  .upgrades { margin-top: 32px; }
+  .upgrades h2 { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: var(--ink); }
+  .upgrade-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+  .upgrade-item {
+    padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
+    background: var(--surface); font-size: 12px; line-height: 1.5;
+  }
+  .upgrade-item .num { color: var(--accent); font-weight: 600; margin-right: 6px; }
+  .upgrade-item .desc { color: var(--sub); }
+  .upgrade-item.active-demo { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
+
+  /* reduced motion */
+  body.reduced *, body.reduced *::before, body.reduced *::after {
+    animation-duration: 0.01ms !important; transition-duration: 0.01ms !important;
+  }
+
+  .hint { font-size: 11px; color: var(--sub); margin-top: 8px; line-height: 1.5; }
+  .hint kbd { padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); font-size: 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>AlgoMotion · <span class="accent">动效改造实验室</span></h1>
+    <p>两数之和 · 6 帧演示 · 切换「当前 / 提案」对比指针滑移、语义脉冲、值落定、完成时刻。空格播放，← → 步进。</p>
+  </div>
+
+  <div class="controls">
+    <div class="mode-toggle">
+      <button id="modeCurrent" class="active">当前动效</button>
+      <button id="modeProposed">提案动效</button>
+      <button id="modeCompare">并排对比</button>
+    </div>
+    <button class="btn" id="btnPrev" aria-label="上一帧">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg>
+    </button>
+    <button class="btn primary" id="btnPlay" aria-label="播放">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15L19.5 12z"/></svg>
+    </button>
+    <button class="btn" id="btnNext" aria-label="下一帧">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14L14.5 12z"/></svg>
+    </button>
+    <span class="frame-indicator mono" id="frameInd">1 / 6</span>
+    <div class="spacer"></div>
+    <label class="switch">
+      <input type="checkbox" id="reducedMotion">
+      <span class="track"></span>
+      <span>减少动态</span>
+    </label>
+  </div>
+
+  <div class="stage-grid" id="stageGrid">
+    <!-- stages injected by JS -->
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progFill"></div></div>
+    <div class="progress-labels mono"><span>入口</span><span id="progLabel">扫描中</span><span>命中</span></div>
+  </div>
+
+  <p class="hint"><kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd> <kbd>→</kbd> 逐帧 · <kbd>R</kbd> 重放本步 · 提案模式下注意指针滑移轨迹与 ok 命中的绿色绽放</p>
+
+  <div class="upgrades">
+    <h2>八项升级 · 本实验室演示前 5 项</h2>
+    <div class="upgrade-grid">
+      <div class="upgrade-item active-demo"><span class="num">01</span>指针滑移<br><span class="desc">i/j 持久元素 translateX 滑移 + 残影，替代瞬移</span></div>
+      <div class="upgrade-item active-demo"><span class="num">02</span>语义脉冲<br><span class="desc">ok 绿环+✓ / danger 红环+抖动 / active 琥珀环</span></div>
+      <div class="upgrade-item active-demo"><span class="num">03</span>值落定<br><span class="desc">旧值上滑出 → 新值下滑入 + 微过冲，替代 scale 弹跳</span></div>
+      <div class="upgrade-item active-demo"><span class="num">04</span>帧呼吸<br><span class="desc">前进上飘 / 后退下飘 1px + opacity 微复位</span></div>
+      <div class="upgrade-item active-demo"><span class="num">05</span>完成时刻<br><span class="desc">末帧 ok 元素 staggered 绽放 + 进度条转绿</span></div>
+      <div class="upgrade-item"><span class="num">06</span>边线绘制<br><span class="desc">SVG stroke-dashoffset 画入 + 反转淡出重叠</span></div>
+      <div class="upgrade-item"><span class="num">07</span>代码光标<br><span class="desc">滑动高亮条 translateY 跟随当前行</span></div>
+      <div class="upgrade-item"><span class="num">08</span>调用栈呼吸<br><span class="desc">push 右滑入 / pop 右滑出 + 栈顶微呼吸</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Frame data: two-sum nums=[2,7,11,15] target=9 =====
+const NUMS = [2, 7, 11, 15];
+const TARGET = 9;
+const CELL_W = 44, GAP = 8, STEP = CELL_W + GAP;
+
+const FRAMES = [
+  {
+    msg: 'i=0，nums[0]=2，need = 9 − 2 = 7，哈希表为空，未命中。把 2→0 存入表。',
+    cells: [{ v: 2, tone: 'active' }, { v: 7 }, { v: 11 }, { v: 15 }],
+    ptrs: { i: 0 },
+    hash: [],
+    vars: { i: '0', need: '7', target: '9' },
+    flash: [0],
+    hashNew: [],
+    hashHit: null,
+  },
+  {
+    msg: 'i=1，nums[1]=7，need = 9 − 7 = 2，查哈希表找 2 —— 命中！2 在下标 0。',
+    cells: [{ v: 2, tone: 'ok' }, { v: 7, tone: 'active' }, { v: 11 }, { v: 15 }],
+    ptrs: { i: 1 },
+    hash: [['2', '0']],
+    vars: { i: '1', need: '2', target: '9' },
+    flash: [1],
+    hashNew: [],
+    hashHit: '2',
+  },
+  {
+    msg: '命中后返回答案 [0, 1]。nums[0] + nums[1] = 2 + 7 = 9 = target。',
+    cells: [{ v: 2, tone: 'ok' }, { v: 7, tone: 'ok' }, { v: 11, tone: 'muted' }, { v: 15, tone: 'muted' }],
+    ptrs: { i: 1 },
+    hash: [['2', '0']],
+    vars: { i: '1', need: '2', answer: '[0,1]' },
+    flash: [0, 1],
+    hashNew: [],
+    hashHit: '2',
+    complete: true,
+  },
+  {
+    msg: '换个输入：nums=[3,3] target=6。i=0，need=3，表空，存入 3→0。',
+    cells: [{ v: 3, tone: 'active' }, { v: 3 }],
+    ptrs: { i: 0 },
+    hash: [],
+    vars: { i: '0', need: '3', target: '6' },
+    flash: [0],
+    hashNew: [],
+    hashHit: null,
+    reset: true,
+  },
+  {
+    msg: 'i=1，nums[1]=3，need=3，查表找 3 —— 命中！重复值也能配对，返回 [0,1]。',
+    cells: [{ v: 3, tone: 'ok' }, { v: 3, tone: 'ok' }],
+    ptrs: { i: 1 },
+    hash: [['3', '0']],
+    vars: { i: '1', need: '3', answer: '[0,1]' },
+    flash: [0, 1],
+    hashNew: [],
+    hashHit: '3',
+    complete: true,
+  },
+  {
+    msg: '边界：nums=[1] target=2。i=0，need=1，表空存入 1→0，遍历结束无配对。',
+    cells: [{ v: 1, tone: 'muted' }],
+    ptrs: { i: 0 },
+    hash: [['1', '0']],
+    vars: { i: '0', need: '1', result: '无解' },
+    flash: [0],
+    hashNew: [],
+    hashHit: null,
+    reset: true,
+  },
+];
+
+let cursor = 0;
+let playing = false;
+let mode = 'current'; // current | proposed | compare
+let prevPtrs = {};
+let playTimer = null;
+
+const grid = document.getElementById('stageGrid');
+const frameInd = document.getElementById('frameInd');
+const progFill = document.getElementById('progFill');
+const progLabel = document.getElementById('progLabel');
+
+function cellX(i) { return i * STEP + CELL_W / 2; }
+
+function renderStage(container, frameIdx, isProposed, direction) {
+  const f = FRAMES[frameIdx];
+  const prev = frameIdx > 0 ? FRAMES[frameIdx - 1] : null;
+  const cls = isProposed ? 'proposed' : 'current';
+  const breathCls = isProposed && direction ? (direction > 0 ? 'breath-fwd' : 'breath-back') : '';
+
+  // determine flash tones
+  const flashTones = {};
+  if (prev && !f.reset) {
+    f.flash.forEach(i => {
+      const tone = f.cells[i]?.tone;
+      flashTones[i] = tone || 'active';
+    });
+  }
+
+  const cellsHtml = f.cells.map((c, i) => {
+    const toneCls = c.tone ? `t-${c.tone}` : '';
+    const flashCls = isProposed
+      ? (flashTones[i] ? `flash-${flashTones[i]}` : '')
+      : (f.flash.includes(i) && prev && !f.reset ? 'flash' : '');
+    const completeCls = isProposed && f.complete && c.tone === 'ok' ? 'complete' : '';
+    const valKey = `${frameIdx}-${i}-${c.v}`;
+    const check = isProposed && f.complete && c.tone === 'ok' ? '<span class="check">✓</span>' : '';
+    return `<div class="cell-col">
+      <div class="pointer-slot"></div>
+      <div class="cell ${toneCls} ${flashCls} ${completeCls}" data-idx="${i}">
+        <span class="val" key="${valKey}">${c.v}</span>${check}
+      </div>
+      <div class="cell-idx mono">${i}</div>
+    </div>`;
+  }).join('');
+
+  // pointers
+  let ptrHtml = '';
+  if (isProposed) {
+    // absolute glide layer
+    const ptrs = f.ptrs;
+    const labels = Object.keys(ptrs);
+    // ghosts from previous positions
+    let ghosts = '';
+    if (prev && !f.reset) {
+      Object.entries(prev.ptrs).forEach(([label, oldIdx]) => {
+        const newIdx = ptrs[label];
+        if (newIdx !== undefined && newIdx !== oldIdx) {
+          ghosts += `<span class="ptr-ghost" style="transform:translateX(${cellX(oldIdx) - 10}px)">${label}</span>`;
+        }
+      });
+    }
+    const ptrEls = labels.map((label, li) => {
+      const idx = ptrs[label];
+      const x = cellX(idx) - 10 + li * 22;
+      return `<span class="ptr-glide" style="transform:translateX(${x}px)">${label}</span>`;
+    }).join('');
+    ptrHtml = `<div class="pointer-layer">${ghosts}${ptrEls}</div>`;
+  } else {
+    // in-cell teleport pointers
+    // re-render cells with pointers inside slots
+  }
+
+  // for current mode, inject pointers into cell slots
+  let finalCellsHtml = cellsHtml;
+  if (!isProposed) {
+    const ptrByIndex = {};
+    Object.entries(f.ptrs).forEach(([label, idx]) => {
+      (ptrByIndex[idx] = ptrByIndex[idx] || []).push(label);
+    });
+    finalCellsHtml = f.cells.map((c, i) => {
+      const toneCls = c.tone ? `t-${c.tone}` : '';
+      const flashCls = f.flash.includes(i) && prev && !f.reset ? 'flash' : '';
+      const ptrs = (ptrByIndex[i] || []).map(p => `<span class="ptr">${p}</span>`).join('');
+      return `<div class="cell-col">
+        <div class="pointer-slot">${ptrs}</div>
+        <div class="cell ${toneCls} ${flashCls}"><span class="val">${c.v}</span></div>
+        <div class="cell-idx mono">${i}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // hashmap
+  const hashRows = f.hash.map(([k, v], hi) => {
+    const isHit = f.hashHit === k;
+    const isNew = prev && !f.reset && !prev.hash.some(([pk]) => pk === k);
+    const hitFlash = isProposed && isHit && prev && prev.hashHit !== k ? 'hit-flash' : '';
+    const newCls = isNew ? 'new' : '';
+    return `<div class="hash-row ${isHit ? 'hit' : ''} ${newCls} ${hitFlash}">
+      <span class="hk mono">${k}</span><span class="arrow">→</span><span class="hv mono">${v}</span>
+    </div>`;
+  }).join('');
+
+  // vars
+  const prevVars = prev && !f.reset ? (prev.vars || {}) : {};
+  const varsHtml = Object.entries(f.vars || {}).map(([k, v]) => {
+    const isFlash = prevVars[k] !== v && prev && !f.reset;
+    return `<span class="var-item mono"><span class="vk">${k}</span><span class="vk">=</span><span class="vv ${isFlash ? 'flash' : ''}">${v}</span></span>`;
+  }).join('');
+
+  const label = isProposed ? '提案' : '当前';
+  container.innerHTML = `
+    <div class="stage-card ${cls} ${breathCls}">
+      <span class="label">${label}</span>
+      <div class="stage-title mono">nums = [${f.cells.map(c => c.v).join(', ')}] · target = ${f.vars?.target || TARGET}</div>
+      <div class="array-wrap">
+        <div class="array-row" style="position:relative">
+          ${finalCellsHtml}
+          ${ptrHtml}
+        </div>
+      </div>
+      <div class="hashmap">
+        <div class="hashmap-title mono">哈希表 seen</div>
+        <div class="hash-rows">${hashRows || '<span style="font-size:11px;color:var(--sub)">（空）</span>'}</div>
+      </div>
+      <div class="explain">
+        <span class="dot"></span>
+        <p key="${frameIdx}">${f.msg}</p>
+      </div>
+      <div class="vars">${varsHtml}</div>
+    </div>`;
+}
+
+function render(direction) {
+  const f = FRAMES[cursor];
+  grid.className = 'stage-grid' + (mode === 'compare' ? ' compare' : '');
+  grid.innerHTML = '';
+
+  if (mode === 'compare') {
+    const left = document.createElement('div');
+    const right = document.createElement('div');
+    renderStage(left, cursor, false, direction);
+    renderStage(right, cursor, true, direction);
+    grid.appendChild(left);
+    grid.appendChild(right);
+  } else {
+    const single = document.createElement('div');
+    renderStage(single, cursor, mode === 'proposed', direction);
+    grid.appendChild(single);
+  }
+
+  frameInd.textContent = `${cursor + 1} / ${FRAMES.length}`;
+  const pct = (cursor / (FRAMES.length - 1)) * 100;
+  progFill.style.width = pct + '%';
+  progFill.classList.toggle('done', !!f.complete);
+  progLabel.textContent = f.complete ? '✓ 命中' : (f.reset ? '新输入' : '扫描中');
+
+  document.getElementById('btnPrev').disabled = cursor <= 0;
+  document.getElementById('btnNext').disabled = cursor >= FRAMES.length - 1;
+}
+
+function step(dir) {
+  const next = cursor + dir;
+  if (next < 0 || next >= FRAMES.length) return;
+  cursor = next;
+  render(dir);
+}
+
+function togglePlay() {
+  playing = !playing;
+  const btn = document.getElementById('btnPlay');
+  if (playing) {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z"/></svg>';
+    if (cursor >= FRAMES.length - 1) { cursor = 0; render(1); }
+    scheduleNext();
+  } else {
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15L19.5 12z"/></svg>';
+    clearTimeout(playTimer);
+  }
+}
+
+function scheduleNext() {
+  clearTimeout(playTimer);
+  playTimer = setTimeout(() => {
+    if (!playing) return;
+    if (cursor >= FRAMES.length - 1) { togglePlay(); return; }
+    step(1);
+    scheduleNext();
+  }, 1800);
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeCurrent').classList.toggle('active', m === 'current');
+  document.getElementById('modeProposed').classList.toggle('active', m === 'proposed');
+  document.getElementById('modeCompare').classList.toggle('active', m === 'compare');
+  render(0);
+}
+
+// events
+document.getElementById('modeCurrent').onclick = () => setMode('current');
+document.getElementById('modeProposed').onclick = () => setMode('proposed');
+document.getElementById('modeCompare').onclick = () => setMode('compare');
+document.getElementById('btnPrev').onclick = () => step(-1);
+document.getElementById('btnNext').onclick = () => step(1);
+document.getElementById('btnPlay').onclick = togglePlay;
+document.getElementById('reducedMotion').onchange = (e) => {
+  document.body.classList.toggle('reduced', e.target.checked);
+};
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+  else if (e.key === 'r' || e.key === 'R') { if (cursor > 0) { cursor--; render(-1); } }
+});
+
+// init
+render(0);
+</script>
+</body>
+</html>

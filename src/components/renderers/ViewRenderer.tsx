@@ -17,16 +17,19 @@ export function ViewRenderer({
   view,
   flash,
   frameKey,
+  complete,
 }: {
   view: View
   /** 本帧变化元素标识集（frameDiff 产出，按视图名分发到各渲染器） */
   flash?: ReadonlySet<string>
   /** 帧序号：让连续变化的同一元素重新挂载以重播脉冲动画 */
   frameKey?: number
+  /** 末帧（完成时刻）：ok 元素绽放 */
+  complete?: boolean
 }) {
   switch (view.kind) {
     case 'array':
-      return <ArrayView view={view} flash={flash} frameKey={frameKey} />
+      return <ArrayView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'hashmap':
       return <HashmapView view={view} flash={flash} frameKey={frameKey} />
     case 'linkedlist':
@@ -44,7 +47,7 @@ export function ViewRenderer({
     default: {
       const kind = (view as { kind?: unknown }).kind
       return (
-        <div className="rounded-lg border border-dashed border-white/10 px-3 py-2 font-mono text-xs text-sub">
+        <div className="rounded-lg border border-dashed border-line px-3 py-2 font-mono text-xs text-sub">
           暂不支持的视图类型：{typeof kind === 'string' ? kind.slice(0, 24) : '未知'}
         </div>
       )

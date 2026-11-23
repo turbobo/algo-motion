@@ -11,7 +11,7 @@ export function VarsPanel({ vars, flash, frameKey }: Props) {
   const entries = Object.entries(vars ?? {})
   if (entries.length === 0) return null
   return (
-    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-white/5 pt-2">
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-line-soft pt-2">
       {entries.map(([key, value]) => {
         const isFlash = flash?.has(key) ?? false
         return (

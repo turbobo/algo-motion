@@ -71,11 +71,11 @@ const STAGE_TITLE: Record<FlowStage, string> = {
 }
 
 const FIELD_CLS =
-  'w-full resize-none rounded-lg border border-white/10 bg-bg/60 px-2.5 py-2 font-mono text-[11px] ' +
+  'w-full resize-none rounded-lg border border-line bg-bg/60 px-2.5 py-2 font-mono text-[11px] ' +
   'leading-relaxed text-ink placeholder:text-sub transition-colors focus:border-accent/50 focus:outline-none'
 
 const BTN_SECONDARY =
-  'rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-all hover:border-white/25 hover:text-ink active:scale-[0.99]'
+  'rounded-lg border border-line px-3 py-2 text-xs text-sub transition-all hover:border-line-strong hover:text-ink active:scale-[0.99]'
 
 const BTN_PRIMARY =
   'rounded-lg bg-accent px-3 py-2 text-xs font-medium text-black transition-all hover:brightness-110 active:scale-[0.99]'
@@ -590,7 +590,7 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
         <aside
           className={`${
             mobilePane === 'problem' ? 'flex' : 'hidden'
-          } min-h-0 w-full shrink-0 flex-col border-r border-white/10 bg-surface/20 md:hidden lg:flex lg:w-[340px]`}
+          } min-h-0 w-full shrink-0 flex-col border-r border-line bg-surface/20 md:hidden lg:flex lg:w-[340px]`}
         >
           <ProblemPane {...problemPaneProps} />
         </aside>
@@ -615,14 +615,14 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
         <aside
           className={`${
             mobilePane === 'judge' ? 'flex' : 'hidden'
-          } min-h-0 w-full shrink-0 flex-col border-l border-white/10 bg-surface/20 md:flex md:w-[340px] lg:w-[380px]`}
+          } min-h-0 w-full shrink-0 flex-col border-l border-line bg-surface/20 md:flex md:w-[340px] lg:w-[380px]`}
         >
           <JudgePane {...judgeProps} />
         </aside>
       </div>
 
       <nav
-        className="flex shrink-0 border-t border-white/10 bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="flex shrink-0 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
         aria-label="工作台分栏"
       >
         {MOBILE_PANES.map((pane) => (
@@ -656,9 +656,9 @@ function SolveSession({ problem, onExit, onOpenAnimation, onNextProblem }: Solve
             role="dialog"
             aria-modal="true"
             aria-label="题面"
-            className="relative z-10 flex h-full w-[360px] max-w-[85%] animate-fadeIn flex-col border-r border-white/10 bg-surface shadow-2xl"
+            className="relative z-10 flex h-full w-[360px] max-w-[85%] animate-fadeIn flex-col border-r border-line bg-surface shadow-2xl"
           >
-            <div className="flex h-10 shrink-0 items-center justify-between border-b border-white/10 px-3">
+            <div className="flex h-10 shrink-0 items-center justify-between border-b border-line px-3">
               <span className="font-mono text-[11px] text-sub">题面</span>
               <button
                 type="button"
@@ -749,12 +749,12 @@ function TopBar({
   const compactLanguageLabel = useCompactLanguageLabel()
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-white/10 bg-surface px-2.5 md:gap-3 md:px-4">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-2.5 md:gap-3 md:px-4">
       <button
         type="button"
         onClick={onExit}
         aria-label="返回题库"
-        className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 font-mono text-xs text-sub transition-colors hover:bg-white/5 hover:text-ink"
+        className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1.5 font-mono text-xs text-sub transition-colors hover:bg-fill hover:text-ink"
       >
         <span aria-hidden>←</span>
         <span className="hidden sm:inline">题库</span>
@@ -785,7 +785,7 @@ function TopBar({
       <button
         type="button"
         onClick={onOpenProblem}
-        className="hidden shrink-0 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs text-sub transition-colors hover:border-white/25 hover:text-ink md:inline-flex lg:hidden"
+        className="hidden shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-xs text-sub transition-colors hover:border-line-strong hover:text-ink md:inline-flex lg:hidden"
       >
         题面
       </button>
@@ -795,7 +795,7 @@ function TopBar({
         onChange={(event) => onLanguageChange(event.target.value as SolveLanguage)}
         disabled={isJudging || isRunning}
         aria-label="切换语言"
-        className="shrink-0 rounded-lg border border-white/10 bg-bg/60 px-2 py-1.5 text-xs text-sub transition-colors focus:border-accent/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+        className="shrink-0 rounded-lg border border-line bg-bg/60 px-2 py-1.5 text-xs text-sub transition-colors focus:border-accent/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40"
       >
         {LANGUAGE_OPTIONS.map((option) => (
           <option key={option.value} value={option.value}>
@@ -808,7 +808,7 @@ function TopBar({
         type="button"
         onClick={onRun}
         disabled={isRunning || isJudging}
-        className="solve-topbar-run shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-sub transition-all hover:border-white/25 hover:text-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+        className="solve-topbar-run shrink-0 rounded-lg border border-line px-3 py-1.5 text-xs text-sub transition-all hover:border-line-strong hover:text-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isRunning ? '运行中…' : '运行'}
       </button>
@@ -858,7 +858,7 @@ function ProblemPane({
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <div className="flex shrink-0 gap-1 border-b border-white/10 px-2 py-2">
+      <div className="flex shrink-0 gap-1 border-b border-line px-2 py-2">
         {tabs.map((item) => (
           <button
             key={item.id}
@@ -868,7 +868,7 @@ function ProblemPane({
             className={`rounded-lg px-2.5 py-1 font-mono text-[11px] transition-colors ${
               tab === item.id
                 ? 'bg-accent/15 font-medium text-accent'
-                : 'text-sub hover:bg-white/5 hover:text-ink'
+                : 'text-sub hover:bg-fill hover:text-ink'
             }`}
           >
             {item.label}
@@ -933,7 +933,7 @@ function DescriptionTab({
         <h2 className="mb-2 font-mono text-[11px] tracking-wide text-sub">示例</h2>
         <div className="space-y-2">
           {problem.examples.map((example) => (
-            <div key={example.id} className="rounded-xl border border-white/10 bg-surface p-3">
+            <div key={example.id} className="rounded-xl border border-line bg-surface p-3">
               <div className="font-mono text-[10px] text-sub">{example.label}</div>
               <div className="mt-2 space-y-1.5 font-mono text-[12px] leading-relaxed">
                 <div>
@@ -966,7 +966,7 @@ function DescriptionTab({
         <button
           type="button"
           onClick={onUnlockHint}
-          className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
+          className="flex-1 rounded-lg border border-line px-3 py-2 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
         >
           看提示
         </button>
@@ -1003,13 +1003,13 @@ function HintsTab({
       </p>
 
       {unlocked.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/15 bg-surface/40 p-4 text-center text-xs text-sub">
+        <div className="rounded-xl border border-dashed border-line-strong bg-surface/40 p-4 text-center text-xs text-sub">
           还没有解锁提示
         </div>
       ) : null}
 
       {unlocked.map((hint, index) => (
-        <div key={`${index}-${hint}`} className="rounded-xl border border-white/10 bg-surface p-3">
+        <div key={`${index}-${hint}`} className="rounded-xl border border-line bg-surface p-3">
           <div className="font-mono text-[10px] text-accent">提示 {index + 1}</div>
           <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink/90">{hint}</p>
         </div>
@@ -1031,7 +1031,7 @@ function HintsTab({
           <button
             type="button"
             onClick={onOpenAnimation}
-            className="w-full rounded-xl border border-white/10 px-3 py-2.5 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
+            className="w-full rounded-xl border border-line px-3 py-2.5 text-xs text-sub transition-colors hover:border-accent/40 hover:text-accent"
           >
             还是不懂？看动画讲解 →
           </button>
@@ -1052,7 +1052,7 @@ function SubmissionsTab({
 }) {
   if (records.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-white/15 bg-surface/40 p-5 text-center">
+      <div className="rounded-xl border border-dashed border-line-strong bg-surface/40 p-5 text-center">
         <p className="text-xs text-sub">还没有提交记录</p>
         <p className="mt-1 text-[11px] leading-relaxed text-sub">
           运行只跑示例用例，写完后再用右上角「提交」跑隐藏用例。
@@ -1073,7 +1073,7 @@ function SubmissionsTab({
       {records.map((record) => (
         <details
           key={record.id}
-          className="group rounded-xl border border-white/10 bg-surface open:border-white/20"
+          className="group rounded-xl border border-line bg-surface open:border-line-strong"
         >
           <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
             <span className="flex min-w-0 items-center gap-2">
@@ -1097,7 +1097,7 @@ function SubmissionsTab({
             </span>
           </summary>
           {record.failedCase ? (
-            <div className="border-t border-white/5 px-3 py-2 font-mono text-[10px] leading-relaxed text-sub">
+            <div className="border-t border-line-soft px-3 py-2 font-mono text-[10px] leading-relaxed text-sub">
               <div>
                 {record.failedCase.label} · 期望{' '}
                 <span className="text-ink">{record.failedCase.expected}</span> · 实际{' '}
@@ -1107,11 +1107,11 @@ function SubmissionsTab({
             </div>
           ) : null}
           {record.errorMessage ? (
-            <pre className="border-t border-white/5 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-danger-text">
+            <pre className="border-t border-line-soft px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-danger-text">
               {record.errorMessage}
             </pre>
           ) : null}
-          <pre className="max-h-44 overflow-auto border-t border-white/5 p-3 font-mono text-[11px] leading-relaxed text-sub">
+          <pre className="max-h-44 overflow-auto border-t border-line-soft p-3 font-mono text-[11px] leading-relaxed text-sub">
             {record.code}
           </pre>
         </details>
@@ -1221,7 +1221,7 @@ function CodeEditor({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-bg">
-      <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/10 px-3 font-mono text-[10px] text-sub">
+      <div className="flex h-9 shrink-0 items-center justify-between border-b border-line px-3 font-mono text-[10px] text-sub">
         <div className="flex items-center gap-2">
           <span className="text-ink">{languageLabel(language)}</span>
           <span aria-hidden>·</span>
@@ -1237,7 +1237,7 @@ function CodeEditor({
             type="button"
             onClick={onRequestReset}
             disabled={locked}
-            className="rounded border border-white/10 px-1.5 py-0.5 transition-colors hover:border-white/25 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded border border-line px-1.5 py-0.5 transition-colors hover:border-line-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
             重置
           </button>
@@ -1261,7 +1261,7 @@ function CodeEditor({
         <div
           ref={gutterRef}
           aria-hidden
-          className="w-11 shrink-0 overflow-hidden border-r border-white/5 bg-surface/30 py-3 text-right font-mono text-[11px] leading-[22px] text-sub"
+          className="w-11 shrink-0 overflow-hidden border-r border-line-soft bg-surface/30 py-3 text-right font-mono text-[11px] leading-[22px] text-sub"
         >
           {lines.map((_line, index) => (
             <div key={index} className={index + 1 === cursorLine ? 'text-accent' : undefined}>
@@ -1312,7 +1312,7 @@ function JudgePane(props: JudgePaneProps) {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <div className="flex h-9 shrink-0 items-center justify-between border-b border-white/10 px-3 font-mono text-[10px] text-sub">
+      <div className="flex h-9 shrink-0 items-center justify-between border-b border-line px-3 font-mono text-[10px] text-sub">
         <div className="flex items-center gap-2">
           <span>{STAGE_TITLE[stage]}</span>
           <span
@@ -1516,7 +1516,7 @@ function CasesPanel({
               className={`shrink-0 rounded-full border px-3 py-1 font-mono text-[10px] transition-colors ${
                 activeCase?.id === item.id
                   ? 'border-accent/60 bg-accent/15 text-accent'
-                  : 'border-white/10 text-sub hover:border-white/25 hover:text-ink'
+                  : 'border-line text-sub hover:border-line-strong hover:text-ink'
               }`}
             >
               {item.label}
@@ -1525,14 +1525,14 @@ function CasesPanel({
           <button
             type="button"
             onClick={openEditor}
-            className="shrink-0 rounded-full border border-dashed border-white/20 px-3 py-1 font-mono text-[10px] text-sub transition-colors hover:border-accent/50 hover:text-accent"
+            className="shrink-0 rounded-full border border-dashed border-line-strong px-3 py-1 font-mono text-[10px] text-sub transition-colors hover:border-accent/50 hover:text-accent"
           >
             {customCase ? '编辑自定义' : '＋ 自定义'}
           </button>
         </div>
 
         {activeCase ? (
-          <div className="rounded-xl border border-white/10 bg-bg/50 p-3">
+          <div className="rounded-xl border border-line bg-bg/50 p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] text-sub">{activeCase.label}</span>
               {activeCase.custom ? (
@@ -1584,7 +1584,7 @@ function CasesPanel({
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-lg border border-white/10 px-2.5 py-1.5 text-[11px] text-sub transition-colors hover:border-white/25 hover:text-ink"
+                className="rounded-lg border border-line px-2.5 py-1.5 text-[11px] text-sub transition-colors hover:border-line-strong hover:text-ink"
               >
                 取消
               </button>
@@ -1605,7 +1605,7 @@ function CasesPanel({
         </p>
       </div>
 
-      <div className="shrink-0 space-y-1.5 border-t border-white/10 p-3">
+      <div className="shrink-0 space-y-1.5 border-t border-line p-3">
         <button
           type="button"
           onClick={onRun}
@@ -1651,7 +1651,7 @@ function RunResultPanel({
           <div
             key={item.testId}
             className={`rounded-xl border p-3 ${
-              item.passed ? 'border-white/10 bg-surface' : 'border-danger/30 bg-danger/5'
+              item.passed ? 'border-line bg-surface' : 'border-danger/30 bg-danger/5'
             }`}
           >
             <div className="flex items-center justify-between gap-2">
@@ -1676,7 +1676,7 @@ function RunResultPanel({
         ))}
       </div>
 
-      <div className="flex shrink-0 gap-2 border-t border-white/10 p-3">
+      <div className="flex shrink-0 gap-2 border-t border-line p-3">
         <button
           type="button"
           onClick={onBackToEdit}
@@ -1702,14 +1702,14 @@ function JudgingPanel({ totalCases }: { totalCases: number }) {
       <div
         role="status"
         aria-label="正在判题"
-        className="h-12 w-12 animate-spin rounded-full border-2 border-white/10 border-t-accent"
+        className="h-12 w-12 animate-spin rounded-full border-2 border-line border-t-accent"
       />
       <div>
         <div className="text-sm text-ink">正在判题…</div>
         <div className="mt-1 font-mono text-[10px] text-sub">即将运行 {totalCases} 个隐藏用例</div>
       </div>
       <div className="w-full max-w-[240px]">
-        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="h-1.5 overflow-hidden rounded-full bg-fill-2">
           <div className="h-full w-2/3 animate-pulse rounded-full bg-accent/80" />
         </div>
         <div className="mt-2 flex justify-between font-mono text-[10px] text-sub">
@@ -1763,13 +1763,13 @@ function AcceptedPanel({
           />
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-surface p-3 text-[11px] leading-relaxed text-sub">
+        <div className="rounded-xl border border-line bg-surface p-3 text-[11px] leading-relaxed text-sub">
           你的解法已经记录到提交历史。想弄懂每一步为什么这样走，可以看同题的逐帧动画。
           原型模拟判题的结果不代表真实执行。
         </div>
       </div>
 
-      <div className="shrink-0 space-y-2 border-t border-white/10 p-3">
+      <div className="shrink-0 space-y-2 border-t border-line p-3">
         <button
           type="button"
           onClick={onNextProblem}
@@ -1781,7 +1781,7 @@ function AcceptedPanel({
           <button
             type="button"
             onClick={onOpenAnimation}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-all hover:border-accent/40 hover:text-accent active:scale-[0.99]"
+            className="rounded-lg border border-line px-3 py-2 text-xs text-sub transition-all hover:border-accent/40 hover:text-accent active:scale-[0.99]"
           >
             看动画讲解
           </button>
@@ -1810,10 +1810,10 @@ function StatCard({
   bar: string
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-surface p-3">
+    <div className="rounded-xl border border-line bg-surface p-3">
       <div className="font-mono text-[10px] text-sub">{label}</div>
       <div className="mt-1 text-sm tabular-nums text-ink">{value}</div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-fill-2">
         <div
           className={`h-full rounded-full ${bar}`}
           style={{ width: `${Math.min(100, Math.max(0, percentile))}%` }}
@@ -1863,7 +1863,7 @@ function RejectedPanel({
         ) : null}
 
         {showFailedCase && submission.failedCase ? (
-          <div className="rounded-xl border border-white/10 bg-surface p-3">
+          <div className="rounded-xl border border-line bg-surface p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-mono text-[10px] text-sub">{submission.failedCase.label}</span>
               <span className="font-mono text-[10px] text-danger-text">未通过</span>
@@ -1891,7 +1891,7 @@ function RejectedPanel({
         </p>
       </div>
 
-      <div className="shrink-0 space-y-2 border-t border-white/10 p-3">
+      <div className="shrink-0 space-y-2 border-t border-line p-3">
         <button
           type="button"
           onClick={onBackToEdit}
@@ -1910,7 +1910,7 @@ function RejectedPanel({
           <button
             type="button"
             onClick={onOpenAnimation}
-            className="rounded-lg border border-white/10 px-3 py-2 text-xs text-sub transition-all hover:border-accent/40 hover:text-accent active:scale-[0.99]"
+            className="rounded-lg border border-line px-3 py-2 text-xs text-sub transition-all hover:border-accent/40 hover:text-accent active:scale-[0.99]"
           >
             看动画讲解
           </button>
@@ -1957,7 +1957,7 @@ function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="solve-confirm-title"
-        className="relative z-10 w-full max-w-sm animate-fadeIn rounded-2xl border border-white/10 bg-surface p-4 shadow-2xl"
+        className="relative z-10 w-full max-w-sm animate-fadeIn rounded-2xl border border-line bg-surface p-4 shadow-2xl"
       >
         <h2 id="solve-confirm-title" className="text-sm font-medium">
           {title}
@@ -1988,7 +1988,7 @@ function Toast({ message }: { message: string }) {
   return (
     <div
       role="status"
-      className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-fadeIn rounded-xl border border-white/10 bg-surface-2 px-4 py-2 text-xs text-ink shadow-2xl md:bottom-6"
+      className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 animate-fadeIn rounded-xl border border-line bg-surface-2 px-4 py-2 text-xs text-ink shadow-2xl md:bottom-6"
     >
       {message}
     </div>
@@ -2007,7 +2007,7 @@ function DebugRail({
   onForcedVerdictChange: (verdict: Verdict | null) => void
 }) {
   return (
-    <div className="fixed bottom-16 left-2 z-50 rounded-xl border border-white/10 bg-surface/95 p-2 shadow-xl backdrop-blur md:bottom-3 md:left-3">
+    <div className="fixed bottom-16 left-2 z-50 rounded-xl border border-line bg-surface/95 p-2 shadow-xl backdrop-blur md:bottom-3 md:left-3">
       <div className="mb-1 flex items-center justify-between gap-3">
         <span className="font-mono text-[10px] tracking-wide text-sub">设计预览</span>
         <span className="font-mono text-[10px] text-accent">DEV</span>
@@ -2021,7 +2021,7 @@ function DebugRail({
             className={`rounded border px-1.5 py-1 font-mono text-[10px] transition-colors ${
               stage === step.id
                 ? 'border-accent/60 bg-accent/15 text-accent'
-                : 'border-white/10 text-sub hover:border-white/25 hover:text-ink'
+                : 'border-line text-sub hover:border-line-strong hover:text-ink'
             }`}
           >
             {step.label}
@@ -2035,7 +2035,7 @@ function DebugRail({
           onChange={(event) =>
             onForcedVerdictChange(event.target.value === 'auto' ? null : (event.target.value as Verdict))
           }
-          className="rounded border border-white/10 bg-bg/60 px-1 py-0.5 text-[10px] text-sub focus:outline-none"
+          className="rounded border border-line bg-bg/60 px-1 py-0.5 text-[10px] text-sub focus:outline-none"
         >
           <option value="auto">自动</option>
           {VERDICT_ORDER.map((verdict) => (

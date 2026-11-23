@@ -3,7 +3,7 @@
  * 布局自动计算：中序遍历序号定 x（叶子不重叠、父居中于子树），深度定 y。
  */
 import type { TreeView as TreeViewModel } from '../../types'
-import { TONE_STYLES, ViewTitle } from './tones'
+import { TONE_STYLES, ViewTitle, flashClass } from './tones'
 
 const NODE_W = 46
 const NODE_H = 36
@@ -104,7 +104,7 @@ export function TreeView({ view, flash, frameKey }: Props) {
                   y1={y1}
                   x2={x2}
                   y2={y2}
-                  stroke="rgba(139,149,165,0.6)"
+                  stroke="rgb(var(--c-sub) / 0.6)"
                   strokeWidth={1.5}
                 />
               )
@@ -119,16 +119,16 @@ export function TreeView({ view, flash, frameKey }: Props) {
             return (
               <div key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}>
                 <div
-                  className={`absolute flex items-center justify-center rounded-full border font-mono text-sm transition-all duration-300${isFlash ? ' animate-flash' : ''}`}
+                  className={`absolute flex items-center justify-center rounded-full border font-mono text-sm transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
                   style={{
                     left: px(node.id) - NODE_W / 2,
                     top: py(node.id) - NODE_H / 2,
                     width: NODE_W,
                     height: NODE_H,
-                    borderColor: style?.border ?? 'rgba(255,255,255,0.14)',
-                    background: style?.bg ?? 'rgba(255,255,255,0.04)',
+                    borderColor: style?.border ?? 'var(--line)',
+                    background: style?.bg ?? 'var(--fill)',
                     boxShadow: style ? `0 0 14px ${style.glow}` : 'none',
-                    color: style?.color ?? '#e6e6e6',
+                    color: style?.color ?? 'rgb(var(--c-ink))',
                   }}
                 >
                   {node.value}

@@ -48,8 +48,8 @@ export function GridView({ view, flash, frameKey }: Props) {
                   kind === 'solid'
                     ? { background: 'rgba(205,165,95,0.30)', borderColor: 'rgba(205,165,95,0.55)' }
                     : kind === 'void'
-                      ? { background: 'rgba(255,255,255,0.035)', borderColor: 'rgba(255,255,255,0.07)' }
-                      : { background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.12)' }
+                      ? { background: 'var(--fill)', borderColor: 'var(--line-soft)' }
+                      : { background: 'var(--fill-2)', borderColor: 'var(--line)' }
                 return (
                   <div
                     key={isFlash ? `f${frameKey ?? 0}-${ci}` : String(ci)}
@@ -60,7 +60,7 @@ export function GridView({ view, flash, frameKey }: Props) {
                       background: style?.bg ?? fallback.background,
                       borderColor: style?.border ?? fallback.borderColor,
                       boxShadow: style ? `0 0 12px ${style.glow}` : 'none',
-                      color: style?.color ?? 'rgba(255,255,255,0.75)',
+                      color: style?.color ?? 'rgb(var(--c-ink) / 0.75)',
                     }}
                   >
                     <span key={String(value)} className={kind === 'text' ? 'animate-popIn' : undefined}>

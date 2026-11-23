@@ -19,23 +19,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 0,
-        "question": "当前：求 \"abcde\" 与 \"ace\" 的最长公共子序列。dp 表先铺好第 0 行/列（… 下一步会怎样？",
+        "atFrame": 2,
+        "question": "状态更新「dp[i][j] = Math.max(dp[i - 1][…」：两个候选取哪个？",
         "options": [
           {
-            "text": "text1[0] = 'a' 与 text2[0] = 'a' 相同 → 匹配！dp[1][…",
+            "text": "'a' ≠ 'e' → 这对字符配不上，继承一边：max(上面 0, 左边 1) = 1",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
-        "explain": "text1[0] = 'a' 与 text2[0] = 'a' 相同 → 匹配！dp[1][1] = 左上 dp[0][0] + 1 = 1"
+        "explain": "'a' ≠ 'e' → 这对字符配不上，继承一边：max(上面 0, 左边 1) = 1"
       }
     ]
   },
@@ -118,23 +118,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 1,
-        "question": "当前：把 'a' 的最新位置记为 0（下次再遇到它，左边界就知道该跳到哪里） 下一步会怎样？",
+        "atFrame": 2,
+        "question": "状态更新「best = Math.max(best, right - …」：两个候选取哪个？",
         "options": [
           {
-            "text": "当前窗口 [0, 0] 长度 1 —— 历史最长记录 best = 1",
+            "text": "把 'b' 的最新位置记为 1（下次再遇到它，左边界就知道该跳到哪里）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
-        "explain": "当前窗口 [0, 0] 长度 1 —— 历史最长记录 best = 1"
+        "explain": "把 'b' 的最新位置记为 1（下次再遇到它，左边界就知道该跳到哪里）"
       }
     ]
   },
@@ -184,23 +184,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 1,
-        "question": "当前：100 没有前驱 → 它是某个连续段的起点！从这里开始往后延伸 下一步会怎样？",
+        "atFrame": 3,
+        "question": "执行到条件判断「if (set.has(num - 1)) continue」。条件成立吗？",
         "options": [
           {
-            "text": "从 100 一直延伸到 100，连续长度 1 → 最长记录 best = 1",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
-        "explain": "从 100 一直延伸到 100，连续长度 1 → 最长记录 best = 1"
+        "explain": "200 没有前驱 → 它是某个连续段的起点！从这里开始往后延伸"
       }
     ]
   },
@@ -218,18 +218,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：fast 遇到 0 —— 原地跳过，让它暂时待着，等后面的非零数来跟它交换 下一步会怎样？",
+        "question": "执行到条件判断「if (nums[fast] !== 0)」。条件成立吗？",
         "options": [
           {
-            "text": "fast 发现非零数（交换前是 1）→ 和 slow 位置的数交换，非零区扩大一格：slow…",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -251,18 +251,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：当前容器：高 min(1, 7) = 1 × 宽 8 = 8 → best = 8；… 下一步会怎样？",
+        "question": "状态更新「best = Math.max(best, area)」：两个候选取哪个？",
         "options": [
           {
             "text": "当前容器：高 min(8, 7) = 7 × 宽 7 = 49 → best = 49；右边…",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -283,23 +283,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 6,
-        "question": "当前：固定 nums[1] = -1：接下来在 (2 ~ 5) 区间里，用左右指针找和为 … 下一步会怎样？",
+        "atFrame": 11,
+        "question": "执行到条件判断「if (i > 0 && nums[i] === nums[…」。条件成立吗？",
         "options": [
           {
-            "text": "-1 + -1 + 2 = 0：正好等于 0 —— 命中！",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
-        "explain": "-1 + -1 + 2 = 0：正好等于 0 —— 命中！"
+        "explain": "固定 nums[3] = 0：接下来在 (4 ~ 5) 区间里，用左右指针找和为 0 的两个数"
       }
     ]
   },
@@ -350,18 +350,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：窗口 \"cba\" 的计数和 \"abc\" 完全一致 → 命中一个异位词！ 下一步会怎样？",
+        "question": "执行到条件判断「if (ok)」。条件成立吗？",
         "options": [
           {
-            "text": "把起点 0 记入答案：目前找到 1 个",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -481,23 +481,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 1,
-        "question": "当前：[1,3] 的起点大于当前区间右端（或结果还是空的）→ 接不上，作为一个全新的区间放… 下一步会怎样？",
+        "atFrame": 2,
+        "question": "状态更新「res[res.length - 1][1] = Math.…」：两个候选取哪个？",
         "options": [
           {
-            "text": "[2,6] 的起点 2 ≤ 当前区间右端 → 它们重叠！把右端延伸到 max(旧右端, 6)…",
+            "text": "[8,10] 的起点大于当前区间右端（或结果还是空的）→ 接不上，作为一个全新的区间放进结果",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
-        "explain": "[2,6] 的起点 2 ≤ 当前区间右端 → 它们重叠！把右端延伸到 max(旧右端, 6) = 6"
+        "explain": "[8,10] 的起点大于当前区间右端（或结果还是空的）→ 接不上，作为一个全新的区间放进结果"
       }
     ]
   },
@@ -581,18 +581,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：目标 O(n) + O(1) 空间：把每个 [1, n] 范围内的正整数 x 交换到… 下一步会怎样？",
+        "question": "循环「for (let i = 0; i < n; i++)」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "3 属于 [1, 4] 区间 → 把它交换到下标 2（数字 3 的\"本命位\"）。如果换过来的…",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
@@ -778,23 +778,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 0,
-        "question": "当前：Boyer-Moore 投票法：先让第一个数当候选人（1 票）。遇到相同的数就加票，… 下一步会怎样？",
+        "atFrame": 1,
+        "question": "执行到条件判断「if (count === 0)」。条件成立吗？",
         "options": [
           {
-            "text": "看到 2：和候选人相同 → 加票到 2",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
-        "explain": "看到 2：和候选人相同 → 加票到 2"
+        "explain": "看到 1：和候选人不同 → 减票到 1"
       }
     ]
   },
@@ -845,18 +845,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：从右往左找到第一个「升序对」：nums[1] = 2 < nums[2] = 3。它… 下一步会怎样？",
+        "question": "执行到条件判断「if (i >= 0)」。条件成立吗？",
         "options": [
           {
-            "text": "在右侧降序段里找到「比 nums[1] = 2 大的最小数」（从右往左第一个更大的），交换两…",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -877,23 +877,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 3,
-        "question": "当前：重置后的慢指针从起点出发、快指针留在相遇点，两者同速前进：slow → 2，fast… 下一步会怎样？",
+        "atFrame": 1,
+        "question": "循环「while (slow !== fast)」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "两指针在值 2 处再次相遇——这一次相遇点就是环的入口，也就是要找的重复数",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
-        "explain": "两指针在值 2 处再次相遇——这一次相遇点就是环的入口，也就是要找的重复数"
+        "explain": "重置后的慢指针从起点出发、快指针留在相遇点，两者同速前进：slow → 3，fast → 4"
       }
     ]
   },
@@ -943,23 +943,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 2,
-        "question": "当前：同速前进：slow 走到 n2，fast 走到 n2 —— 二次相遇！ 下一步会怎样？",
+        "atFrame": 1,
+        "question": "循环「while (slow !== fast)」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "二次相遇点在 n2（值 2）——这就是环的入口，返回它",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
-        "explain": "二次相遇点在 n2（值 2）——这就是环的入口，返回它"
+        "explain": "同速前进：slow 走到 n2，fast 走到 n2 —— 二次相遇！"
       }
     ]
   },
@@ -1010,18 +1010,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：pA 在链 A 的值 4 处，pB 在链 B 的值 5 处，还不相等 → 各自前进一… 下一步会怎样？",
+        "question": "循环「while (pA !== pB)」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "pA 在链 A 的值 1 处，pB 在链 B 的值 0 处，还不相等 → 各自前进一步",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
@@ -1076,18 +1076,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：2 + 5 + 进位0 = 7 → 本位记 7，进位 0 下一步会怎样？",
+        "question": "执行到条件判断「if (l2 !== null) l2 = l2.next」。条件成立吗？",
         "options": [
           {
-            "text": "4 + 6 + 进位0 = 10 → 本位记 0，进位 1",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -1109,18 +1109,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：fast 已先走 3 步，停在值 3；现在 slow 从哑结点出发，两指针同速前进 下一步会怎样？",
+        "question": "循环「for (let i = 0; i <= n; i++)」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "fast 走到 4，slow 走到 1 —— 保持 3 个身位同步前进",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
@@ -1175,18 +1175,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：探路成功：从 哑结点 往后数满 2 个，kth 停在值 2——这一组可以翻转 下一步会怎样？",
+        "question": "执行到条件判断「if (kth === null)」。条件成立吗？",
         "options": [
           {
-            "text": "本组翻转完成并接回主干（组尾的新 next 指向组外的 3）；groupPrev 移到本组尾…",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -1208,18 +1208,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第一遍完成：3 个新节点已就位（值一样但全是孤立节点），映射表建好——这是深拷贝安全… 下一步会怎样？",
+        "question": "循环「for (let p = head; p !== null;…」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "连好 o1 的两根指针：next → o2 的复制本；random → null 的复制本",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
@@ -1340,18 +1340,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：节点 n2（值 9）收到子树结果：左 0、右 0 → max(0, 0) + 1 =… 下一步会怎样？",
+        "question": "状态更新「return Math.max(left, right) +…」：两个候选取哪个？",
         "options": [
           {
             "text": "节点 n4（值 15）收到子树结果：左 0、右 0 → max(0, 0) + 1 = 1",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -1538,18 +1538,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：访问 1（BST 升序第 1 个），倒计时剩 2——还不够小，继续中序 下一步会怎样？",
+        "question": "执行到条件判断「if (remaining === 0)」。条件成立吗？",
         "options": [
           {
-            "text": "访问 2（BST 升序第 2 个），倒计时剩 1——还不够小，继续中序",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -1669,23 +1669,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 0,
-        "question": "当前：定义 dfs(node)：如果 subtree 里找到了 p 或 q 就把它往上传；… 下一步会怎样？",
+        "atFrame": 2,
+        "question": "执行到条件判断「if (left !== null && right !==…」。条件成立吗？",
         "options": [
           {
-            "text": "全网搜索完成——最终返回的节点就是最近公共祖先",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
-        "explain": "全网搜索完成——最终返回的节点就是最近公共祖先"
+        "explain": "节点 8：左返回 null、右返回 null —— 两边都没找到，把 null 继续向上传"
       }
     ]
   },
@@ -1703,18 +1703,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：节点 n3（值 4）：左深 0、右深 0。直径如果从这里拐弯就是 0 + 0 = 0… 下一步会怎样？",
+        "question": "状态更新「return Math.max(l, r) + 1」：两个候选取哪个？",
         "options": [
           {
             "text": "节点 n4（值 5）：左深 0、右深 0。直径如果从这里拐弯就是 0 + 0 = 0 → 全…",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -1769,18 +1769,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：节点 2：左右孩子的最大贡献是 0 和 0（负贡献按 0 处理，不如不带）。① 路径… 下一步会怎样？",
+        "question": "状态更新「return node.val + Math.max(lef…」：两个候选取哪个？",
         "options": [
           {
             "text": "节点 3：左右孩子的最大贡献是 0 和 0（负贡献按 0 处理，不如不带）。① 路径在这里拐…",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -1802,18 +1802,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：先跑一遍全场：所有腐烂橘子（1 个）入队，统计新鲜橘子共 6 个——这些腐烂橘子是\"… 下一步会怎样？",
+        "question": "执行到条件判断「if (fresh === 0)」。条件成立吗？",
         "options": [
           {
-            "text": "第 1 分钟：这一轮 2 个新鲜橘子被邻居感染（绿色格子）——同一分钟里所有腐烂橘子同时向外…",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -1835,18 +1835,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：修完课 0（累计 1 门）：把它解锁的课入度各减 1，其中 [1] 入度降到 0——… 下一步会怎样？",
+        "question": "执行到条件判断「if (indegree[next] === 0)」。条件成立吗？",
         "options": [
           {
-            "text": "修完课 1（累计 2 门）：把它解锁的课入度各减 1，其中 [2] 入度降到 0——可以排队…",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -2065,23 +2065,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 1,
-        "question": "当前：匹配第 1 个字符 'A'：落在 (0,0)。先把它改成 #（本路径不能走回头路），… 下一步会怎样？",
+        "atFrame": 0,
+        "question": "循环「for (let r = 0; r < rows; r++)…」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "匹配第 2 个字符 'B'：落在 (0,1)。先把它改成 #（本路径不能走回头路），再向上下…",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
-        "explain": "匹配第 2 个字符 'B'：落在 (0,1)。先把它改成 #（本路径不能走回头路），再向上下左右四个方向继续匹配下一个字符"
+        "explain": "匹配第 1 个字符 'A'：落在 (0,0)。先把它改成 #（本路径不能走回头路），再向上下左右四个方向继续匹配下一个字符"
       }
     ]
   },
@@ -2198,18 +2198,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：mid = 2（值 5）比最右 2 大——mid 还爬在\"高的那一坡\"上，断崖在右半… 下一步会怎样？",
+        "question": "执行到条件判断「if (nums[mid] > nums[hi])」。条件成立吗？",
         "options": [
           {
-            "text": "mid = 3（值 1 ≤ 最右 1）——mid 已在低谷一侧（或就是最小值），把右端收回到…",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -2264,18 +2264,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：i = 0 切少了：b 左侧的 3 比 a 右侧的 2 还大——切割线要往右挪 下一步会怎样？",
+        "question": "执行到条件判断「if (aLeft > bRight)」。条件成立吗？",
         "options": [
           {
-            "text": "i = 1, j = 1：左侧最大 2 ≤ 右侧最小 3——切割合法！",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -2297,18 +2297,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：括号合法性 = 栈的经典舞台：遇到左括号就压栈，遇到右括号就要求\"栈顶正好是它的左括… 下一步会怎样？",
+        "question": "循环「for (let i = 0; i < s.length; …」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "'(' 是左括号——压入栈，等后面的人来配对",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
@@ -2594,18 +2594,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：站上位置 0（能跳 2 步）：从这里最远到 2，和已有记录取大 → 最远可达更新为 … 下一步会怎样？",
+        "question": "状态更新「reach = Math.max(reach, i + nu…」：两个候选取哪个？",
         "options": [
           {
             "text": "站上位置 1（能跳 3 步）：从这里最远到 4，和已有记录取大 → 最远可达更新为 4",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -2660,18 +2660,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：今天 7 刷新了历史最低——从今天买最划算，利润还是 0 下一步会怎样？",
+        "question": "执行到条件判断「if (prices[i] < minPrice)」。条件成立吗？",
         "options": [
           {
-            "text": "今天 1 刷新了历史最低——从今天买最划算，利润还是 0",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
@@ -2693,18 +2693,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：读到 'a'（它最后出现在 2）：片段终点至少要撑到那儿——终点更新为 2 下一步会怎样？",
+        "question": "状态更新「end = Math.max(end, last.get(s…」：两个候选取哪个？",
         "options": [
           {
             "text": "读到 'b'（它最后出现在 3）：片段终点至少要撑到那儿——终点更新为 3",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -2792,18 +2792,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：前两家只能选一家：max(1, 2) = 2 下一步会怎样？",
+        "question": "状态更新「dp[1] = Math.max(nums[0], nums…」：两个候选取哪个？",
         "options": [
           {
             "text": "第 2 家（3 元）：不偷 = 2，偷 = dp[0] + 3 = 4 → 取 max = …",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -2924,18 +2924,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：位置 0（值 10）：向前找所有比它小的数接上——dp[0] = 1；全局最长目前是… 下一步会怎样？",
+        "question": "状态更新「dp[i] = Math.max(dp[i], dp[j] …」：两个候选取哪个？",
         "options": [
           {
             "text": "位置 1（值 9）：向前找所有比它小的数接上——dp[1] = 1；全局最长目前是 1",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -2957,18 +2957,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：乘上 3：以 1 结尾的最大乘积 = 6，最小乘积 = 3，全局最佳 6 下一步会怎样？",
+        "question": "状态更新「best = Math.max(best, maxProd)」：两个候选取哪个？",
         "options": [
           {
             "text": "乘上 -2（负数！先交换最大/最小再乘——负负得正嘛）：以 2 结尾的最大乘积 = -2，最…",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -2989,23 +2989,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 1,
-        "question": "当前：过一遍数 1（金额从大到小逆序扫——保证每个数最多用一次）：所有\"差 1 就能凑到\"… 下一步会怎样？",
+        "atFrame": 0,
+        "question": "执行到条件判断「if (sum % 2 !== 0)」。条件成立吗？",
         "options": [
           {
-            "text": "过一遍数 5（金额从大到小逆序扫——保证每个数最多用一次）：所有\"差 5 就能凑到\"的金额都…",
+            "text": "不成立 → 走记录 / 继续分支",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "成立 → 进入命中 / 返回分支",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "跳过判断直接返回",
             "correct": false
           }
         ],
-        "explain": "过一遍数 5（金额从大到小逆序扫——保证每个数最多用一次）：所有\"差 5 就能凑到\"的金额都点亮了——当前能凑到 4 种金额"
+        "explain": "过一遍数 1（金额从大到小逆序扫——保证每个数最多用一次）：所有\"差 1 就能凑到\"的金额都点亮了——当前能凑到 2 种金额"
       }
     ]
   },
@@ -3055,23 +3055,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 1,
-        "question": "当前：格子 (1, 1)：从上面来要花 4、从左边来要花 2——走省的那条，本格累计最小和… 下一步会怎样？",
+        "atFrame": 0,
+        "question": "循环「for (let c = 1; c < n; c++) {」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "格子 (1, 2)：从上面来要花 5、从左边来要花 7——走省的那条，本格累计最小和 6",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
-        "explain": "格子 (1, 2)：从上面来要花 5、从左边来要花 7——走省的那条，本格累计最小和 6"
+        "explain": "格子 (1, 1)：从上面来要花 4、从左边来要花 2——走省的那条，本格累计最小和 7"
       }
     ]
   },
@@ -3089,18 +3089,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：长度 2 的一轮：没有任何一对头尾相等又内层回文——这轮没发现新回文 下一步会怎样？",
+        "question": "循环「for (let i = 0; i + len - 1 < …」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "长度 3 的一轮：头尾相等的有 2 对上了（绿色格）——它们要么是长度 2、要么里面那层已是…",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
@@ -3122,18 +3122,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第 1 行填完（word1 的字符 'h'）：逐格比较——相同就\"继承左上\"，不同就… 下一步会怎样？",
+        "question": "状态更新「dp[i][j] = 1 + Math.min(dp[i -…」：两个候选取哪个？",
         "options": [
           {
             "text": "第 2 行填完（word1 的字符 'o'）：逐格比较——相同就\"继承左上\"，不同就在\"删/…",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "保持旧值，不更新",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "不比较，随机取一个",
             "correct": false
           }
         ],
@@ -3154,23 +3154,23 @@ export const LESSONS: Record<string, Lesson> = {
     ],
     "predicts": [
       {
-        "atFrame": 0,
-        "question": "当前：一个经典技巧：栈里存\"还没配对的左括号下标\"，并在**栈底放一个哨兵 -1**（表示… 下一步会怎样？",
+        "atFrame": 1,
+        "question": "循环「for (let i = 0; i < s.length; …」：继续下一轮还是退出？",
         "options": [
           {
-            "text": "读到 '('：压入它的下标 0，等一个 ')' 来配对",
+            "text": "继续下一轮迭代",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "退出循环，返回结果",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "重置循环变量从头再来",
             "correct": false
           }
         ],
-        "explain": "读到 '('：压入它的下标 0，等一个 ')' 来配对"
+        "explain": "读到 '('：压入它的下标 1，等一个 ')' 来配对"
       }
     ]
   },

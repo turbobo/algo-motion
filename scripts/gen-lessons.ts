@@ -57,6 +57,88 @@ function short(s: string, n = 42): string {
   return t.length > n ? t.slice(0, n) + '…' : t
 }
 
+type Frame = ReturnType<typeof runInstrumented>['frameGroups'][number][number]
+
+function hasOk(f: Frame): boolean {
+  return Object.values(f.views).some(
+    (v) =>
+      'marks' in v &&
+      Array.isArray((v as { marks?: unknown }).marks) &&
+      (v as { marks: Array<{ tone?: string }> }).marks.some((m) => m.tone === 'ok'),
+  )
+}
+const isReturn = (f: Frame): boolean => /return/.test(f.at)
+
+/** 决策式预测：优先 if 分支 / 循环续退 / Math.max-min 取值，正确项由真实下一帧决定 */
+function buildPredict(frames: Frame[]): Lesson['predicts'] {
+  if (frames.length < 3) return undefined
+  const find = (re: RegExp): number => {
+    for (let i = 0; i < frames.length - 1; i++) if (re.test(frames[i]!.at)) return i
+    return -1
+  }
+  let k = find(/if\s*\(/)
+  let type: 'branch' | 'loop' | 'choice' | 'step' = 'branch'
+  if (k < 0) { k = find(/(for|while)\s*\(/); type = 'loop' }
+  if (k < 0) { k = find(/Math\.(max|min)/); type = 'choice' }
+  if (k < 0) {
+    type = 'step'
+    k = -1
+    for (let i = 0; i < frames.length - 1; i++) if (hasOk(frames[i + 1]!)) { k = i; break }
+    if (k < 0) k = Math.min(1, frames.length - 2)
+  }
+  const cur = frames[k]!
+  const nxt = frames[k + 1]!
+
+  if (type === 'branch') {
+    const yes = hasOk(nxt) || isReturn(nxt)
+    return [{
+      atFrame: k,
+      question: `执行到条件判断「${short(cur.at, 30)}」。条件成立吗？`,
+      options: [
+        { text: yes ? '成立 → 进入命中 / 返回分支' : '不成立 → 走记录 / 继续分支', correct: true },
+        { text: yes ? '不成立 → 走记录 / 继续分支' : '成立 → 进入命中 / 返回分支', correct: false },
+        { text: '跳过判断直接返回', correct: false },
+      ],
+      explain: nxt.msg,
+    }]
+  }
+  if (type === 'loop') {
+    const cont = !isReturn(nxt)
+    return [{
+      atFrame: k,
+      question: `循环「${short(cur.at, 30)}」：继续下一轮还是退出？`,
+      options: [
+        { text: cont ? '继续下一轮迭代' : '退出循环，返回结果', correct: true },
+        { text: cont ? '退出循环，返回结果' : '继续下一轮迭代', correct: false },
+        { text: '重置循环变量从头再来', correct: false },
+      ],
+      explain: nxt.msg,
+    }]
+  }
+  if (type === 'choice') {
+    return [{
+      atFrame: k,
+      question: `状态更新「${short(cur.at, 30)}」：两个候选取哪个？`,
+      options: [
+        { text: short(nxt.msg, 46), correct: true },
+        { text: '保持旧值，不更新', correct: false },
+        { text: '不比较，随机取一个', correct: false },
+      ],
+      explain: nxt.msg,
+    }]
+  }
+  return [{
+    atFrame: k,
+    question: `当前：${short(cur.msg)} 下一步会怎样？`,
+    options: [
+      { text: short(nxt.msg, 46), correct: true },
+      { text: '直接返回最终答案', correct: false },
+      { text: '跳过当前元素继续', correct: false },
+    ],
+    explain: nxt.msg,
+  }]
+}
+
 function buildLesson(id: string): Lesson | null {
   const sample = SAMPLES.find((s) => s.id === id)
   if (!sample) return null
@@ -76,41 +158,15 @@ function buildLesson(id: string): Lesson | null {
     ],
   }
 
-  if (frames.length >= 3) {
-    // 命中前一帧（下一帧首次出现 ok 标注），否则中段帧
-    let k = -1
-    for (let i = 0; i < frames.length - 1; i++) {
-      const next = frames[i + 1]
-      const hasOk = Object.values(next.views).some((v) =>
-        'marks' in v && Array.isArray((v as { marks?: unknown }).marks) &&
-        ((v as { marks: Array<{ tone?: string }> }).marks.some((m) => m.tone === 'ok')),
-      )
-      if (hasOk) { k = i; break }
-    }
-    if (k < 0) k = Math.min(1, frames.length - 2)
-    const cur = frames[k]
-    const nxt = frames[k + 1]
-    if (cur && nxt) {
-      lesson.predicts = [
-        {
-          atFrame: k,
-          question: `当前：${short(cur.msg)} 下一步会怎样？`,
-          options: [
-            { text: short(nxt.msg, 46), correct: true },
-            { text: '直接返回最终答案', correct: false },
-            { text: '跳过当前元素继续', correct: false },
-          ],
-          explain: nxt.msg,
-        },
-      ]
-    }
-  }
+  lesson.predicts = buildPredict(frames)
   return lesson
 }
 
 const out: Record<string, Lesson> = {}
+// 手工精修内联在 samples/index.ts 的題目，生成器不覆盖
+const HAND = new Set(['two-sum', 'reverse-list', 'max-sub-array'])
 for (const s of SAMPLES) {
-  if (s.lesson) continue // 手工精修优先
+  if (HAND.has(s.id)) continue
   const l = buildLesson(s.id)
   if (l) out[s.id] = l
 }

@@ -4,6 +4,7 @@
  */
 import type { InstrumentResult } from '../types'
 import { stripInstrumentLines } from '../engine/protocol'
+import { cacheKey, getCached, putCached } from './cache'
 
 export interface GenerateInput {
   problem: string
@@ -14,6 +15,10 @@ export interface GenerateInput {
 export class GenerateError extends Error {}
 
 export async function generateInstrumented(input: GenerateInput): Promise<InstrumentResult> {
+  const key = cacheKey(input.problem, input.code, input.language)
+  const cached = getCached(key)
+  if (cached) return cached
+
   let res: Response
   try {
     res = await fetch('/api/instrument', {
@@ -44,5 +49,7 @@ export async function generateInstrumented(input: GenerateInput): Promise<Instru
   const displayCode =
     rawClean && !rawClean.includes('__rec.') ? rawClean : stripInstrumentLines(instrumentedCode)
 
-  return { fnName, summary, instrumentedCode, displayCode }
+  const result: InstrumentResult = { fnName, summary, instrumentedCode, displayCode }
+  putCached(key, result)
+  return result
 }

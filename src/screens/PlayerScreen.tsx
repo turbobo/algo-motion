@@ -152,6 +152,7 @@ function PlayerInner({
   // ===== 教学层：策略先行 / 预测暂停 / 渐进揭示 =====
   const lesson = algoCase.lesson
   const [showCode, setShowCode] = useState(!lesson)
+  const [mobilePane, setMobilePane] = useState<'stage' | 'code'>('stage')
   const [answered, setAnswered] = useState<Record<number, boolean>>({})
   const [wrongIdx, setWrongIdx] = useState<number | null>(null)
   const activePredict = lesson?.predicts?.find((p) => p.atFrame === cursor)
@@ -299,10 +300,37 @@ function PlayerInner({
         <ThemeToggle />
       </header>
 
+      {/* 移动端分栏：舞台 / 代码（桌面双栏不受影响） */}
+      <div className="flex shrink-0 gap-1 border-b border-line px-3 py-2 lg:hidden" aria-label="移动端分栏">
+        <button
+          type="button"
+          onClick={() => setMobilePane('stage')}
+          aria-pressed={mobilePane === 'stage'}
+          className={`flex-1 rounded-lg py-1.5 text-xs transition-colors ${
+            mobilePane === 'stage' ? 'bg-accent/15 font-medium text-accent' : 'text-sub'
+          }`}
+        >
+          舞台
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShowCode(true)
+            setMobilePane('code')
+          }}
+          aria-pressed={mobilePane === 'code'}
+          className={`flex-1 rounded-lg py-1.5 text-xs transition-colors ${
+            mobilePane === 'code' ? 'bg-accent/15 font-medium text-accent' : 'text-sub'
+          }`}
+        >
+          代码
+        </button>
+      </div>
+
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-3 lg:flex-row">
         {/* 代码面板（渐进揭示：有教学设计的题默认收起，按需展开） */}
         {showCode ? (
-        <section className="order-2 flex max-h-[30dvh] min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface lg:order-1 lg:max-h-none lg:w-[40%] lg:max-w-[540px]">
+        <section className={`order-2 ${mobilePane === 'code' ? 'flex' : 'hidden'} max-h-[60dvh] min-h-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface lg:order-1 lg:flex lg:max-h-none lg:w-[40%] lg:max-w-[540px]`}>
           <div className="flex shrink-0 items-center justify-between border-b border-line px-3 py-2 font-mono text-[11px] text-sub">
             <span>
               {algoCase.result.fnName}(…) · {lineCount} 行
@@ -318,7 +346,7 @@ function PlayerInner({
         ) : null}
 
         {/* 舞台列 */}
-        <section className="order-1 flex min-h-0 flex-1 flex-col gap-3 lg:order-2">
+        <section className={`order-1 ${mobilePane === 'stage' ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col gap-3 lg:order-2 lg:flex`}>
           <div className="relative min-h-0 flex-1">
             <div ref={stageBoxRef} className="h-full overflow-auto rounded-2xl border border-line bg-bg/60 p-3 md:p-4">
               {/* 单帧视图出错只影响舞台，翻帧（cursor 变化）自动恢复 */}

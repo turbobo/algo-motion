@@ -3,6 +3,7 @@
  * 动效（表现层）：高亮改为单一滑动光标条，translateY 平滑跟随当前行。
  */
 import { useEffect, useRef } from 'react'
+import { renderTokens } from '../highlight'
 
 const LINE_H = 24
 const PAD_Y = 8
@@ -50,7 +51,7 @@ export function CodePanel({ code, activeLine }: Props) {
               >
                 {n}
               </span>
-              <span className={`whitespace-pre ${active ? 'text-ink' : 'text-ink/70'}`}>{line || ' '}</span>
+              <span className={`whitespace-pre ${active ? '' : 'opacity-70'}`}>{line ? renderTokens(line) : ' '}</span>
             </div>
           )
         })}

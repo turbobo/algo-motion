@@ -22,6 +22,11 @@
   --fill-2: rgba(255, 255, 255, 0.1);
   --fill-3: rgba(255, 255, 255, 0.2);
   --faint: rgba(255, 255, 255, 0.25);
+  --code-kw: #ff7b72;
+  --code-str: #a5d6ff;
+  --code-num: #79c0ff;
+  --code-fn: #d2a8ff;
+  --code-cmt: #8b949e;
   color-scheme: dark;
 }
 
@@ -45,6 +50,11 @@
   --fill-2: rgba(0, 0, 0, 0.06);
   --fill-3: rgba(0, 0, 0, 0.12);
   --faint: rgba(0, 0, 0, 0.3);
+  --code-kw: #cf222e;
+  --code-str: #0a3069;
+  --code-num: #0550ae;
+  --code-fn: #8250df;
+  --code-cmt: #6e7781;
   color-scheme: light;
 }
 
@@ -95,4 +105,21 @@ body {
 .solve-workspace select:focus-visible,
 .solve-workspace textarea:focus-visible {
   @apply outline-none ring-2 ring-accent/70 ring-offset-2 ring-offset-bg;
+}
+
+/* 代码语法高亮 token（颜色随主题） */
+.tok-kw {
+  color: var(--code-kw);
+}
+.tok-str {
+  color: var(--code-str);
+}
+.tok-num {
+  color: var(--code-num);
+}
+.tok-fn {
+  color: var(--code-fn);
+}
+.tok-cmt {
+  color: var(--code-cmt);
 }

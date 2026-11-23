@@ -238,6 +238,85 @@ export const MOCK_PROBLEMS: SolveProblem[] = [
     animationId: 'trap',
     acceptanceRate: 62.8,
   },
+  {
+    id: 'valid-parentheses',
+    number: 20,
+    title: '有效的括号',
+    difficulty: '简单',
+    category: '栈',
+    description:
+      '给定一个只包括 \'(\'，\')\'，\'{\'，\'}\'，\'[\'，\']\' 的字符串 s，判断字符串是否有效。\n\n' +
+      '有效字符串需满足：左括号必须用相同类型的右括号闭合；左括号必须以正确的顺序闭合；每个右括号都有一个对应的相同类型的左括号。',
+    examples: [
+      { id: 'vp-ex-1', label: '示例 1', input: 's = "()"', output: 'true' },
+      { id: 'vp-ex-2', label: '示例 2', input: 's = "()[]{}"', output: 'true' },
+      {
+        id: 'vp-ex-3',
+        label: '示例 3',
+        input: 's = "(]"',
+        output: 'false',
+        explanation: '左括号是圆括号，右括号是方括号，类型不匹配。',
+      },
+    ],
+    constraints: ['1 <= s.length <= 10^4', 's 仅由括号字符组成'],
+    hints: [
+      '左括号先进后出，天然适合用栈：遇到左括号压栈，遇到右括号弹栈比对。',
+      '弹出时若栈为空或类型不匹配，立即判为无效。',
+      '扫描结束后栈必须为空，才算全部闭合。',
+    ],
+    starterCode: {
+      javascript:
+        '/**\n * @param {string} s\n * @return {boolean}\n */\nfunction isValid(s) {\n  // TODO: 用栈配对括号\n}',
+      python:
+        'class Solution:\n    def isValid(self, s: str) -> bool:\n        # TODO: 用栈配对括号\n        pass',
+      java:
+        'class Solution {\n    public boolean isValid(String s) {\n        // TODO: 用栈配对括号\n        return false;\n    }\n}',
+    },
+    sampleTests: [
+      { id: 'vp-case-1', label: '示例 1', input: 's = "()"', expected: 'true' },
+      { id: 'vp-case-2', label: '示例 2', input: 's = "()[]{}"', expected: 'true' },
+      { id: 'vp-case-3', label: '边界', input: 's = "(]"', expected: 'false' },
+    ],
+    hiddenCaseCount: 12,
+    animationId: 'valid-parentheses',
+    acceptanceRate: 44.1,
+  },
+  {
+    id: 'climb-stairs',
+    number: 70,
+    title: '爬楼梯',
+    difficulty: '简单',
+    category: '动态规划',
+    description:
+      '假设你正在爬楼梯。需要 n 阶你才能到达楼顶。每次你可以爬 1 或 2 个台阶。\n\n' +
+      '给定 n，有多少种不同的方法可以爬到楼顶？结果保证在可表示范围内。',
+    examples: [
+      { id: 'cs-ex-1', label: '示例 1', input: 'n = 2', output: '2', explanation: '1+1 或 2。' },
+      { id: 'cs-ex-2', label: '示例 2', input: 'n = 3', output: '3', explanation: '1+1+1、1+2、2+1。' },
+    ],
+    constraints: ['1 <= n <= 45'],
+    hints: [
+      '到第 n 阶的最后一步只能来自 n-1（爬 1 阶）或 n-2（爬 2 阶）。',
+      '所以 f(n) = f(n-1) + f(n-2)，即斐波那契数列。',
+      '用两个变量滚轮替代数组，空间 O(1)。',
+    ],
+    starterCode: {
+      javascript:
+        '/**\n * @param {number} n\n * @return {number}\n */\nfunction climbStairs(n) {\n  // TODO: f(n)=f(n-1)+f(n-2)\n}',
+      python:
+        'class Solution:\n    def climbStairs(self, n: int) -> int:\n        # TODO: f(n)=f(n-1)+f(n-2)\n        pass',
+      java:
+        'class Solution {\n    public int climbStairs(int n) {\n        // TODO: f(n)=f(n-1)+f(n-2)\n        return 0;\n    }\n}',
+    },
+    sampleTests: [
+      { id: 'cs-case-1', label: '示例 1', input: 'n = 2', expected: '2' },
+      { id: 'cs-case-2', label: '示例 2', input: 'n = 3', expected: '3' },
+      { id: 'cs-case-3', label: '边界', input: 'n = 1', expected: '1' },
+    ],
+    hiddenCaseCount: 10,
+    animationId: 'climb-stairs',
+    acceptanceRate: 53.0,
+  },
 ]
 
 export const MOCK_SUBMISSION_RECORDS: SubmissionRecord[] = [

@@ -31,6 +31,7 @@ import {
   nextSolveProblem,
 } from '../shared/mock-data'
 import { VERDICT_TONE_STYLE } from '../shared/solve-ui'
+import { bracketMatch, renderTokensMarked } from '../../components/highlight'
 import type {
   DraftRecord,
   RunResult,
@@ -1182,12 +1183,26 @@ function CodeEditor({
   onRequestReset,
 }: CodeEditorProps) {
   const gutterRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLPreElement>(null)
   const [cursorLine, setCursorLine] = useState(1)
+  const [marks, setMarks] = useState<Set<number> | null>(null)
   const lines = useMemo(() => code.split('\n'), [code])
+  const lineStarts = useMemo(() => {
+    const arr: number[] = []
+    let acc = 0
+    for (const l of lines) {
+      arr.push(acc)
+      acc += l.length + 1
+    }
+    return arr
+  }, [lines])
 
   const syncCursor = (element: HTMLTextAreaElement) => {
-    const before = element.value.slice(0, element.selectionStart)
+    const pos = element.selectionStart
+    const before = element.value.slice(0, pos)
     setCursorLine(before.split('\n').length)
+    const range = bracketMatch(element.value, pos)
+    setMarks(range ? new Set(range) : null)
   }
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -1216,7 +1231,12 @@ function CodeEditor({
   }
 
   const handleScroll = (event: ReactUIEvent<HTMLTextAreaElement>) => {
-    if (gutterRef.current) gutterRef.current.scrollTop = event.currentTarget.scrollTop
+    const el = event.currentTarget
+    if (gutterRef.current) gutterRef.current.scrollTop = el.scrollTop
+    if (overlayRef.current) {
+      overlayRef.current.scrollTop = el.scrollTop
+      overlayRef.current.scrollLeft = el.scrollLeft
+    }
   }
 
   return (
@@ -1269,21 +1289,33 @@ function CodeEditor({
             </div>
           ))}
         </div>
-        <textarea
-          ref={textareaRef}
-          value={code}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onKeyUp={(event) => syncCursor(event.currentTarget)}
-          onClick={(event) => syncCursor(event.currentTarget)}
-          onScroll={handleScroll}
-          spellCheck={false}
-          wrap="off"
-          readOnly={locked}
-          aria-label="代码编辑器"
-          title="Tab 缩进 · Shift+Tab 退出编辑器 · Esc 失焦"
-          className="min-h-0 flex-1 resize-none overflow-auto whitespace-pre bg-transparent px-3 py-3 font-mono text-[12.5px] leading-[22px] text-ink outline-none read-only:opacity-70"
-        />
+        <div className="relative min-h-0 flex-1">
+          <pre
+            ref={overlayRef}
+            aria-hidden
+            className="pointer-events-none absolute inset-0 m-0 overflow-hidden whitespace-pre px-3 py-3 font-mono text-[12.5px] leading-[22px] text-ink"
+          >
+            {lines.map((line, index) => (
+              <div key={index}>{line ? renderTokensMarked(line, lineStarts[index] ?? 0, marks) : ' '}</div>
+            ))}
+          </pre>
+          <textarea
+            ref={textareaRef}
+            value={code}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onKeyUp={(event) => syncCursor(event.currentTarget)}
+            onClick={(event) => syncCursor(event.currentTarget)}
+            onSelect={(event) => syncCursor(event.currentTarget)}
+            onScroll={handleScroll}
+            spellCheck={false}
+            wrap="off"
+            readOnly={locked}
+            aria-label="代码编辑器"
+            title="Tab 缩进 · Shift+Tab 退出编辑器 · Esc 失焦"
+            className="absolute inset-0 h-full w-full resize-none overflow-auto whitespace-pre bg-transparent px-3 py-3 font-mono text-[12.5px] leading-[22px] text-transparent caret-accent outline-none selection:bg-accent/25 read-only:opacity-70"
+          />
+        </div>
       </div>
     </div>
   )

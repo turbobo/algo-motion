@@ -11,11 +11,12 @@ interface Props {
   flash?: ReadonlySet<string>
   /** 帧序号：连续变化时让条目重新挂载以重播脉冲动画 */
   frameKey?: number
+  complete?: boolean
 }
 
 const HIT = TONE_STYLES.ok
 
-export function HashmapView({ view, flash, frameKey }: Props) {
+export function HashmapView({ view, flash, frameKey, complete }: Props) {
   const highlighted = new Set(view.highlightKeys ?? [])
 
   return (
@@ -33,7 +34,7 @@ export function HashmapView({ view, flash, frameKey }: Props) {
             return (
               <div
                 key={`${key}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                className={`flex ${isFlash ? flashClass(isHit ? 'ok' : undefined) : 'animate-settleIn'} items-center gap-2 rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-all duration-300`}
+                className={`flex ${isFlash ? flashClass(isHit ? 'ok' : undefined) : 'animate-settleIn'}${complete && isHit ? ' animate-complete' : ''} items-center gap-2 rounded-lg border px-2.5 py-1.5 font-mono text-xs transition-all duration-300`}
                 style={{
                   borderColor: isHit ? HIT.border : 'var(--line)',
                   background: isHit ? HIT.bg : 'var(--fill)',

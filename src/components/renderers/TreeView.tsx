@@ -17,6 +17,7 @@ interface Props {
   flash?: ReadonlySet<string>
   /** 帧序号：连续变化时让节点重新挂载以重播脉冲动画 */
   frameKey?: number
+  complete?: boolean
 }
 
 interface Layout {
@@ -65,7 +66,7 @@ function computeLayout(view: TreeViewModel): Layout {
   return { x, y, depthMax }
 }
 
-export function TreeView({ view, flash, frameKey }: Props) {
+export function TreeView({ view, flash, frameKey, complete }: Props) {
   const { x, y, depthMax } = computeLayout(view)
   const px = (id: string) => PAD + (x.get(id) ?? 0) * STEP_X + NODE_W / 2
   const py = (id: string) => PAD + (y.get(id) ?? 0) * STEP_Y + NODE_H / 2
@@ -106,6 +107,9 @@ export function TreeView({ view, flash, frameKey }: Props) {
                   y2={y2}
                   stroke="rgb(var(--c-sub) / 0.6)"
                   strokeWidth={1.5}
+                  pathLength={1}
+                  strokeDasharray={1}
+                  className="animate-draw-edge"
                 />
               )
             })}
@@ -119,7 +123,7 @@ export function TreeView({ view, flash, frameKey }: Props) {
             return (
               <div key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}>
                 <div
-                  className={`absolute flex items-center justify-center rounded-full border font-mono text-sm transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
+                  className={`absolute flex items-center justify-center rounded-full border font-mono text-sm transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}${complete && tone === 'ok' ? ' animate-complete' : ''}`}
                   style={{
                     left: px(node.id) - NODE_W / 2,
                     top: py(node.id) - NODE_H / 2,

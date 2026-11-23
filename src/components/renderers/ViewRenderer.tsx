@@ -31,19 +31,19 @@ export function ViewRenderer({
     case 'array':
       return <ArrayView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'hashmap':
-      return <HashmapView view={view} flash={flash} frameKey={frameKey} />
+      return <HashmapView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'linkedlist':
-      return <LinkedListView view={view} flash={flash} frameKey={frameKey} />
+      return <LinkedListView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'matrix':
-      return <MatrixView view={view} flash={flash} frameKey={frameKey} />
+      return <MatrixView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'tree':
-      return <TreeView view={view} flash={flash} frameKey={frameKey} />
+      return <TreeView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'grid':
       return <GridView view={view} flash={flash} frameKey={frameKey} />
     case 'stack':
-      return <StackView view={view} flash={flash} frameKey={frameKey} />
+      return <StackView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     case 'graph':
-      return <GraphView view={view} flash={flash} frameKey={frameKey} />
+      return <GraphView view={view} flash={flash} frameKey={frameKey} complete={complete} />
     default: {
       const kind = (view as { kind?: unknown }).kind
       return (

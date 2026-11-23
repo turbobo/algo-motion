@@ -2431,6 +2431,37 @@ const RAW_SAMPLES: RawSample[] = [
       fnName: 'reverseList',
       summary: '双指针迭代：逐个掰断 next 箭头，让它回头指向前驱',
     },
+    lesson: {
+      idea: '掰断箭头前先记好去路：prev/curr/next 三指针，逐个让箭头回头指向前驱。',
+      contrast: { bad: '递归反转：O(n) 栈空间，深链易栈溢出', good: '迭代三指针：O(1) 空间，逐个掰断' },
+      predicts: [
+        {
+          atFrame: 1,
+          question: '要掰断 curr 的箭头了，掰断前必须先做什么？',
+          options: [
+            { text: '先把下一站存进 next', correct: true },
+            { text: '直接掰断箭头', correct: false },
+            { text: '让 prev 前进', correct: false },
+          ],
+          explain: '先记好去路 next，不然掰断后链就丢了，找不到后面的节点。',
+        },
+        {
+          atFrame: 3,
+          question: '箭头掰完后，prev 为什么要前进到 curr？',
+          options: [
+            { text: '成为下一个节点的回头目标', correct: true },
+            { text: '没有用，可以省略', correct: false },
+            { text: '只是为了计数', correct: false },
+          ],
+          explain: 'prev 是「已反转部分的表头」，下一个节点掰箭头时要指向它。',
+        },
+      ],
+      takeaways: [
+        '策略：三指针迭代，逐个掰断 next 让它回头，O(n) 时间 O(1) 空间。',
+        '关键一步：先存 next 再掰断，顺序不能反，否则丢链。',
+        '结束：curr 变 null 时 prev 就是新表头。',
+      ],
+    },
   },
   {
     id: 'max-sub-array',
@@ -2443,6 +2474,37 @@ const RAW_SAMPLES: RawSample[] = [
       instrumentedCode: maxSubArrayInstrumented,
       fnName: 'maxSubArray',
       summary: 'Kadane 动态规划：cur 是「以当前元素结尾」的最大和，best 记录全局最优',
+    },
+    lesson: {
+      idea: '每个数面临选择：接在之前的累积后面，还是从自己重新开始？选大的那个（Kadane）。',
+      contrast: { bad: '枚举所有子数组求和：O(n²)', good: 'Kadane 一次遍历：O(n)' },
+      predicts: [
+        {
+          atFrame: 2,
+          question: 'cur=-2，看到 1：接着累积(-2+1=-1) vs 重新开始(1)，选哪个？',
+          options: [
+            { text: '重新开始 1', correct: true },
+            { text: '接着累积 -1', correct: false },
+            { text: '跳过这个数', correct: false },
+          ],
+          explain: '之前的累积是负担(-2)，从 1 重新开始更大——这就是 Kadane 的重开决策。',
+        },
+        {
+          atFrame: 8,
+          question: '看到 4，之前累积 cur=1：接上(1+4=5) vs 重开(4)，选哪个？',
+          options: [
+            { text: '接上累积 5', correct: true },
+            { text: '重新开始 4', correct: false },
+            { text: '两者一样随便', correct: false },
+          ],
+          explain: '累积是正的(1)，接上更大，所以延续子数组。cur 永远记录「以当前数结尾」的最大和。',
+        },
+      ],
+      takeaways: [
+        '策略：cur 记录「以当前元素结尾」的最大和，best 记录全局最优，一次遍历 O(n)。',
+        '关键决策：cur = max( nums[i], cur + nums[i] )——负担就重开，正累积就延续。',
+        '易错点：best 必须每步更新，答案不一定是 cur 的末值（全负数时取最大单元素）。',
+      ],
     },
   },
   {

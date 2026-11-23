@@ -16,9 +16,10 @@ interface Props {
   flash?: ReadonlySet<string>
   /** 帧序号：连续变化时让节点重新挂载以重播脉冲动画 */
   frameKey?: number
+  complete?: boolean
 }
 
-export function GraphView({ view, flash, frameKey }: Props) {
+export function GraphView({ view, flash, frameKey, complete }: Props) {
   const n = view.nodes.length
   const radius = Math.max(70, n * 30)
   const size = (radius + PAD) * 2
@@ -61,6 +62,9 @@ export function GraphView({ view, flash, frameKey }: Props) {
                   stroke="rgb(var(--c-sub) / 0.7)"
                   strokeWidth={1.5}
                   markerEnd="url(#graph-arrow)"
+                  pathLength={1}
+                  strokeDasharray={1}
+                  className="animate-draw-edge"
                 />
               )
             })}
@@ -75,7 +79,7 @@ export function GraphView({ view, flash, frameKey }: Props) {
             return (
               <div
                 key={`${node.id}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                className={`absolute flex items-center justify-center rounded-full border font-mono text-xs transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
+                className={`absolute flex items-center justify-center rounded-full border font-mono text-xs transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}${complete && tone === 'ok' ? ' animate-complete' : ''}`}
                 style={{
                   left: p.x - NODE_R,
                   top: p.y - NODE_R,

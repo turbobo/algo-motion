@@ -90,6 +90,24 @@ export default {
           '0%': { opacity: '0.6' },
           '100%': { opacity: '0' },
         },
+        // 边线绘制：pathLength=1 归一，dashoffset 1→0 画入
+        drawEdge: {
+          from: { strokeDashoffset: '1' },
+          to: { strokeDashoffset: '0' },
+        },
+        // 调用栈：push 右滑入 / pop 右滑出 / 栈顶微呼吸
+        stackIn: {
+          from: { opacity: '0', transform: 'translateX(8px)' },
+          to: { opacity: '1', transform: 'translateX(0)' },
+        },
+        stackOut: {
+          from: { opacity: '1', transform: 'translateX(0)' },
+          to: { opacity: '0', transform: 'translateX(8px)' },
+        },
+        stackBreathe: {
+          '0%,100%': { boxShadow: '0 0 0 0 rgb(var(--c-accent) / 0.35)' },
+          '50%': { boxShadow: '0 0 0 4px rgb(var(--c-accent) / 0.12)' },
+        },
       },
       animation: {
         fadeIn: 'fadeIn 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -104,6 +122,10 @@ export default {
         'breath-fwd': 'breathFwd 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
         'breath-back': 'breathBack 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
         'ghost-fade': 'ghostFade 0.4s ease-out forwards',
+        'draw-edge': 'drawEdge 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'stack-in': 'stackIn 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
+        'stack-out': 'stackOut 0.18s ease-in forwards',
+        'stack-breathe': 'stackBreathe 2s ease-in-out infinite',
       },
     },
   },

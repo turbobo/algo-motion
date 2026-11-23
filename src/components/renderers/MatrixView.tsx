@@ -19,9 +19,10 @@ interface Props {
   flash?: ReadonlySet<string>
   /** 帧序号：连续变化时让格子重新挂载以重播脉冲动画 */
   frameKey?: number
+  complete?: boolean
 }
 
-export function MatrixView({ view, flash, frameKey }: Props) {
+export function MatrixView({ view, flash, frameKey, complete }: Props) {
   const markMap = new Map((view.marks ?? []).map((m) => [`${m.row}:${m.col}`, m.tone]))
   const hasRowHead = Array.isArray(view.rowLabels) && view.rowLabels.length > 0
   const hasColHead = Array.isArray(view.colLabels) && view.colLabels.length > 0
@@ -70,7 +71,7 @@ export function MatrixView({ view, flash, frameKey }: Props) {
                 return (
                   <div
                     key={isFlash ? `f${frameKey ?? 0}-${ci}` : String(ci)}
-                    className={`flex items-center justify-center border font-mono text-xs transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}`}
+                    className={`flex items-center justify-center border font-mono text-xs transition-all duration-300${isFlash ? ` ${flashClass(tone)}` : ''}${complete && tone === 'ok' ? ' animate-complete' : ''}`}
                     style={{
                       width: CELL_W,
                       height: CELL_H,

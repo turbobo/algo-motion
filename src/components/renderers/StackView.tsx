@@ -11,9 +11,10 @@ interface Props {
   flash?: ReadonlySet<string>
   /** 帧序号：连续变化时让元素重新挂载以重播脉冲动画 */
   frameKey?: number
+  complete?: boolean
 }
 
-export function StackView({ view, flash, frameKey }: Props) {
+export function StackView({ view, flash, frameKey, complete }: Props) {
   const markOf = new Map((view.marks ?? []).map((m) => [m.index, m.tone]))
   const topIndex = view.items.length - 1
 
@@ -37,7 +38,7 @@ export function StackView({ view, flash, frameKey }: Props) {
             return (
               <div
                 key={`${idx}-${String(item)}${isFlash ? '-f' + String(frameKey ?? 0) : ''}`}
-                className={`flex h-7 w-16 ${isFlash ? flashClass(tone) : 'animate-settleIn'} items-center justify-center rounded border font-mono text-xs transition-all duration-300`}
+                className={`flex h-7 w-16 ${isFlash ? flashClass(tone) : 'animate-settleIn'}${complete && tone === 'ok' ? ' animate-complete' : ''} items-center justify-center rounded border font-mono text-xs transition-all duration-300`}
                 style={{
                   borderColor: style?.border ?? 'var(--line)',
                   background: style?.bg ?? 'var(--fill)',

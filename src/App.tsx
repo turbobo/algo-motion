@@ -21,6 +21,11 @@ function readSolveIdFromHash(): string | null {
   return match?.[1] ?? null
 }
 
+function readPlayIdFromHash(): string | null {
+  const match = window.location.hash.match(/^#\/play\/([\w-]+)$/)
+  return match?.[1] ?? null
+}
+
 function readLastSolveId(): string | null {
   try {
     const id = localStorage.getItem(LAST_SOLVE_KEY)
@@ -121,6 +126,20 @@ export default function App() {
     [markOpened],
   )
 
+  // 深链 #/play/:id：分享链接直接打开内置样题播放
+  useEffect(() => {
+    const openFromHash = () => {
+      const pid = readPlayIdFromHash()
+      if (pid && CATALOG.some((e) => e.id === pid)) {
+        setSolveProblemId(null)
+        void openSample({ id: pid })
+      }
+    }
+    window.addEventListener('hashchange', openFromHash)
+    openFromHash()
+    return () => window.removeEventListener('hashchange', openFromHash)
+  }, [openSample])
+
   /** 题库 → 解题工作台（同步 URL + 记录上次做题） */
   const startSolve = useCallback((problemId: string) => {
     setError(null)
@@ -175,6 +194,8 @@ export default function App() {
       if (window.location.hash !== nextHash) {
         window.history.pushState(null, '', nextHash)
       }
+    } else if (readPlayIdFromHash()) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
     }
   }, [returnSolveId])
 

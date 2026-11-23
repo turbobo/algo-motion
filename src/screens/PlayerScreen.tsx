@@ -18,6 +18,7 @@ import { CallStackPanel } from '../components/player/CallStackPanel'
 import { VarsPanel } from '../components/player/VarsPanel'
 import { diffViews } from '../components/renderers/frameDiff'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { CATALOG } from '../samples/catalog'
 
 interface Props {
   algoCase: AlgorithmCase
@@ -153,6 +154,10 @@ function PlayerInner({
   const lesson = algoCase.lesson
   const [showCode, setShowCode] = useState(!lesson)
   const [mobilePane, setMobilePane] = useState<'stage' | 'code'>('stage')
+  const shareable = !algoCase.id.startsWith('gen-')
+  const [copied, setCopied] = useState(false)
+  const [showCompare, setShowCompare] = useState(false)
+  const [relatedInfo, setRelatedInfo] = useState<{ title: string; complexity?: string; idea?: string; good?: string } | null>(null)
   const [answered, setAnswered] = useState<Record<number, boolean>>({})
   const [wrongIdx, setWrongIdx] = useState<number | null>(null)
   const activePredict = lesson?.predicts?.find((p) => p.atFrame === cursor)
@@ -201,6 +206,40 @@ function PlayerInner({
     seek(cursor - 1)
     setPlaying(true)
   }, [cursor, seek, setPlaying])
+
+  /** 分享链接：内置样题生成 #/play/:id 深链（生成题不可分享） */
+  const handleShare = useCallback(() => {
+    const url = `${window.location.origin}${window.location.pathname}#/play/${algoCase.id}`
+    const done = () => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(done).catch(done)
+    } else {
+      done()
+    }
+  }, [algoCase.id])
+
+  // 对照弹窗：按需加载对照解法的策略/复杂度
+  useEffect(() => {
+    if (!showCompare || !relatedId) return
+    let alive = true
+    void import('../samples').then(({ findSample }) => {
+      const s = findSample(relatedId)
+      if (!s || !alive) return
+      const meta = CATALOG.find((e) => e.id === relatedId)
+      setRelatedInfo({
+        title: s.title,
+        complexity: meta?.complexity,
+        idea: s.lesson?.idea,
+        good: s.lesson?.contrast?.good,
+      })
+    })
+    return () => {
+      alive = false
+    }
+  }, [showCompare, relatedId])
 
   // 键盘快捷键：空格 播放/暂停 · ←/→ 逐帧 · ↑/↓ 变速 · R 重放本步
   // 输入控件/按钮聚焦时不劫持（按钮的原生键盘激活优先）
@@ -256,11 +295,21 @@ function PlayerInner({
         {relatedId ? (
           <button
             type="button"
-            onClick={() => onOpenRelated?.(relatedId)}
+            onClick={() => setShowCompare(true)}
             className="shrink-0 rounded-lg border border-accent/40 bg-accent/10 px-2.5 py-1.5 font-mono text-xs text-accent transition-colors hover:bg-accent/20"
-            title="切换到同一道题的另一种解法"
+            title="对照两种解法的策略与复杂度"
           >
             ⇄ 对照解法
+          </button>
+        ) : null}
+        {shareable ? (
+          <button
+            type="button"
+            onClick={handleShare}
+            className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 font-mono text-xs text-sub transition-colors hover:border-line-strong hover:text-ink"
+            aria-label="复制分享链接"
+          >
+            {copied ? '已复制 ✓' : '分享'}
           </button>
         ) : null}
         {algoCase.complexity ? (
@@ -513,6 +562,70 @@ function PlayerInner({
           </div>
         </section>
       </div>
+
+      {showCompare && relatedId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="解法对照">
+          <div className="w-full max-w-2xl rounded-2xl border border-line bg-surface p-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">解法对照</h2>
+              <button
+                type="button"
+                onClick={() => setShowCompare(false)}
+                aria-label="关闭"
+                className="rounded p-1 text-sub transition-colors hover:text-ink"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-accent/30 bg-accent/5 p-3">
+                <div className="font-mono text-[10px] text-accent">当前解法</div>
+                <div className="mt-1 text-sm font-medium">{algoCase.title}</div>
+                {algoCase.complexity ? (
+                  <div className="mt-0.5 font-mono text-[11px] text-sub">{algoCase.complexity}</div>
+                ) : null}
+                {lesson?.idea ? <p className="mt-2 text-[12px] leading-relaxed text-ink/85">{lesson.idea}</p> : null}
+                {lesson?.contrast?.good ? <p className="mt-1 text-[11px] text-ok">{lesson.contrast.good}</p> : null}
+              </div>
+              <div className="rounded-xl border border-line bg-bg/40 p-3">
+                <div className="font-mono text-[10px] text-sub">对照解法</div>
+                {relatedInfo ? (
+                  <>
+                    <div className="mt-1 text-sm font-medium">{relatedInfo.title}</div>
+                    {relatedInfo.complexity ? (
+                      <div className="mt-0.5 font-mono text-[11px] text-sub">{relatedInfo.complexity}</div>
+                    ) : null}
+                    {relatedInfo.idea ? <p className="mt-2 text-[12px] leading-relaxed text-ink/85">{relatedInfo.idea}</p> : null}
+                    {relatedInfo.good ? <p className="mt-1 text-[11px] text-ok">{relatedInfo.good}</p> : null}
+                  </>
+                ) : (
+                  <div className="mt-2 text-[12px] text-sub">载入中…</div>
+                )}
+              </div>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-sub">对比两种策略的时间 / 空间开销，选更贴题的那一种。</p>
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCompare(false)}
+                className="rounded-lg border border-line px-3 py-2 text-xs text-sub transition-colors hover:text-ink"
+              >
+                关闭
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCompare(false)
+                  onOpenRelated?.(relatedId)
+                }}
+                className="rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-black transition-all hover:brightness-110"
+              >
+                播放对照解法
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

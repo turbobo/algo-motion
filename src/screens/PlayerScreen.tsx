@@ -157,6 +157,7 @@ function PlayerInner({
   const [mobilePane, setMobilePane] = useState<'stage' | 'code'>('stage')
   const shareable = !algoCase.id.startsWith('gen-')
   const [copied, setCopied] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [compareCase, setCompareCase] = useState<AlgorithmCase | null>(null)
   const [compareLoading, setCompareLoading] = useState(false)
   const [answered, setAnswered] = useState<Record<number, boolean>>({})
@@ -221,6 +222,21 @@ function PlayerInner({
       done()
     }
   }, [algoCase.id])
+
+  /** 导出当前用例为 GIF（浏览器 canvas 绘制 + gifenc 编码） */
+  const handleExportGif = useCallback(async () => {
+    if (exporting) return
+    setExporting(true)
+    try {
+      const mod = await import('../export/exportFrames')
+      const blob = mod.exportCaseToGif(algoCase, testIdx)
+      mod.downloadGif(blob, `algomotion-${algoCase.id}.gif`)
+    } catch {
+      /* 无帧或绘图不可用：静默失败，不打断播放 */
+    } finally {
+      setExporting(false)
+    }
+  }, [algoCase, testIdx, exporting])
 
   // 对照解法：加载 + 沙箱执行，进入同屏双播放
   const startCompare = useCallback(async () => {
@@ -323,6 +339,17 @@ function PlayerInner({
             aria-label="复制分享链接"
           >
             {copied ? '已复制 ✓' : '分享'}
+          </button>
+        ) : null}
+        {shareable ? (
+          <button
+            type="button"
+            onClick={handleExportGif}
+            disabled={exporting}
+            className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 font-mono text-xs text-sub transition-colors hover:border-line-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="导出 GIF"
+          >
+            {exporting ? '导出中…' : 'GIF'}
           </button>
         ) : null}
         {algoCase.complexity ? (

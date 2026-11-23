@@ -5,6 +5,7 @@
  */
 import type { ArrayView as ArrayViewModel } from '../../types'
 import { TONE_STYLES, ViewTitle, flashClass } from './tones'
+import { layoutPointers } from './pointerLayout'
 
 const CELL = 44
 const STEP = 52
@@ -20,6 +21,7 @@ interface Props {
 export function ArrayView({ view, flash, frameKey, complete }: Props) {
   const marks = new Map((view.marks ?? []).map((m) => [m.index, m.tone]))
   const pointerEntries = Object.entries(view.pointers ?? {})
+  const pointerPos = layoutPointers(view.pointers ?? {}, STEP, CELL)
   const ranges = [...(view.ranges ?? [])].sort((a, b) => a.from - b.from)
 
   return (
@@ -35,11 +37,11 @@ export function ArrayView({ view, flash, frameKey, complete }: Props) {
             <div className="relative">
               {/* 滑移指针层：持久元素 keyed by label，translateX 过渡 */}
               <div className="pointer-events-none absolute left-0 top-0 z-10 h-5">
-                {pointerEntries.map(([label, idx], li) => (
+                {pointerEntries.map(([label]) => (
                   <span
                     key={label}
                     className="absolute top-0 whitespace-nowrap rounded border border-accent/40 bg-accent/15 px-1 font-mono text-[10px] leading-4 text-accent transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                    style={{ transform: `translateX(${idx * STEP + CELL / 2 + li * 18}px) translateX(-50%)` }}
+                    style={{ transform: `translateX(${pointerPos[label] ?? 0}px) translateX(-50%)` }}
                   >
                     {label}
                   </span>

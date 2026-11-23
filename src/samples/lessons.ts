@@ -53,18 +53,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 4,
-        "question": "当前：curr 走到空 → 弹栈：取出 n1（值 1），它的左边已经访问完了，轮到它自己 下一步会怎样？",
+        "question": "执行到「curr = stack.pop()」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "把值 1 记入结果：[1]",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -86,18 +86,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：数一数 4 × 4 的地图上有几座岛屿：扫描每个格子，遇到陆地就把整座岛用 BFS … 下一步会怎样？",
+        "question": "执行到「let count = 0」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "发现陆地 (0, 0) —— 这是一座新岛屿（第 1 座）！立刻开始 BFS 把它整座探索完",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -152,18 +152,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：\"eat\" 排序后得到键 \"aet\" → 开一个新分组 下一步会怎样？",
+        "question": "执行「groups.get(key).push(word)」：这一步的作用是？",
         "options": [
           {
-            "text": "\"tea\" 排序后得到键 \"aet\" → 并入已有分组 [eat, tea]",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -317,18 +317,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 3,
-        "question": "当前：左边 1 更矮，但它本身就是左墙新高（leftMax = 1）→ 头顶接不到水，wa… 下一步会怎样？",
+        "question": "执行到「water += leftMax - height[left…」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "左边 0 更矮：leftMax 是 1，这格头顶能接 1 - 0 = 1 格水，water …",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -383,18 +383,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：加上 1 后前缀和 sum = 1；查 sum − k = -2：没出现过 → 本轮… 下一步会怎样？",
+        "question": "执行「count.set(sum, (count.get(sum)…」：这一步的作用是？",
         "options": [
           {
-            "text": "加上 2 后前缀和 sum = 3；查 sum − k = 0：出现过 1 次 → 新增 1…",
+            "text": "推进当前步骤",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "终止算法",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "回退到起点",
             "correct": false
           }
         ],
@@ -416,18 +416,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：暴力每窗求 max 是 O(n·k)。单调队列技巧：队列里只留\"还有资格当最大值\"的… 下一步会怎样？",
+        "question": "执行到「const deque = []」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "-1 入队并弹掉了队尾更小的数；窗口 [0, 2] 已满，队首下标 1（值 3）就是最大值 …",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -449,18 +449,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：扩入 'A'：窗口内它有 1 个，刚好达到需求的 1 个 → 达标字符种类 1/3 下一步会怎样？",
+        "question": "执行「valid++」：这一步的作用是？",
         "options": [
           {
-            "text": "扩入 'B'：窗口内它有 1 个，刚好达到需求的 1 个 → 达标字符种类 2/3",
+            "text": "更新状态变量，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "把新元素加入容器",
             "correct": false
           }
         ],
@@ -515,18 +515,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第一步：整体反转 [0, 6]——原本在后半段的 3 个元素被甩到了前面，但它们的内… 下一步会怎样？",
+        "question": "执行「reverse(0, n - 1)」：这一步的作用是？",
         "options": [
           {
-            "text": "第二步：反转前 k 个 [0, 2]——把刚甩到前面的那 3 个元素的内部顺序恢复正确",
+            "text": "推进当前步骤",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "终止算法",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "回退到起点",
             "correct": false
           }
         ],
@@ -548,18 +548,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：要求 O(n) 且不能用除法。思路：答案 = 左边所有数的积 × 右边所有数的积。第… 下一步会怎样？",
+        "question": "执行到「let prefix = 1」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "第一趟：res[0] 先填上左侧积 1；然后 prefix 乘上 nums[0] = 1 →…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -614,18 +614,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：发现 0 在 (2, 2) → 把它的行头 matrix[2][0] 和列头 mat… 下一步会怎样？",
+        "question": "执行「matrix[0][j] = 0」：这一步的作用是？",
         "options": [
           {
-            "text": "(1, 2) 的行头或列头有标记 → 清零（当行头列头都是标记位时，第二遍扫描不会读到被污染…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -647,18 +647,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：→ 向右：收集 matrix[0][0] = 1 下一步会怎样？",
+        "question": "执行「res.push(matrix[top][j])」：这一步的作用是？",
         "options": [
           {
-            "text": "→ 向右：收集 matrix[0][1] = 2",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -680,18 +680,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：转置：交换 (0, 1) ↔ (1, 0)，让 matrix[i][j] 和 mat… 下一步会怎样？",
+        "question": "执行「matrix[j][i] = tmp」：这一步的作用是？",
         "options": [
           {
-            "text": "转置：交换 (0, 2) ↔ (2, 0)，让 matrix[i][j] 和 matrix[…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -713,18 +713,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 4,
-        "question": "当前：站在 (0, 1)：4 比目标小 → 这一行右边的都更大，排除本行，row 下移 下一步会怎样？",
+        "question": "执行到「const cur = matrix[row][col]」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "站在 (1, 1)：5 正好命中！",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -746,18 +746,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：res ^= 4 → 4；到目前为止累计异或值是 4（成对的数会在后续步骤里互相抵消… 下一步会怎样？",
+        "question": "执行「res ^= nums[i]」：这一步的作用是？",
         "options": [
           {
-            "text": "res ^= 1 → 5；到目前为止累计异或值是 5（成对的数会在后续步骤里互相抵消）",
+            "text": "更新状态变量，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "把新元素加入容器",
             "correct": false
           }
         ],
@@ -812,18 +812,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：荷兰国旗问题：三个指针把数组分成四个区——[0, low) 全是 0、[low, m… 下一步会怎样？",
+        "question": "执行到「let high = nums.length - 1」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "mid 遇到 2 → 和 high 位置交换，把它甩到蓝色区；high 收缩——换过来的数还…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -911,18 +911,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 2,
-        "question": "当前：slow 走到 n3，fast 走到 n2，还没追上，继续 下一步会怎样？",
+        "question": "执行到「fast = fast.next.next」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "slow 走到 n4，fast 走到 n4 —— 相遇了！",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -977,18 +977,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：回文 = 正着读和反着读一样。把链表的值依次取出来（链表只能单向走，取值后就能两头向… 下一步会怎样？",
+        "question": "执行到「const vals = []」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "vals[0] = vals[3] 相等 ✓，左右指针向中间收拢（1 ↔ 2）",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1043,18 +1043,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：刚才接走的是更小的那个节点，cur 前进到队尾；现在比较 2 和 1 下一步会怎样？",
+        "question": "执行「cur = cur.next」：这一步的作用是？",
         "options": [
           {
-            "text": "刚才接走的是更小的那个节点，cur 前进到队尾；现在比较 2 和 3",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -1142,18 +1142,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：本轮要交换的一对：first = 1，second = 2 下一步会怎样？",
+        "question": "执行「const second = first.next」：这一步的作用是？",
         "options": [
           {
-            "text": "交换完成：2 → 1，prev 前进到 1（这对的尾巴），准备处理下一对",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -1241,18 +1241,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：取出 4 个值并排好序：[1, 2, 3, 4]——接下来按顺序填回去 下一步会怎样？",
+        "question": "执行「vals.sort((a, b) => a - b)」：这一步的作用是？",
         "options": [
           {
-            "text": "把 1 填进第 0 个节点（链表顺序不变，值按升序归位）",
+            "text": "排序以简化后续处理",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "交换两个元素",
             "correct": false
           }
         ],
@@ -1274,18 +1274,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第 1 轮：把 lists[1] 归并进结果链——归并过程是标准的双指针接力（谁小接… 下一步会怎样？",
+        "question": "执行「result = mergeTwo(result, list…」：这一步的作用是？",
         "options": [
           {
-            "text": "第 2 轮：把 lists[2] 归并进结果链——归并过程是标准的双指针接力（谁小接谁），归…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -1307,18 +1307,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：LRU = 最近最少使用。两个结构配合：map 存 key → value 实现 O… 下一步会怎样？",
+        "question": "执行到「this.order = []」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "put(1, 1) 完成：值写入 map，key 挪到使用顺序最右端成为\"最近使用\"",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1373,18 +1373,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：交换节点 n1（值 4）的左右子树——看图中这两个分支换边了 下一步会怎样？",
+        "question": "执行到「root.right = tmp」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "交换节点 n5（值 7）的左右子树——看图中这两个分支换边了",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1406,18 +1406,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：对称 = 根的左右子树互为镜像。定义 check(a, b)：a 和 b 的值相等，… 下一步会怎样？",
+        "question": "执行到「return check(root.left, root.r…」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "镜像位置 2 = 2 ✓。继续往下一层：a 的左孩子要对上 b 的右孩子，a 的右孩子要对上…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1439,18 +1439,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：层序遍历 = BFS：用队列把根先排上，每一轮先记下\"当前队列长度\"（= 这一层的节… 下一步会怎样？",
+        "question": "执行到「const queue = [root]」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "第 0 层收割完成：[3]——这一层的孩子已经全部排进队列，等着下一轮",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1472,18 +1472,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：区间 [0, 1] 取中点 mid = 0（值 -10）作为这棵子树的根——中点保证… 下一步会怎样？",
+        "question": "执行「const node = { val: nums[mid],…」：这一步的作用是？",
         "options": [
           {
-            "text": "区间 [1, 1] 取中点 mid = 1（值 -3）作为这棵子树的根——中点保证左右子树高…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -1505,18 +1505,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：中序访问 1：比上一个访问的 （还没有）。原理：BST 的中序遍历必然严格递增——边… 下一步会怎样？",
+        "question": "执行到「prev = node」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "中序访问 2：比上一个访问的 1 大 ✓。原理：BST 的中序遍历必然严格递增——边遍历边检…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1571,18 +1571,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：站在树的右侧看，每一层只能看见最右边的那个节点。层序遍历时记住每层的节点数，当处理到… 下一步会怎样？",
+        "question": "执行到「const queue = [root]」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "本层处理到最后一个节点 1 —— 从右侧看它就是这一层唯一可见的，收入右视图",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1604,18 +1604,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：前序段的第一个 3 就是根；在中序里找到它的位置 1：左边 1 个是左子树（中序 [… 下一步会怎样？",
+        "question": "执行到「const leftSize = inRoot - inLo」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "前序段的第一个 9 就是根；在中序里找到它的位置 0：左边 0 个是左子树（中序 [0..-…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1637,18 +1637,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：先序收集完成，共 6 个节点：[1, 2, 3, 4, 5, 6]——这个顺序就是最… 下一步会怎样？",
+        "question": "执行到「preorder(root)」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "重接第 1 个节点（值 1）：left 清空，right 指向 2——它原来的子链表已经由先…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -1736,18 +1736,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：走到 5：根到它的路径和 sum = 15；查 sum − target = 7 在… 下一步会怎样？",
+        "question": "执行「prefix.set(sum, (prefix.get(su…」：这一步的作用是？",
         "options": [
           {
-            "text": "走到 3：根到它的路径和 sum = 18；查 sum − target = 10 在祖先路…",
+            "text": "推进当前步骤",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "终止算法",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "回退到起点",
             "correct": false
           }
         ],
@@ -1868,18 +1868,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：插入：沿字符 'p' 往下——没有这条边就现场创建一个新节点，有就走过去。当前停在路… 下一步会怎样？",
+        "question": "执行「node = node.children.get(ch)」：这一步的作用是？",
         "options": [
           {
-            "text": "插入：沿字符 'p' 往下——没有这条边就现场创建一个新节点，有就走过去。当前停在路径 \"a…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -1901,18 +1901,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：选择 1（第 1 位）。回溯的本质：选一个 → 往下试 → 试完撤销回来，换下一个 下一步会怎样？",
+        "question": "执行「path.push(nums[i])」：这一步的作用是？",
         "options": [
           {
-            "text": "选择 2（第 2 位）。回溯的本质：选一个 → 往下试 → 试完撤销回来，换下一个",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -1934,18 +1934,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：空集 ∅ 是第一个子集——回溯法把\"走过的每个节点\"都当作一个答案，而不是只收叶子 下一步会怎样？",
+        "question": "执行「res.push([...path])」：这一步的作用是？",
         "options": [
           {
-            "text": "当前路径 [1] 本身就是一个子集，收入结果。注意：每进入一个节点先收割，再决定\"还要不要加…",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -1967,18 +1967,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：数字 \"23\" 的字母组合 = 每位数字在自己的字母表里挑一个，全排一遍。第 2 位… 下一步会怎样？",
+        "question": "执行到「const backtrack = (idx) => {」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "每一位都选完了——组合 \"ad\" 收入结果。回到上一层，把最后一位换成下一个字母（回溯撤销）",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2000,18 +2000,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：选 2，还差 5。因为每个数可以重复用，下一层还从自己开始选（再往后会越选越大） 下一步会怎样？",
+        "question": "执行「path.push(candidates[i])」：这一步的作用是？",
         "options": [
           {
-            "text": "选 2，还差 3。因为每个数可以重复用，下一层还从自己开始选（再往后会越选越大）",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -2033,18 +2033,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：3 对括号的合法组合 = 边放边守两条规则：① 左括号最多用 3 个；② 右括号数不… 下一步会怎样？",
+        "question": "执行到「const backtrack = (open, close…」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "\"((()))\" 全 6 位放完——因为每一步都保证了\"左括号数 ≥ 右括号数\"，所以只要放…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2099,18 +2099,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：从位置 0 试到 0：片段 \"a\" 是回文 ✓，先切下它，再从 1 继续切后面的部分… 下一步会怎样？",
+        "question": "执行「path.push(s.slice(start, end +…」：这一步的作用是？",
         "options": [
           {
-            "text": "从位置 1 试到 1：片段 \"a\" 是回文 ✓，先切下它，再从 2 继续切后面的部分——切错…",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -2132,18 +2132,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：mid = 2（值 7 < 8）：答案只可能在右半，窗口收缩到 [3, 5] 下一步会怎样？",
+        "question": "执行「const mid = Math.floor((lo + h…」：这一步的作用是？",
         "options": [
           {
-            "text": "mid = 4 命中 8！记录 左边界为 4，然后别停——继续往左半找更靠左的",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2165,18 +2165,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：mid = 3（值 7）：[lo..mid] 这段是升序（4 ≤ 7）——看 0 在… 下一步会怎样？",
+        "question": "执行「const mid = Math.floor((lo + h…」：这一步的作用是？",
         "options": [
           {
-            "text": "mid = 5（值 1）：[lo..mid] 这段是升序（0 ≤ 1）——看 0 在不在 […",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2231,18 +2231,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：mid = 5 展开成 (1, 1)：值 11 > 3 → 窗口收缩到左半，窗口 [… 下一步会怎样？",
+        "question": "执行「const r = Math.floor(mid / col…」：这一步的作用是？",
         "options": [
           {
-            "text": "mid = 2 展开成 (0, 2)：值 5 > 3 → 窗口收缩到左半，窗口 [0, 1]",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2330,18 +2330,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：push -2：主栈照常压入；最小栈只在\"-2 ≤ 当前最小 -2\"时也压一份——这… 下一步会怎样？",
+        "question": "执行到「this.stack.push(val)」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "push 0：主栈照常压入；最小栈只在\"0 ≤ 当前最小 -2\"时也压一份——这样栈顶永远同…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2363,18 +2363,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：多层嵌套的 \"3[a2[c]]\" 靠两个栈解：遇 [ 就把\"前面的数字\"和\"外面的字… 下一步会怎样？",
+        "question": "执行到「const numStack = [];」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "遇到 '['：把重复次数 3 和已拼好的前缀 \"\" 分别压栈（稍后拼回），然后清空当前段，开…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2396,18 +2396,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：今天 74° 比 0 日（73°）暖——0 日等到了答案：1 天。弹出结账，继续看栈… 下一步会怎样？",
+        "question": "执行「res[prev] = i - prev」：这一步的作用是？",
         "options": [
           {
-            "text": "今天 75° 比 1 日（74°）暖——1 日等到了答案：1 天。弹出结账，继续看栈里还有没…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2429,18 +2429,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：高度 2 的柱子退休：它向左能到 0、向右到 0，宽 1 × 高 2 = 面积 2—… 下一步会怎样？",
+        "question": "执行到「const area = h * (i - left - 1…」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "高度 6 的柱子退休：它向左能到 3、向右到 3，宽 1 × 高 6 = 面积 6——刷新纪…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2462,18 +2462,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：接雨水（栈版）：栈里存\"还没找到右墙\"的柱子，高度从底到顶递减。一旦来了比栈顶高的柱… 下一步会怎样？",
+        "question": "执行到「const stack = [];」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "凹槽 [1, 3]：左墙高 1、右墙高 2，水面高 1，盆底 0——蓄水 宽 1 × 高 1…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2495,18 +2495,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：找第 2 大：不用全排序，只需要一个\"大小为 2 的擂台\"。用一个最小堆：新数放进来… 下一步会怎样？",
+        "question": "执行到「const heap = [];」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "放入 3：还没攒够 2 个（当前 1 个），先都留着",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2528,18 +2528,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：数完频率、装好桶：最高频的桶在最后（越靠后越热），从那儿倒着捡就能先拿到高频元素 下一步会怎样？",
+        "question": "执行「const buckets = [];」：这一步的作用是？",
         "options": [
           {
-            "text": "从 3 次桶里捡出 1——还差 1 个，继续往低频方向扫",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2561,18 +2561,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 0,
-        "question": "当前：加入 1：过一遍流程——先进左半、再把左半最大的挪给右半、不平衡再把右半最小的挪回来… 下一步会怎样？",
+        "question": "执行到「this.small.push(-num)」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "加入 2：过一遍流程——先进左半、再把左半最大的挪给右半、不平衡再把右半最小的挪回来。结束后…",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -2627,18 +2627,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：走到第 0 格的层边界——必须跳了！第 1 跳把覆盖范围推进到 2（层内所有格子探出… 下一步会怎样？",
+        "question": "执行「end = farthest」：这一步的作用是？",
         "options": [
           {
-            "text": "走到第 2 格的层边界——必须跳了！第 2 跳把覆盖范围推进到 4（层内所有格子探出的最远距…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2726,18 +2726,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第 2 阶：dp[1] + dp[0] = 1 + 1 = 2 下一步会怎样？",
+        "question": "执行「dp[i] = dp[i - 1] + dp[i - 2]」：这一步的作用是？",
         "options": [
           {
-            "text": "第 3 阶：dp[2] + dp[1] = 2 + 1 = 3",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2759,18 +2759,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第 0 行只有一个 1——地基就位 下一步会怎样？",
+        "question": "执行「tris.push(row)」：这一步的作用是？",
         "options": [
           {
-            "text": "第 1 行：首尾是 1，中间的 [（无）] 由上一行相邻两数相加而来",
+            "text": "把新元素加入容器（栈 / 队列 / 结果）",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "从容器取出元素",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "排序后继续遍历",
             "correct": false
           }
         ],
@@ -2825,18 +2825,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：数字 1：dp[1] = 1——它本身就是完全平方数 下一步会怎样？",
+        "question": "执行「dp[i] = i」：这一步的作用是？",
         "options": [
           {
-            "text": "数字 2：dp[2] = 2",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2858,18 +2858,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：用 1 元硬币过完一轮：所有\"叠一枚 1 更省\"的金额都被刷新——比如金额 11 现… 下一步会怎样？",
+        "question": "执行「dp[i] = dp[i - coin] + 1」：这一步的作用是？",
         "options": [
           {
-            "text": "用 2 元硬币过完一轮：所有\"叠一枚 2 更省\"的金额都被刷新——比如金额 11 现在需要 …",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -2891,18 +2891,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：前 0 个字符可拆 ✓，且第 0~3 个字符 \"leet\" 在字典里 → 前 4 个… 下一步会怎样？",
+        "question": "执行「dp[i] = true」：这一步的作用是？",
         "options": [
           {
-            "text": "前 4 个字符可拆 ✓，且第 4~7 个字符 \"code\" 在字典里 → 前 8 个字符也可…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -3023,18 +3023,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第 1 行填完：每格 = 上方格子 + 左方格子（两条来路）——右下角（2, 6）目… 下一步会怎样？",
+        "question": "执行「dp[r][c] = dp[r - 1][c] + dp[r…」：这一步的作用是？",
         "options": [
           {
-            "text": "第 2 行填完：每格 = 上方格子 + 左方格子（两条来路）——右下角（2, 6）目前是 2…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],
@@ -3188,18 +3188,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：mid = 1（值 3 < 5）：答案在右半，lo 右移到 2 下一步会怎样？",
+        "question": "执行到「const mid = Math.floor((lo + h…」：此刻满足命中 / 结束条件了吗？",
         "options": [
           {
-            "text": "mid = 2 正好是 5——直接返回下标 2",
+            "text": "满足 → 命中 / 完成",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "还没，继续推进",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "直接放弃本轮",
             "correct": false
           }
         ],
@@ -3221,18 +3221,18 @@ export const LESSONS: Record<string, Lesson> = {
     "predicts": [
       {
         "atFrame": 1,
-        "question": "当前：第 0 行的皇后放在第 0 列：列 0 空闲、对角线 0+0=0 与 0−0=0 也… 下一步会怎样？",
+        "question": "执行「board[r][c] = 'Q'」：这一步的作用是？",
         "options": [
           {
-            "text": "第 1 行的皇后放在第 2 列：列 2 空闲、对角线 1+2=3 与 1−2=-1 也没人占…",
+            "text": "更新指针 / 状态，推进算法",
             "correct": true
           },
           {
-            "text": "直接返回最终答案",
+            "text": "返回结果，结束本轮 / 本次",
             "correct": false
           },
           {
-            "text": "跳过当前元素继续",
+            "text": "从容器取出元素",
             "correct": false
           }
         ],

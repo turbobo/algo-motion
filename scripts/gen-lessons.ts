@@ -69,6 +69,17 @@ function hasOk(f: Frame): boolean {
 }
 const isReturn = (f: Frame): boolean => /return/.test(f.at)
 
+/** 动作类锚点 → 作用分类（无显式分支时用「这一步的作用是？」决策） */
+function roleOf(at: string): { correct: string; wrong: [string, string] } {
+  if (/return/.test(at)) return { correct: '返回结果，结束本轮 / 本次', wrong: ['交换两个元素', '把新元素加入容器'] }
+  if (/\.push\(/.test(at)) return { correct: '把新元素加入容器（栈 / 队列 / 结果）', wrong: ['从容器取出元素', '排序后继续遍历'] }
+  if (/\.(pop|shift)\(/.test(at)) return { correct: '从容器取出元素', wrong: ['把新元素加入容器', '排序后继续遍历'] }
+  if (/sort\(/.test(at)) return { correct: '排序以简化后续处理', wrong: ['从容器取出元素', '交换两个元素'] }
+  if (/\+\+|--|\^=|\+=|-=/.test(at)) return { correct: '更新状态变量，推进算法', wrong: ['返回结果，结束本轮 / 本次', '把新元素加入容器'] }
+  if (/=/.test(at)) return { correct: '更新指针 / 状态，推进算法', wrong: ['返回结果，结束本轮 / 本次', '从容器取出元素'] }
+  return { correct: '推进当前步骤', wrong: ['终止算法', '回退到起点'] }
+}
+
 /** 决策式预测：优先 if 分支 / 循环续退 / Math.max-min 取值，正确项由真实下一帧决定 */
 function buildPredict(frames: Frame[]): Lesson['predicts'] {
   if (frames.length < 3) return undefined
@@ -127,13 +138,27 @@ function buildPredict(frames: Frame[]): Lesson['predicts'] {
       explain: nxt.msg,
     }]
   }
+  // 无 if/for/while/Math 锚点：命中前决策 → 否则动作作用
+  if (hasOk(nxt)) {
+    return [{
+      atFrame: k,
+      question: `执行到「${short(cur.at, 30)}」：此刻满足命中 / 结束条件了吗？`,
+      options: [
+        { text: '满足 → 命中 / 完成', correct: true },
+        { text: '还没，继续推进', correct: false },
+        { text: '直接放弃本轮', correct: false },
+      ],
+      explain: nxt.msg,
+    }]
+  }
+  const role = roleOf(cur.at)
   return [{
     atFrame: k,
-    question: `当前：${short(cur.msg)} 下一步会怎样？`,
+    question: `执行「${short(cur.at, 30)}」：这一步的作用是？`,
     options: [
-      { text: short(nxt.msg, 46), correct: true },
-      { text: '直接返回最终答案', correct: false },
-      { text: '跳过当前元素继续', correct: false },
+      { text: role.correct, correct: true },
+      { text: role.wrong[0], correct: false },
+      { text: role.wrong[1], correct: false },
     ],
     explain: nxt.msg,
   }]

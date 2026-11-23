@@ -9,9 +9,12 @@ import { runInstrumented } from '../src/engine/protocol'
 describe('教学层 lesson 字段自洽', () => {
   const withLesson = SAMPLES.filter((s) => s.lesson)
 
-  it('至少有一道题提供教学设计（两数之和试点）', () => {
-    expect(withLesson.length).toBeGreaterThan(0)
+  it('全部样题都有教学设计（101 全覆盖，手工 3 + 生成 98）', () => {
+    expect(withLesson.length).toBe(SAMPLES.length)
     expect(withLesson.some((s) => s.id === 'two-sum')).toBe(true)
+    // 手工精修优先：两数之和的 idea 应为隐喻版而非生成版
+    const two = SAMPLES.find((s) => s.id === 'two-sum')!
+    expect(two.lesson!.idea).toContain('搭档')
   })
 
   it('idea 非空；contrast / takeaways 若提供则非空', () => {

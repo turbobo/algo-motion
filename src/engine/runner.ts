@@ -5,7 +5,7 @@
  * - 超时 terminate 防死循环
  */
 import type { Frame, InstrumentResult, RunResult } from '../types'
-import { resolveLineNumbers, type WorkerRequest, type WorkerResponse } from './protocol'
+import { resolveLineNumbers, compressFrames, type WorkerRequest, type WorkerResponse } from './protocol'
 
 /** 执行超时（毫秒） */
 const RUN_TIMEOUT_MS = 4000
@@ -47,6 +47,6 @@ export async function executeInstrumentResult(
   result: InstrumentResult,
 ): Promise<{ run: RunResult; framesByTest: Frame[][] }> {
   const run = await runInSandbox({ instrumentedCode: result.instrumentedCode, fnName: result.fnName })
-  const framesByTest = run.frameGroups.map((group) => resolveLineNumbers(group, result.displayCode))
+  const framesByTest = run.frameGroups.map((group) => resolveLineNumbers(compressFrames(group), result.displayCode))
   return { run, framesByTest }
 }

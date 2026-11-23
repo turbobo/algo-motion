@@ -130,6 +130,23 @@ export function resolveLineNumbers(frames: RawFrame[], displayCode: string): Fra
   return result
 }
 
+/**
+ * 帧压缩：合并「完全相同」的连续空转帧（msg/views/vars/stack 全一致）。
+ * 仅去重真正重复的帧，不改变任何有信息量的帧，故不影响行号锚定与教学预测下标
+ * （内置样题每帧讲解不同，压缩为无操作；主要收益在 LLM 过密插桩的重复帧）。
+ */
+export function compressFrames(frames: RawFrame[]): RawFrame[] {
+  const out: RawFrame[] = []
+  let prevKey = ''
+  for (const f of frames) {
+    const key = JSON.stringify([f.msg, f.views, f.vars ?? null, f.stack ?? null])
+    if (key === prevKey) continue
+    prevKey = key
+    out.push(f)
+  }
+  return out
+}
+
 // ===== 沙箱执行核心 =====
 
 interface RecorderState {

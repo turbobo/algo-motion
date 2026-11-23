@@ -3,6 +3,7 @@
  * 作用：无 API Key 时也可完整体验「执行 → 帧序列 → 播放」链路。
  */
 import type { InstrumentResult, Lesson } from '../types'
+import { LESSONS } from './lessons'
 import twoSumInstrumented from './raw/twoSum.js?raw'
 import reverseListInstrumented from './raw/reverseList.js?raw'
 import maxSubArrayInstrumented from './raw/maxSubArray.js?raw'
@@ -3884,7 +3885,7 @@ export const SAMPLES: Sample[] = RAW_SAMPLES.map((sample) => {
   if (!meta) {
     throw new Error(`样题 ${sample.id} 缺少分类/难度元数据`)
   }
-  return { ...sample, category: meta.category, difficulty: meta.difficulty }
+  return { ...sample, category: meta.category, difficulty: meta.difficulty, lesson: sample.lesson ?? LESSONS[sample.id] }
 })
 
 export function findSample(id: string): Sample | undefined {
